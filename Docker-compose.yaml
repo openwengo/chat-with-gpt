@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - app_network
+  dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev-app
+    volumes:
+      - /home:/home
+    user: "66679:66049"
+    networks:
+      - app_network
+    working_dir: /home/oschiavo/Devel/chat-with-gpt/app
+    environment:
+      - HOME=/home/oschiavo
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    entrypoint: ["sh", "-c", "/usr/local/bin/npm start"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dev-app.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.dev-app.entrypoints=web"
+      - "traefik.http.services.dev-app.loadbalancer.server.port=3000"
+
+    
+  dev-srv:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev-srv
+    volumes:
+      - /home:/home
+    user: "66679:66049"
+    networks:
+      - app_network
+    working_dir: /home/oschiavo/Devel/chat-with-gpt/server
+    environment:
+      - HOME=/home/oschiavo      
+    entrypoint: ["sh", "-c", "sleep 3600 ; . /usr/local/nvm/nvm.sh ; nvm use 19 && npm start"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dev-srv.rule=Host(`localhost`) && PathPrefix(`/chatapi`)"
+      - "traefik.http.routers.dev-srv.entrypoints=web"
+      - "traefik.http.services.dev-srv.loadbalancer.server.port=3001"
+
+networks:
+  app_network:
+    driver: bridge

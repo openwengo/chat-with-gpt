@@ -1,0 +1,5 @@
+FROM node:19-bullseye-slim AS build
+
+RUN apt-get update && \
+    apt-get install -y \
+    git

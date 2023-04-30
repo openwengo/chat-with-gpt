@@ -132,3 +132,6 @@ out
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# configuration, database
+server/data

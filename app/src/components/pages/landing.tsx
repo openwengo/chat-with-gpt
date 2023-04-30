@@ -7,6 +7,7 @@ import { openOpenAIApiKeyPanel } from '../../store/settings-ui';
 import { Page } from '../page';
 import { useOption } from '../../core/options/use-option';
 import { isProxySupported } from '../../core/chat/openai';
+import { backend } from '../../core/backend';
 
 const Container = styled.div`
     flex-grow: 1;
@@ -24,6 +25,10 @@ export default function LandingPage(props: any) {
     const [openAIApiKey] = useOption<string>('openai', 'apiKey');
     const dispatch = useAppDispatch();
     const onConnectButtonClick = useCallback(() => dispatch(openOpenAIApiKeyPanel()), [dispatch]);
+    const signIn = useCallback(() => {
+            backend.current?.signIn();
+        }
+    , [dispatch])
 
     return <Page id={'landing'} showSubHeader={true}>
         <Container>
@@ -31,11 +36,18 @@ export default function LandingPage(props: any) {
                 <FormattedMessage defaultMessage={'Hello, how can I help you today?'}
                     description="A friendly message that appears at the start of new chat sessions" />
             </p>
-            {!openAIApiKey && !isProxySupported() && (
+            {
+            (!openAIApiKey && !isProxySupported() && ((window as any).AUTH_PROVIDER === 'local'))  ? (
                 <Button size="xs" variant="light" compact onClick={onConnectButtonClick}>
                     <FormattedMessage defaultMessage={'Connect your OpenAI account to get started'} />
                 </Button>
-            )}
+            ) : (!openAIApiKey && !isProxySupported()) ? (
+                <Button size="xs" variant="light" compact onClick={signIn}>
+                    <FormattedMessage defaultMessage={'Login to get started'} />
+                </Button>
+            
+            ):(<></>)
+            }
         </Container>
     </Page>;
 }

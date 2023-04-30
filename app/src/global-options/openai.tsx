@@ -9,7 +9,11 @@ export const openAIOptions: OptionGroup = {
             defaultValue: "",
             displayOnSettingsScreen: "user",
             displayAsSeparateSection: true,
-            renderProps: () => ({
+            renderProps: () => 
+                (
+                                
+                ((window as any).AUTH_PROVIDER === 'local') ? (
+                {
                 type: "password",
                 label: "Your OpenAI API Key",
                 placeholder: "sk-************************************************",
@@ -26,7 +30,16 @@ export const openAIOptions: OptionGroup = {
                         <FormattedMessage defaultMessage="OpenAI API key usage is billed at a pay-as-you-go rate, separate from your ChatGPT subscription." />
                     </p>
                 </>,
-            }),
+            }) : ({
+                type: "text",
+                label: "",
+                description: <>
+                    <p>
+                        <FormattedMessage defaultMessage="Your API key is managed on the server" />
+                    </p>
+                </>,
+            })
+        ),
         },
     ],
 }

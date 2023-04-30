@@ -26,49 +26,59 @@ export function configurePassport(context: ChatServer) {
     const SQLiteStore = createSQLiteSessionStore(session);
     const sessionStore = new SQLiteStore({ db: 'sessions.db' });
 
-    /*    
-    passport.use(new LocalStrategy(async (email: string, password: string, cb: any) => {
-        const user = await context.database.getUser(email);
+    if ( config.google?.clientID && config.google?.clientSecret) {
+        passport.use(new GoogleStrategy({
+            clientID: config.google.clientID,
+            clientSecret: config.google.clientSecret,
+            callbackURL: '/chatapi/auth/google/callback',
+            scope: [ 'profile', 'email' ]
+        }, async function (accessToken: any, refreshToken: any, profile: any, cb: any) {
+            console.log("verify google user: accessToken:", accessToken, "refreshToken:", refreshToken, "profile:", profile);
 
-        if (!user) {
-            return cb(null, false, { message: 'Incorrect username or password.' });
-        }
+            const useremail = profile._json.email ;
+            let user = await context.database.getUser(useremail);
+            
+            if (!user) {
+                console.log("Create new user for email", useremail);
+                await context.database.createUser(useremail, Buffer.from(generateRandomString(15)));
+                let user = await context.database.getUser(useremail);
+            }
+            console.log("User:", user);
+            return cb(null,user);
+        }));
+        context.app.get('/chatapi/login', passport.authenticate('google', {
+            successRedirect: '/',
+            failureRedirect: '/?error=login'
+        }));
+    } else {        
+        passport.use(new LocalStrategy(async (email: string, password: string, cb: any) => {
+            const user = await context.database.getUser(email);
 
-        try {
-            const isPasswordCorrect = user.salt
-                ? crypto.timingSafeEqual(user.passwordHash, crypto.pbkdf2Sync(password, user.salt, 310000, 32, 'sha256'))
-                : await bcrypt.compare(password, user.passwordHash.toString());
-
-            if (!isPasswordCorrect) {
+            if (!user) {
                 return cb(null, false, { message: 'Incorrect username or password.' });
             }
 
-            return cb(null, user);
-        } catch (e) {
-            cb(e);
-        }
-    }));
-    */
-    //
-    passport.use(new GoogleStrategy({
-        clientID: process.env['GOOGLE_CLIENT_ID'],
-        clientSecret: process.env['GOOGLE_CLIENT_SECRET'],
-        callbackURL: '/chatapi/auth/google/callback',
-        scope: [ 'profile' ]
-    }, async function (accessToken: any, refreshToken: any, profile: any, cb: any) {
-        console.log("verify google user: accessToken:", accessToken, "refreshToken:", refreshToken, "profile:", profile);
+            try {
+                const isPasswordCorrect = user.salt
+                    ? crypto.timingSafeEqual(user.passwordHash, crypto.pbkdf2Sync(password, user.salt, 310000, 32, 'sha256'))
+                    : await bcrypt.compare(password, user.passwordHash.toString());
 
-        const useremail = profile._json.email ;
-        let user = await context.database.getUser(useremail);
-        
-        if (!user) {
-            console.log("Create new user for email", useremail);
-            await context.database.createUser(useremail, Buffer.from(generateRandomString(15)));
-            let user = await context.database.getUser(useremail);
-        }
-        console.log("User:", user);
-        return cb(null,user);
-    }));   
+                if (!isPasswordCorrect) {
+                    return cb(null, false, { message: 'Incorrect username or password.' });
+                }
+
+                return cb(null, user);
+            } catch (e) {
+                cb(e);
+            }
+        }));
+        context.app.post('/chatapi/login', passport.authenticate('local', {
+            successRedirect: '/',
+            failureRedirect: '/?error=login'
+        }));
+    }
+    //
+
     //
     passport.serializeUser((user: any, cb: any) => {
         process.nextTick(() => {

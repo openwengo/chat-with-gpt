@@ -67,6 +67,16 @@ export interface Config {
     };
 
     /*
+    Optional configuration object for the google authentication service.
+    If provided, the server will use Google for authentication.
+    Otherwise, it will use a local authentication system.
+    */
+
+    google?: {
+        clientID?: string;
+        clientSecret?: string;
+    }
+    /*
     The URL of the public-facing server.
     */
     publicSiteURL?: string;
@@ -122,7 +132,7 @@ if (fs.existsSync(filename)) {
         ...config,
         ...parse(fs.readFileSync(filename).toString()),
     };
-    console.log("Loaded config from:", filename);
+    console.log("Loaded config from:", filename, config);
 }
 
 if (process.env.AUTH_SECRET) {

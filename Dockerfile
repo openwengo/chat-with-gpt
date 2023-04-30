@@ -25,7 +25,7 @@ ENV NODE_ENV=production
 # Build the application
 RUN npm run build
 
-FROM nvidia/cuda:12.1.0-devel-ubuntu20.04 AS server
+FROM ubuntu:20.04 AS server
 
 # Set the working directory
 WORKDIR /app

@@ -6,7 +6,9 @@ import createSQLiteSessionStore from 'connect-sqlite3';
 import { Strategy as LocalStrategy } from 'passport-local';
 import ChatServer from './index';
 import { config } from './config';
+import { knex as KnexClient } from 'knex';
 
+const KnexSessionStore = require('connect-session-knex')(session);
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const secret = config.authSecret;
 
@@ -23,8 +25,6 @@ function generateRandomString(length: number): string {
   }
 
 export function configurePassport(context: ChatServer) {
-    const SQLiteStore = createSQLiteSessionStore(session);
-    const sessionStore = new SQLiteStore({ db: 'sessions.db' });
 
     if ( config.google?.clientID && config.google?.clientSecret) {
         passport.use(new GoogleStrategy({
@@ -72,14 +72,30 @@ export function configurePassport(context: ChatServer) {
                 cb(e);
             }
         }));
-        context.app.post('/chatapi/login', passport.authenticate('local', {
-            successRedirect: '/',
-            failureRedirect: '/?error=login'
-        }));
-    }
-    //
 
-    //
+        context.app.post('/chatapi/login', passport.authenticate('local', {
+                successRedirect: '/',
+                failureRedirect: '/?error=login'
+            }));
+
+        context.app.post('/chatapi/register', async (req, res, next) => {
+            const { username, password } = req.body;
+
+            const hashedPassword = await bcrypt.hash(password, 12);
+
+            try {
+                await context.database.createUser(username, Buffer.from(hashedPassword));
+
+                passport.authenticate('local')(req, res, () => {
+                    res.redirect('/');
+                });
+            } catch (err) {
+                console.error(err);
+                res.redirect('/?error=register');
+            }
+        });
+    }
+
     passport.serializeUser((user: any, cb: any) => {
         process.nextTick(() => {
             cb(null, { id: user.id, username: user.username });
@@ -92,12 +108,37 @@ export function configurePassport(context: ChatServer) {
         });
     });
 
-    context.app.use(session({
-        secret,
-        resave: false,
-        saveUninitialized: false,
-        store: sessionStore as any,
-    }));
+
+    if (config.storeSessionsInDb === true) {
+
+        const db = KnexClient(config.database)
+
+        const sessionStore = new KnexSessionStore({
+            knex: db,
+            tablename: config.sessionsTableName ? config.sessionsTableName : 'sessions',
+            createtable: true
+          });
+
+          context.app.use(session({
+            secret,
+            resave: false,
+            saveUninitialized: false,
+            store: sessionStore as any,
+        }));
+        
+    } else {
+     
+        const SQLiteStore = createSQLiteSessionStore(session);
+        const sessionStore = new SQLiteStore({ db: 'sessions.db' });
+
+
+        context.app.use(session({
+            secret,
+            resave: false,
+            saveUninitialized: false,
+            store: sessionStore as any,
+        }));
+    }
     context.app.use(passport.authenticate('session'));
 
     context.app.get('/chatapi/auth/google', 
@@ -110,30 +151,6 @@ export function configurePassport(context: ChatServer) {
             res.redirect('/');
         })
     
-    /*
-    context.app.post('/chatapi/login', passport.authenticate('local', {
-        successRedirect: '/',
-        failureRedirect: '/?error=login'
-    }));
-    */
-   /*
-    context.app.post('/chatapi/register', async (req, res, next) => {
-        const { username, password } = req.body;
-
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        try {
-            await context.database.createUser(username, Buffer.from(hashedPassword));
-
-            passport.authenticate('local')(req, res, () => {
-                res.redirect('/');
-            });
-        } catch (err) {
-            console.error(err);
-            res.redirect('/?error=register');
-        }
-    });
-    */
 
     context.app.all('/chatapi/logout', (req, res, next) => {
         req.logout((err) => {

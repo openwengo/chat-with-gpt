@@ -91,6 +91,17 @@ export interface Config {
         windowMs?: number;
         max?: number;
     };
+
+    /*
+    A list of trusted proxies from which to accept XFF headers
+    */
+   trustedProxies?: string[];
+    
+    /*
+    If set enables http logs. The string is passed to the morgan module, it can be: "combined", "common", ..
+    */
+   httpLogs?: string;
+
 }
 
 // default config:
@@ -132,7 +143,7 @@ if (fs.existsSync(filename)) {
         ...config,
         ...parse(fs.readFileSync(filename).toString()),
     };
-    console.log("Loaded config from:", filename, config);
+    //console.log("Loaded config from:", filename, config);
 }
 
 if (process.env.AUTH_SECRET) {

@@ -26,6 +26,10 @@ import LegacySyncRequestHandler from './endpoints/sync-legacy';
 import { getActiveUsersInLast5Minutes } from './endpoints/base';
 import { formatTime } from './utils';
 import { ConditionFilterSensitiveLog } from '@aws-sdk/client-s3';
+import morgan from 'morgan';
+import ip from 'ip';
+
+
 
 process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -50,6 +54,17 @@ export default class ChatServer {
     async initialize() {
         //const { default: helmet } = await import('helmet');
         //this.app.use(helmet());
+
+        // logs
+        if (config.httpLogs) {
+            console.log("Enable http logs with value:", config.httpLogs)
+            this.app.use(morgan(config.httpLogs))
+        }
+        // trusted proxies
+        if (config.trustedProxies)  {
+            console.log("Set trusted proxies:", config.trustedProxies)
+            this.app.set('trust proxy', (ipAddress: string) => config.trustedProxies?.some((prefix: string) => ip.cidrSubnet(prefix).contains(ipAddress)));
+        }
 
         this.app.use(express.urlencoded({ extended: false }));
         console.log("initialize", config.google);

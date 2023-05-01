@@ -48,6 +48,18 @@ export interface Config {
     database: Knex.Config;
 
     /*
+    Store sessions in database instead of local sqlite store
+    False if not set
+    */
+    storeSessionsInDb?: boolean;
+
+    /*
+    Table where sessions are stored. Only used if storeSessionsInDb is true.
+    Default is "sessions"
+    */
+    sessionsTableName?: string;
+
+    /*
     The secret session key used to encrypt the session cookie.
     If not provided, a random key will be generated.
     Changing this value will invalidate all existing sessions.

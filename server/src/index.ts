@@ -65,9 +65,12 @@ export default class ChatServer {
             console.log("Set trusted proxies:", config.trustedProxies)
             this.app.set('trust proxy', (ipAddress: string) => config.trustedProxies?.some((prefix: string) => ip.cidrSubnet(prefix).contains(ipAddress)));
         }
+        
+        // Initialize database before auth
+        await this.database.initialize();
 
         this.app.use(express.urlencoded({ extended: false }));
-        console.log("initialize", config.google);
+        
         if (config.auth0?.clientID && config.auth0?.issuer && config.publicSiteURL) {
             console.log('Configuring Auth0.');
             this.authProvider = 'auth0';
@@ -149,7 +152,6 @@ export default class ChatServer {
         }
 
         await this.objectStore.initialize();
-        await this.database.initialize();
 
         try {
             const callback = () => {

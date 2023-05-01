@@ -109,10 +109,10 @@ export function configurePassport(context: ChatServer) {
     });
 
 
-    if (config.storeSessionsInDb === true) {
+    if (config.storeSessionsInDb ? config.storeSessionsInDb : false ) {
 
+        console.log("Store sessions in database")
         const db = KnexClient(config.database)
-
         const sessionStore = new KnexSessionStore({
             knex: db,
             tablename: config.sessionsTableName ? config.sessionsTableName : 'sessions',

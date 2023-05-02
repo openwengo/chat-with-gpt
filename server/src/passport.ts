@@ -146,7 +146,7 @@ export function configurePassport(context: ChatServer) {
     );
 
     context.app.get('/chatapi/auth/google/callback',
-        passport.authenticate('google', {failureRedirect: '/login'}),
+        passport.authenticate('google', {failureRedirect: '/chatapi/login'}),
         function(req, res){
             res.redirect('/');
         })

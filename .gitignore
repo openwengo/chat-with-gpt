@@ -137,3 +137,6 @@ out
 
 # configuration, database
 server/data
+
+# vscode
+.vscode

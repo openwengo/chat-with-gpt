@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { apiKey, endpoint } from '.';
+import { apiKey, endpoint } from './index';
 
 export async function basicHandler(req: express.Request, res: express.Response) {
     const response = await axios.post(endpoint, JSON.stringify(req.body), {

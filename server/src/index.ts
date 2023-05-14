@@ -25,7 +25,6 @@ import SyncRequestHandler, { getNumUpdatesProcessedIn5Minutes } from './endpoint
 import LegacySyncRequestHandler from './endpoints/sync-legacy';
 import { getActiveUsersInLast5Minutes } from './endpoints/base';
 import { formatTime } from './utils';
-import { ConditionFilterSensitiveLog } from '@aws-sdk/client-s3';
 import morgan from 'morgan';
 import ip from 'ip';
 

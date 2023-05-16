@@ -70,5 +70,8 @@
     "y-protocols": "^1.0.5",
     "yaml": "^2.2.1",
     "yjs": "^13.5.51"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.1"
   }
 }

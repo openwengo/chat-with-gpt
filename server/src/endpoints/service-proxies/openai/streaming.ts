@@ -162,71 +162,73 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         res.flush();
         res.end();
         return;
-    } else {
-        const eventSource = new EventSource('https://api.openai.com/v1/chat/completions', {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...req.body,
-                stream: true,
-            }),
-        });
+    } 
 
-        eventSource.addEventListener('message', async (event: any) => {
-            //console.log("new message:", `data: ${event.data}\n\n`);
-            res.write(`data: ${event.data}\n\n`);
-            res.flush();
+    delete req.body.wengoplusmode;
+    
+    const eventSource = new EventSource('https://api.openai.com/v1/chat/completions', {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            ...req.body,
+            stream: true,
+        }),
+    });
 
-            if (event.data === '[DONE]') {
-                res.end();
-                eventSource.close();
+    eventSource.addEventListener('message', async (event: any) => {
+        //console.log("new message:", `data: ${event.data}\n\n`);
+        res.write(`data: ${event.data}\n\n`);
+        res.flush();
 
-                const totalTokens = countTokensForMessages([
-                    ...messages,
-                    {
-                        role: "assistant",
-                        content: completion,
-                    },
-                ]);
-                const completionTokens = totalTokens - promptTokens;
-                console.log(`prompt tokens: ${promptTokens}, completion tokens: ${completionTokens}, model: ${req.body.model}`);
-                return;
-            }
-
-            try {
-                const chunk = parseResponseChunk(event.data);
-                if (chunk.choices && chunk.choices.length > 0) {
-                    completion += chunk.choices[0]?.delta?.content || '';
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        });
-
-        eventSource.addEventListener('error', (event: any) => {
-            console.log("Error!", event);
-            sendChunkResponse(res, `An error occured. Please try again`);
+        if (event.data === '[DONE]') {
             res.end();
             eventSource.close();
-        });
 
-        eventSource.addEventListener('abort', (event: any) => {
-            console.log("Abort!");
-            res.end();
-        });
+            const totalTokens = countTokensForMessages([
+                ...messages,
+                {
+                    role: "assistant",
+                    content: completion,
+                },
+            ]);
+            const completionTokens = totalTokens - promptTokens;
+            console.log(`prompt tokens: ${promptTokens}, completion tokens: ${completionTokens}, model: ${req.body.model}`);
+            return;
+        }
 
-        req.on('close', () => {
-            eventSource.close();
-        });
+        try {
+            const chunk = parseResponseChunk(event.data);
+            if (chunk.choices && chunk.choices.length > 0) {
+                completion += chunk.choices[0]?.delta?.content || '';
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    });
 
-        res.on('error', e => {
-            eventSource.close();
-        });
-    }
+    eventSource.addEventListener('error', (event: any) => {
+        console.log("Error!", event);
+        sendChunkResponse(res, `An error occured. Please try again`);
+        res.end();
+        eventSource.close();
+    });
+
+    eventSource.addEventListener('abort', (event: any) => {
+        console.log("Abort!");
+        res.end();
+    });
+
+    req.on('close', () => {
+        eventSource.close();
+    });
+
+    res.on('error', e => {
+        eventSource.close();
+    });
 }
 
 function parseResponseChunk(buffer: any) {

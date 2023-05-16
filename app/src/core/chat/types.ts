@@ -5,6 +5,7 @@ export interface Parameters {
     apiKey?: string;
     initialSystemPrompt?: string;
     model: string;
+    wengoplusmode?: boolean;
 }
 
 export interface Message {

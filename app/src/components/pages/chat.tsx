@@ -96,10 +96,21 @@ export default function ChatPage(props: any) {
                             ? '/' + slugify(context.currentChat.chat.title.toLocaleLowerCase())
                             : '';
                         const url = window.location.origin + '/s/' + id + slug;
-                        navigator.share?.({
-                            title: context.currentChat.chat.title || undefined,
-                            url,
-                        });
+                        if ( typeof navigator.share !== 'undefined' ) {
+                            navigator.share?.({
+                                title: context.currentChat.chat.title || undefined,
+                                url,
+                            });
+                        } else {
+                            // Add a confirmation prompt
+                            const shouldCopy = confirm('The shared link will be copied to the clipboard. Do you want to proceed?');
+
+                            if (shouldCopy) {
+                                navigator.clipboard.writeText(url);
+                            } else {
+                                console.log('URL copy operation cancelled');
+                            }                            
+                        }
                     }
                 }
             },

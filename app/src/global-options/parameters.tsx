@@ -40,6 +40,23 @@ export const parameterOptions: OptionGroup = {
             }),
         },
         {
+            id: 'wengoplus-mode',
+            defaultValue: false,
+            resettable: true,
+            scope: "chat",
+            displayOnSettingsScreen: "chat",
+            displayAsSeparateSection: true,
+            displayInQuickSettings: {
+                name: "Enable access to internet and other tools",
+                displayByDefault: false,
+                label: (value) => value ? "Disable wengoplus" : "Enable wengoplus",
+            },
+            renderProps: {
+                type: "checkbox",
+                label: "Enable access to internet and other tools",
+            },
+        },        
+        {
             id: "temperature",
             defaultValue: 0.5,
             resettable: true,

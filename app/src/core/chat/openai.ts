@@ -99,6 +99,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
             "messages": messages,
             "temperature": parameters.temperature,
             "stream": true,
+            "wengoplusmode": parameters.wengoplusmode
         }),
     }) as SSE;
 

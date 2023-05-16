@@ -97,6 +97,7 @@ export function useCreateAppContext(): Context {
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
             temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id)
         };
 
         if (id === nextID) {
@@ -159,6 +160,7 @@ export function useCreateAppContext(): Context {
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
             temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
         };
 
         await chatManager.regenerate(message, {
@@ -191,6 +193,7 @@ export function useCreateAppContext(): Context {
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
             temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
         };
 
         if (id && chatManager.has(id)) {

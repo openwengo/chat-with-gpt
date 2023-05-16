@@ -259,7 +259,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                                 </Button>
                             )}
                         </CopyButton>
-                        {typeof navigator.share !== 'undefined' && (
+                        {(
                             <Button variant="subtle" size="sm" compact onClick={() => share(props.message.content)}>
                                 <i className="fa fa-share" />
                                 <span>

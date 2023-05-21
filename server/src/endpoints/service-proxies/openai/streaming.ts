@@ -12,6 +12,7 @@ const { ChatOpenAI } = require("langchain/chat_models/openai");
 const { WebBrowser } = require("langchain/tools/webbrowser");
 const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
 const { BaseCallbackHandler } = require("langchain/callbacks");
+const { AWSLambda } = require("langchain/tools/aws_lambda");
 
 //const { HumanChatMessage, SystemChatMessage } = require("langchain/schema");
 
@@ -66,6 +67,13 @@ class MyCallbackHandler extends BaseCallbackHandler {
     }
   }
 
+const astroDataTool = new AWSLambda({
+    name: "astrological-aspects",
+    description: "Retrieves astrological aspects at give date and a specific location. Pass the date as parameter with this format: YYYY-MM-DD",
+    region: "eu-west-3",
+    functionName: "lambda_astrodata"
+});
+
 async function chainPreprocess(message: string, res: express.Response, modelName?: string) {
     const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
@@ -80,7 +88,8 @@ async function chainPreprocess(message: string, res: express.Response, modelName
       );
     const tools =  [
         //new Calculator(),
-        new WebBrowser({model, embeddings})
+        new WebBrowser({model, embeddings}),
+        astroDataTool
     ]
     //const agent = ChatAgent.fromLLMAndTools(model, tools);
     const callbackHandler = new MyCallbackHandler(res);

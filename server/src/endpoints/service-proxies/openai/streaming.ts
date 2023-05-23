@@ -74,10 +74,10 @@ const astroDataTool = new AWSLambda({
     functionName: "lambda_astrodata"
 });
 
-async function chainPreprocess(message: string, res: express.Response, modelName?: string) {
+async function chainPreprocess(message: string, res: express.Response, modelName?: string, temperature?: number) {
     const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
-        temperature: 0,
+        temperature: temperature ? temperature : 0,
         modelName: modelName ? modelName : "gpt-3.5-turbo",
         callbacks: [{
             handleLLMNewToken(token: string) {
@@ -159,7 +159,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     console.log("LastMessage:", lastMessage);
 
     if ( req.body.wengoplusmode ) {
-        const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body.model);
+        const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body.model, req.body.temperature);
 
         if (preprocessedMessage !== '') {
             sendChunkResponse(res, preprocessedMessage);        

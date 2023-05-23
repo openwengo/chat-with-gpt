@@ -105,7 +105,7 @@ async function chainPreprocess(message: string, res: express.Response, modelName
     });
     console.log("Loaded agent.", executor);
     executor.verbose = true;
-    executor.maxIterations = 6;
+    executor.maxIterations = 10;
     executor.returnIntermediateSteps = true;
 
 

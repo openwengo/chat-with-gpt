@@ -66,7 +66,7 @@ export default function ChatPage(props: any) {
     }, [context.currentChat?.chatLoadedAt, context.currentChat?.messagesToDisplay.length, props.share, autoScrollWhenOpeningChat]);
 
     const autoScroll = useCallback(() => {
-        if (context.generating && autoScrollWhileGenerating) {
+        if (context.generating && autoScrollWhileGenerating && ( !props.share ) ) {
             const container = document.querySelector('#messages') as HTMLElement;
             container?.scrollTo({ top: 999999, behavior: 'smooth' });
             container?.parentElement?.scrollTo({ top: 999999, behavior: 'smooth' });

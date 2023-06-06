@@ -74,6 +74,14 @@ const astroDataTool = new AWSLambda({
     functionName: "lambda_astrodata"
 });
 
+const gptDataTool = new AWSLambda({
+    name: "wengo-database",
+    description: "Retrieves data from wengo database about customers, sellers ( or experts ) and ratings.\n\
+     Input must be a string with the plain text question about the data you need",
+    region: "eu-west-3",
+    functionName: "lambda_gptdata"
+});
+
 async function chainPreprocess(message: string, res: express.Response, modelName?: string, temperature?: number) {
     const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
@@ -89,7 +97,8 @@ async function chainPreprocess(message: string, res: express.Response, modelName
     const tools =  [
         //new Calculator(),
         new WebBrowser({model, embeddings}),
-        astroDataTool
+        astroDataTool,
+        gptDataTool
     ]
     //const agent = ChatAgent.fromLLMAndTools(model, tools);
     const callbackHandler = new MyCallbackHandler(res);
@@ -103,11 +112,11 @@ async function chainPreprocess(message: string, res: express.Response, modelName
         },        
 
     });
-    console.log("Loaded agent.", executor);
+    
     executor.verbose = true;
     executor.maxIterations = 10;
     executor.returnIntermediateSteps = true;
-
+    console.log("Loaded agent.", executor);
 
     const input = message ;
 

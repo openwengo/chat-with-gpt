@@ -12,7 +12,7 @@ export const secondaryMenu: MenuItem[] = [
     },
     {
         label: "GitHub",
-        link: "https://github.com/cogentapps/chat-with-gpt",
+        link: "https://github.com/openwengo/chat-with-gpt.git",
         icon: "github fab",
     },
 ];

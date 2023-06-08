@@ -5,6 +5,10 @@ import { apiKey } from ".";
 import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
+import { HttpHandlerOptions } from "@aws-sdk/types";
+import { Lambda, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+
 //const { OpenAI } = require("langchain/llms/openai");
 const { Calculator } = require("langchain/tools/calculator");
 const { initializeAgentExecutorWithOptions } = require("langchain/agents") ;
@@ -13,7 +17,7 @@ const { WebBrowser } = require("langchain/tools/webbrowser");
 const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
 const { BaseCallbackHandler } = require("langchain/callbacks");
 const { AWSLambda } = require("langchain/tools/aws_lambda");
-
+const { DynamicTool } = require("langchain/tools");
 //const { HumanChatMessage, SystemChatMessage } = require("langchain/schema");
 
 
@@ -82,6 +86,71 @@ const gptDataTool = new AWSLambda({
     functionName: "lambda_gptdata"
 });
 
+const agent = new Agent({
+    keepAlive: true,
+    // keepAliveMsecs: 999,
+    // maxSockets: 100,
+    // maxTotalSockets: 100,
+    // maxFreeSockets: 256,
+    timeout: 400 * 1000,
+    // scheduling: "fifo",
+});
+
+const lambdaClient = new Lambda({
+    region: "eu-west-3",
+    logger: console,
+    requestHandler: new NodeHttpHandler({
+        connectionTimeout: 8000,
+        socketTimeout: 400 * 1000,
+        httpAgent: agent,
+    }),
+});
+
+  
+const customGptDataTool = new DynamicTool({
+    name: "wengo-database",
+    description: "Retrieves data from wengo database about customers, sellers ( or experts ) and ratings.\n\
+     Input must be a string with the plain text question about the data you need",
+    func: async (input: string) => {
+                  
+        const params = {
+            FunctionName: "lambda_gptdata",
+            Payload: new TextEncoder().encode(JSON.stringify(input)),
+            InvocationType: "RequestResponse",
+        }
+
+        // Hack to trigger tcp keepAlives on socket
+
+        const paramsDryRun = { 
+            ...params,
+            InvocationType: "DryRun",
+        }
+
+        const dryRun = new InvokeCommand(paramsDryRun);
+
+        const data = await lambdaClient.send(dryRun);
+
+        // Create an InvokeCommand with the defined parameters
+        const command = new InvokeCommand(params);
+
+        return new Promise((resolve) => {
+            lambdaClient
+                .send(command)
+                .then((response) => {
+                const responseData = JSON.parse(new TextDecoder().decode(response.Payload));
+                resolve(responseData.body ? responseData.body : "request completed.");
+            })
+                .catch((error) => {
+                console.error("Error invoking Lambda function:", error);
+                resolve("failed to complete request");
+            });
+        });
+    }
+}
+)
+
+
+
 async function chainPreprocess(message: string, res: express.Response, modelName?: string, temperature?: number) {
     const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
@@ -98,7 +167,7 @@ async function chainPreprocess(message: string, res: express.Response, modelName
         //new Calculator(),
         new WebBrowser({model, embeddings}),
         astroDataTool,
-        gptDataTool
+        customGptDataTool
     ]
     //const agent = ChatAgent.fromLLMAndTools(model, tools);
     const callbackHandler = new MyCallbackHandler(res);

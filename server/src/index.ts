@@ -14,6 +14,8 @@ import HealthRequestHandler from './endpoints/health';
 import DeleteChatRequestHandler from './endpoints/delete-chat';
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech';
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
+import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
+
 import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai';
 import SessionRequestHandler from './endpoints/session';
 import ShareRequestHandler from './endpoints/share';
@@ -54,6 +56,8 @@ export default class ChatServer {
         //const { default: helmet } = await import('helmet');
         //this.app.use(helmet());
 
+        console.log("Configuration:", config);
+
         // logs
         if (config.httpLogs) {
             console.log("Enable http logs with value:", config.httpLogs)
@@ -69,6 +73,7 @@ export default class ChatServer {
         await this.database.initialize();
 
         this.app.use(express.urlencoded({ extended: false }));
+        
         
         if (config.auth0?.clientID && config.auth0?.issuer && config.publicSiteURL) {
             console.log('Configuring Auth0.');
@@ -122,6 +127,11 @@ export default class ChatServer {
         if (config.services?.elevenlabs?.apiKey) {
             this.app.post('/chatapi/proxies/elevenlabs/v1/text-to-speech/:voiceID', (req, res) => new ElevenLabsTTSProxyRequestHandler(this, req, res));
             this.app.get('/chatapi/proxies/elevenlabs/v1/voices', (req, res) => new ElevenLabsVoicesProxyRequestHandler(this, req, res));
+        }
+
+        if (config.services?.midjourney?.salaiToken) {
+            console.log("Create midjourney routes");
+            this.app.post('/chatapi/proxies/midjourney/v1/midjourney', (req, res) => new MidjourneyRequestHandler(this, req, res));
         }
 
         if (fs.existsSync('public')) {

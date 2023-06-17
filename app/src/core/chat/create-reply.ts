@@ -1,5 +1,6 @@
 import EventEmitter from "events";
 import { createChatCompletion, createStreamingChatCompletion } from "./openai";
+import { createStreamingMidjourneyCompletion } from "./midjourney";
 import { PluginContext } from "../plugins/plugin-context";
 import { pluginRunner } from "../plugins/plugin-runner";
 import { Chat, Message, OpenAIMessage, Parameters, getOpenAIMessageFromMessage } from "./types";
@@ -74,10 +75,24 @@ export class ReplyRequest extends EventEmitter {
                 this.lastChunkReceivedAt = Date.now();
             });
 
-            const { emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
-                ...this.mutatedParameters,
-                apiKey: this.requestedParameters.apiKey,
-            });
+            
+            let emitter: EventEmitter ;
+            let cancel: () => void;
+
+            console.log("After plugins, mutatedMessages:", this.mutatedMessages, "mutatedParameters:", this.mutatedParameters);
+
+            if (! this.mutatedParameters.midjourney ) {
+                ({ emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
+                    ...this.mutatedParameters,
+                    apiKey: this.requestedParameters.apiKey,
+                }));
+            } else {
+                ({ emitter, cancel } = await createStreamingMidjourneyCompletion(this.mutatedMessages, {
+                    ...this.mutatedParameters,
+                    apiKey: this.requestedParameters.apiKey,
+                }));
+            }
+
             this.cancelSSE = cancel;
 
             const eventIterator = new EventEmitterAsyncIterator<string>(emitter, ["data", "done", "error"]);
@@ -118,7 +133,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: 'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : 'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, false);
 

@@ -1,12 +1,34 @@
 import { MessageTree } from "./message-tree";
 
+
+
+export interface MidjourneyMessage {
+    uri: string;
+    progress: string;
+    id?: string;
+    hash?: string;
+}
+
+export interface MidjourneyParameters {
+    midjourneyMethod: string;
+    id?: string;
+    uri?: string;
+    hash?: string;
+    index?: number;
+}
+
 export interface Parameters {
     temperature: number;
     apiKey?: string;
     initialSystemPrompt?: string;
     model: string;
     wengoplusmode?: boolean;
+    midjourney?: boolean;
+    midjourneyParameters?: MidjourneyParameters;
+
 }
+
+
 
 export interface Message {
     id: string;

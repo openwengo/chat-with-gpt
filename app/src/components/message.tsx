@@ -5,6 +5,7 @@ import { Message } from "../core/chat/types";
 import { share } from '../core/utils';
 import { TTSButton } from './tts-button';
 import { Markdown } from './markdown';
+import { MidjourneyDisplay } from './midjourney-display';
 import { useAppContext } from '../core/context';
 import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -211,7 +212,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
     const intl = useIntl();
 
     const tab = useAppSelector(selectSettingsTab);
-
+    console.log("MessageComponent:", props.message) ;
+    
     const getRoleName = useCallback((role: string, share = false) => {
         switch (role) {
             case 'user':
@@ -223,6 +225,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 break;
             case 'assistant':
                 return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'ChatGPT', description: "Label that is shown above messages written by the AI (as opposed to the user)" });
+            case 'midjourney':
+                return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
             case 'system':
                 return intl.formatMessage({ id: 'role-system', defaultMessage: 'System', description: "Label that is shown above messages inserted into the conversation automatically by the system (as opposed to either the user or AI)" });
             default:
@@ -243,7 +247,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             <strong>
                                 {getRoleName(props.message.role, props.share)}{props.message.model === 'gpt-4' && ' (GPT 4)'}<SROnly>:</SROnly>
                             </strong>
-                            {props.message.role === 'assistant' && props.last && !props.message.done && <InlineLoader />}
+                            {(props.message.role === 'assistant' || props.message.role === 'midjourney' ) && props.last && !props.message.done && <InlineLoader />}
                         </span>
                         <TTSButton id={props.message.id}
                             selector={'.content-' + props.message.id}
@@ -288,7 +292,9 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </Button>
                         )}
                     </div>
-                    {!editing && <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && props.message.role !== 'midjourney' &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
+                    
                     {editing && (<Editor>
                         <Textarea value={content}
                             onChange={e => setContent(e.currentTarget.value)}

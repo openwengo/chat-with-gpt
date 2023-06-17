@@ -28,6 +28,15 @@ export interface Config {
             apiKey?: string;
             loginRequired?: boolean;
         };
+
+        midjourney?: {
+            // The salaiToken is mandatory to connect. serverId and channelId are optionnal ( if you need to post to a specific server on a specific channel )
+            salaiToken?: string;
+            serverId?: string;
+            channelId?: string;
+            apiKey?: string; // this isa copy of salaiToken
+            loginRequired?: boolean;            
+        }
     };
 
     /*
@@ -178,6 +187,11 @@ if (process.argv.includes('--self-signed')) {
 if (config.publicSiteURL) {
     // remove trailing slash:
     config.publicSiteURL = config.publicSiteURL.replace(/\/$/, '');
+}
+
+
+if (config.services?.midjourney?.salaiToken) {
+    config.services.midjourney.apiKey = config.services.midjourney.salaiToken ;
 }
 
 export {

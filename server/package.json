@@ -57,6 +57,7 @@
     "lib0": "^0.2.73",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
+    "midjourney": "^2.7.79",
     "morgan": "^1.10.0",
     "nanoid": "^4.0.1",
     "openai": "^3.2.1",

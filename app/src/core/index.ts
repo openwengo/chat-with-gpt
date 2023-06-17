@@ -169,13 +169,20 @@ export class ChatManager extends EventEmitter {
         if (!chat) {
             throw new Error('Chat not found');
         }
+        const lastMessage = messages[messages.length -1 ];
 
+        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale"]
+
+        const isMidjourney = midjourneyPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
+        
+        console.log("getReply isMidjourney:", isMidjourney) ;
+        
         const message: Message = {
             id: uuidv4(),
             parentID,
             chatID,
             timestamp: Date.now(),
-            role: 'assistant',
+            role: isMidjourney ? "midjourney" : 'assistant',
             model: requestedParameters.model,
             content: '',
         };

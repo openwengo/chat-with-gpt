@@ -16,6 +16,9 @@
     "0vL5u1": {
     "defaultMessage": "Créer un compte"
     },
+    "mL4Q28": {
+        "defaultMessage": "Voix custom"
+    },
     "1j61Mn": {
     "defaultMessage": "Ou créer un compte",
     "description": "Étiquette pour un bouton sur la page de connexion qui permet à l'utilisateur de créer un compte à la place"
@@ -181,6 +184,10 @@
 "role-user": {
 "defaultMessage": "Vous",
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'utilisateur (par opposition à l'IA) dans les sessions de chat de l'utilisateur (à la première personne)."
+},
+"role-midjourney": {
+    "defaultMessage": "Midjourney",
+    "description": "Etiquette qui est affichée au-dessus des messages érits par Midjourney"
 },
 "role-user-formal": {
 "defaultMessage": "Utilisateur",

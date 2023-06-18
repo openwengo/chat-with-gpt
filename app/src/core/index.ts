@@ -183,7 +183,7 @@ export class ChatManager extends EventEmitter {
             chatID,
             timestamp: Date.now(),
             role: isMidjourney ? "midjourney" : 'assistant',
-            model: requestedParameters.model,
+            model: "midjourney",
             content: '',
         };
 

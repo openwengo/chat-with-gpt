@@ -50,6 +50,11 @@ const ImagePreview = styled.div`
     }
 `;
 
+const CenteredButton = styled.div`
+    text-align: center;
+`;
+
+
 export interface MidjourneyDisplayProps {
     content: string;
     className?: string;
@@ -68,29 +73,41 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
         return classes;
     }, [props.className])
 
-    let midjournerMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
+    let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"starting.."} ;
+    
+    const handleOpenImage = (imageUrl: string) => {
+        window.open(imageUrl, "_blank");
+    };
 
-    try {
-        midjournerMessage = JSON.parse(props.content)
+    if (props.content !== "") {
+        try {
+            midjourneyMessage = JSON.parse(props.content)
 
-    } catch (error) {
-        console.log("Failed to parse midjourney message:", props.content, "with error:", error) ;        
+        } catch (error) {
+            console.log("Failed to parse midjourney message:", props.content, "with error:", error) ;   
+            midjourneyMessage.progress="error";
+        }
     }
 
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
             <ImagePreview>
-                <img src={midjournerMessage.uri} />
+                <img src={midjourneyMessage.uri} 
+                     onClick={ () => handleOpenImage(midjourneyMessage.uri)}
+                     style={{ cursor: "pointer" }}/>
             </ImagePreview>
-            <h6>{ midjournerMessage.progress }</h6>
-            { midjournerMessage.id ? <Button
-                    variant="light" 
-                    style={{ marginTop: '1rem' }}
-                >
-                    Image id: {midjournerMessage.id}
-                </Button> : null }
+            { midjourneyMessage.progress === "done" ? <><CenteredButton><Button
+             variant="light"             
+             onClick={() => handleOpenImage(midjourneyMessage.uri)}>
+                Web
+            </Button></CenteredButton>
+            <div>/variations 1-4</div>
+            <div>/upscale 1-4</div>
+            </> : <h6>{ midjourneyMessage.progress }</h6> }
+            
+
         </div>
-    ), [midjournerMessage.uri, classes, intl]);
+    ), [midjourneyMessage.uri, classes, intl]);
 
     return elem;
 }

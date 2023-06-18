@@ -213,7 +213,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
 
     const tab = useAppSelector(selectSettingsTab);
     console.log("MessageComponent:", props.message) ;
-    
+
     const getRoleName = useCallback((role: string, share = false) => {
         switch (role) {
             case 'user':
@@ -249,11 +249,12 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </strong>
                             {(props.message.role === 'assistant' || props.message.role === 'midjourney' ) && props.last && !props.message.done && <InlineLoader />}
                         </span>
-                        <TTSButton id={props.message.id}
+                        { props.message.role !== 'midjourney' ? <><TTSButton id={props.message.id}
                             selector={'.content-' + props.message.id}
                             complete={!!props.message.done}
                             autoplay={props.last && context.chat.lastReplyID === props.message.id} />
                         <div style={{ flexGrow: 1 }} />
+
                         <CopyButton value={props.message.content}>
                             {({ copy, copied }) => (
                                 <Button variant="subtle" size="sm" compact onClick={copy} style={{ marginLeft: '1rem' }}>
@@ -271,6 +272,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                                 </span>
                             </Button>
                         )}
+                        </>
+                            : null }                        
                         {!context.isShare && props.message.role === 'user' && (
                             <Button variant="subtle" size="sm" compact onClick={() => {
                                 setContent(props.message.content);

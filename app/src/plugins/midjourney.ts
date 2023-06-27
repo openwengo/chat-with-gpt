@@ -10,7 +10,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
     describe(): PluginDescription {
         return {
             id: "midjourney",
-            name: "Routes /imagine, /variations  and /upscale",
+            name: "Routes /imagine, /variations, /upscale, /zoomout",
             options: [
                 // {
                 //     id: 'maxTokens',
@@ -42,7 +42,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
         
         const lastMessage = messages[messages.length -1 ];
 
-        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale"]
+        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale", "/zoomout"]
 
         const prefixIndex = midjourneyPrefixes.findIndex(prefix => lastMessage.content.startsWith(prefix)) ;
 
@@ -62,7 +62,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
                 midjourneyMethod: midjourneyPrefixes[prefixIndex]
             }
 
-            if (prefixIndex > 0 ) {
+            if ((prefixIndex > 0 ) && ( prefixIndex < 3)) {
                 if (lastMidjourneyIndex !== -1 ) {
                     let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
 
@@ -92,12 +92,58 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
                         id: midjourneyMessage.id,
                         hash: midjourneyMessage.hash,
                         index: imageIndex,
+                        flags: midjourneyMessage.flags,
 
                     }
 
                 } else {
-                    throw new Error("You must /imagine before /variations or /upscale") ;
+                    throw new Error("You must /imagine before /variations or /upscale or /zoomout") ;
                 }
+            } else if ( prefixIndex == 3 ) { // zoomout
+                if (lastMidjourneyIndex !== -1 ) {
+                    let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
+
+                    try {
+                        midjourneyMessage = JSON.parse(messages[lastMidjourneyIndex].content);
+
+                        console.log("Found image generation:", midjourneyMessage);
+                        
+                    } catch (error) {
+                        console.log("Failed to parse midjourney message:", messages[lastMidjourneyIndex].content, "with error:", error) ;
+                        throw new Error("Internal error, generation can't be parsed");
+                    }
+
+                    let messageSplit = lastMessage.content.split(" ") ;
+
+                    if ( messageSplit.length < 2 ) {
+                        throw new Error(`Syntax is ${messageSplit[0]} <"high" | "low" | "2x" | "1.5x">`);
+                    }
+                    let zoomLevel: string = messageSplit[1];
+
+                    const zoomLevels = [ "high", "low", "2x", "1.5x" ] ;
+
+                    const zoomIndex = zoomLevels.indexOf( zoomLevel ) ;
+
+
+                    if (zoomIndex < 0) {
+                        zoomLevel = "2x";
+                    }
+
+                    midjourneyParameters = {
+                        ...midjourneyParameters,
+                        uri: midjourneyMessage.uri,
+                        id: midjourneyMessage.id,
+                        hash: midjourneyMessage.hash,
+                        level: zoomLevel,
+                        flags: midjourneyMessage.flags,
+
+                    }
+
+                } else {
+                    throw new Error("You must /imagine before /zoomout") ;
+                }
+
+
             }
             const newParameters: Parameters = {
                 ...parameters,

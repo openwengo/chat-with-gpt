@@ -7,6 +7,7 @@ export interface MidjourneyMessage {
     progress: string;
     id?: string;
     hash?: string;
+    flags?: number;
 }
 
 export interface MidjourneyParameters {
@@ -15,6 +16,8 @@ export interface MidjourneyParameters {
     uri?: string;
     hash?: string;
     index?: number;
+    flags?: number;
+    level?: string;
 }
 
 export interface Parameters {

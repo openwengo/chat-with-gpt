@@ -171,7 +171,7 @@ export class ChatManager extends EventEmitter {
         }
         const lastMessage = messages[messages.length -1 ];
 
-        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale"]
+        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale", "/zoomout"]
 
         const isMidjourney = midjourneyPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         

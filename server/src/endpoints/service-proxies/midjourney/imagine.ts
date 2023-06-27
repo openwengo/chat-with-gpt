@@ -52,6 +52,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         Ws: true
         } );
 
+    await midjourneyClient.Connect();
+
     if ( req.body.midjourneyMethod == '/imagine') {
         const prompt: string = lastMessage.content.replace(new RegExp("^" + "/imagine"), "")
         
@@ -80,17 +82,28 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     if ( req.body.midjourneyMethod == '/variations') {
         
+        /*
+        { index, msgId, hash, content, flags, loading, }: {
+            index: 1 | 2 | 3 | 4;
+            msgId: string;
+            hash: string;
+            content?: string;
+            flags: number;
+            loading?: LoadingHandler;
+        }*/
+
         try {
-            const msg = await midjourneyClient.Variation(
-                req.body.messages[0].content,
-                req.body.index ,
-                req.body.id,
-                req.body.hash,                
-                (uri: string, progress: string) => {
+            const msg = await midjourneyClient.Variation({
+                index: req.body.index ,
+                msgId: req.body.id,
+                hash: req.body.hash,                
+                content: req.body.messages[0].content, 
+                flags: req.body.flags,                                
+                loading: (uri: string, progress: string) => {
                     // Send updates to the client every time the callback is executed
                     console.log("midjourney progress:", progress) ;
                     sendSSE(req, res, { uri, progress });
-                }
+                }},
             );
             sendSSE(req, res, msg);
             console.log("Variations response:", msg) ;
@@ -109,19 +122,49 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     if ( req.body.midjourneyMethod == '/upscale') {
         
         try {
-            const msg = await midjourneyClient.Upscale(
-                req.body.messages[0].content,                 
-                req.body.index ,
-                req.body.id,
-                req.body.hash,
-                (uri: string, progress: string) => {
+            const msg = await midjourneyClient.Upscale({
+                index: req.body.index ,
+                msgId: req.body.id,
+                hash: req.body.hash,                
+                content: req.body.messages[0].content, 
+                flags: req.body.flags,                                
+                loading: (uri: string, progress: string) => {
                     // Send updates to the client every time the callback is executed
                     console.log("midjourney progress:", progress) ;
                     sendSSE(req, res, { uri, progress });
-                }        
+                }},
             );
             sendSSE(req, res, msg);
             console.log("Upscale response:", msg) ;
+            res.write(`data: [DONE]\n\n`);
+            res.flush();
+            res.end();
+        } catch(error)  {
+            // Handle any errors
+            console.error(error);
+            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
+            res.end();
+            return ;
+        };
+    }
+
+    if ( req.body.midjourneyMethod == '/zoomout') {
+        
+        try {
+            const msg = await midjourneyClient.ZoomOut({
+                level: req.body.level ,
+                msgId: req.body.id,
+                hash: req.body.hash,                
+                //content: req.body.messages[0].content, 
+                flags: req.body.flags,                                
+                loading: (uri: string, progress: string) => {
+                    // Send updates to the client every time the callback is executed
+                    console.log("midjourney progress:", progress) ;
+                    sendSSE(req, res, { uri, progress });
+                }},
+            );
+            sendSSE(req, res, msg);
+            console.log("Zoomout response:", msg) ;
             res.write(`data: [DONE]\n\n`);
             res.flush();
             res.end();

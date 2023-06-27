@@ -70,8 +70,9 @@ export async function createStreamingMidjourneyCompletion(messages: OpenAIMessag
             "uri": parameters.midjourneyParameters?.uri,
             "hash": parameters.midjourneyParameters?.hash,
             "id": parameters.midjourneyParameters?.id,
-            "index": parameters.midjourneyParameters?.index,     
-            "flags": parameters.midjourneyParameters?.flags,            
+            "index": parameters.midjourneyParameters?.index,
+            "flags": parameters.midjourneyParameters?.flags,
+            "level": parameters.midjourneyParameters?.level,
         }),
     }) as SSE;
 

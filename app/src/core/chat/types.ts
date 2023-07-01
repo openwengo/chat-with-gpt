@@ -1,6 +1,12 @@
 import { MessageTree } from "./message-tree";
 
 
+export interface MidjourneyMessageOption {
+    type: number;
+    style: number;
+    label: string;
+    custom: string;
+}
 
 export interface MidjourneyMessage {
     uri: string;
@@ -8,6 +14,7 @@ export interface MidjourneyMessage {
     id?: string;
     hash?: string;
     flags?: number;
+    options?: MidjourneyMessageOption[];
 }
 
 export interface MidjourneyParameters {

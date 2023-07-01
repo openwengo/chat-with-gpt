@@ -42,7 +42,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
         
         const lastMessage = messages[messages.length -1 ];
 
-        const midjourneyPrefixes = ["/imagine", "/variations", "/upscale", "/zoomout"]
+        const midjourneyPrefixes = ["/imagine", "/midjourneycustom"] // "/variations", "/upscale", "/zoomout",
 
         const prefixIndex = midjourneyPrefixes.findIndex(prefix => lastMessage.content.startsWith(prefix)) ;
 
@@ -62,6 +62,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
                 midjourneyMethod: midjourneyPrefixes[prefixIndex]
             }
 
+            /*
             if ((prefixIndex > 0 ) && ( prefixIndex < 3)) {
                 if (lastMidjourneyIndex !== -1 ) {
                     let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
@@ -141,10 +142,10 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
 
                 } else {
                     throw new Error("You must /imagine before /zoomout") ;
-                }
-
+                }            
 
             }
+            */
             const newParameters: Parameters = {
                 ...parameters,
                 midjourney: true,

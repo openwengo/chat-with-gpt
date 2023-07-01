@@ -8,6 +8,24 @@ const sendSSE = (req: Request, res: Response, data: any) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
 };
 
+type CommandParams = { [key: string]: string };
+
+function parseCommand(command: string): CommandParams {
+  const result: CommandParams = {};
+  const parts = command.split(' ');
+
+  for (let i = 1; i < parts.length; i += 2) { // start from 1, because 0 is the command itself
+    const param = parts[i];
+    const value = parts[i + 1];
+
+    if (param.startsWith('--')) {
+      result[param.slice(2)] = value; // remove '--' from param
+    }
+  }
+
+  return result;
+}
+
 export async function streamingHandler(req: express.Request, res: express.Response) {
     res.set({
         'Content-Type': 'text/event-stream',
@@ -68,6 +86,41 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             );
             sendSSE(req, res, msg);
             console.log("Imagine response:", msg) ;
+            res.write(`data: [DONE]\n\n`);
+            res.flush();
+            res.end();
+        } catch(error)  {
+            // Handle any errors
+            console.error(error);
+            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
+            res.end();
+            return ;
+        };
+    }
+
+    if ( req.body.midjourneyMethod == '/midjourneycustom') {       
+        
+        const command = lastMessage.content ;
+
+        const params = parseCommand(command);
+
+        console.log("Midjourney custom params:", params);
+
+
+        try {
+            const msg = await midjourneyClient.Custom({
+                msgId: params['id'],
+                customId: params['custom'],
+                //content: req.body.messages[0].content, 
+                flags: Number(params['flags']),                                
+                loading: (uri: string, progress: string) => {
+                    // Send updates to the client every time the callback is executed
+                    console.log("midjourney progress:", progress) ;
+                    sendSSE(req, res, { uri, progress });
+                }},
+            );
+            sendSSE(req, res, msg);
+            console.log("Zoomout response:", msg) ;
             res.write(`data: [DONE]\n\n`);
             res.flush();
             res.end();
@@ -148,8 +201,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         };
     }
 
-    if ( req.body.midjourneyMethod == '/zoomout') {
-        
+    if ( req.body.midjourneyMethod == '/zoomout') {            
         try {
             const msg = await midjourneyClient.ZoomOut({
                 level: req.body.level ,

@@ -4,10 +4,14 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
-import { Button, CopyButton } from '@mantine/core';
-import { useMemo } from 'react';
+import { Button, CopyButton, Col, Grid } from '@mantine/core';
+import { useCallback, useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { MidjourneyMessage } from '../core/chat/types'  ;
+import { MidjourneyMessage, MidjourneyMessageOption } from '../core/chat/types'  ;
+import { useAppDispatch, useAppSelector } from '../store';
+import { selectMessage, setMessage } from '../store/message';
+import { useAppContext } from '../core/context';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Code = styled.div`
     padding: 0;
@@ -54,6 +58,62 @@ const CenteredButton = styled.div`
     text-align: center;
 `;
 
+const MaxWidth = styled.div`
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    max-width: 30rem !important;
+    display: flex;
+`
+
+interface ButtonListProps {
+  options: MidjourneyMessageOption[];
+  id?: string;
+  flags?: number;
+}
+
+const ButtonList: React.FC<ButtonListProps> = ({ options, id, flags }) => {
+  
+  const dispatch = useAppDispatch();
+  const context = useAppContext();
+  const message = useAppSelector(selectMessage);
+  const navigate = useNavigate();
+
+  const onSubmit = useCallback(async () => {
+
+      const messageId = await context.onNewMessage(message);
+
+      console.log("id for message=", messageId);
+      if (messageId) {
+          if (!window.location.pathname.includes(messageId)) {
+              navigate('/chat/' + messageId);
+          }
+          dispatch(setMessage(''));
+      }
+  }, [context, message, dispatch, navigate]);
+
+  const renderButtons = () => {
+    let items: any[] = [];
+    
+    options.forEach((option, index) => {
+      if (option.custom.startsWith("MJ::JOB::") || option.custom.startsWith("MJ::Outpaint")) {
+        items.push(
+          <Grid.Col span="auto" order={index}>
+            <Button onClick={() => { dispatch(setMessage(`/midjourneycustom --id ${id} --flags ${flags} --custom ${option.custom}`)); onSubmit(); }}>
+              {option.label}
+            </Button>
+          </Grid.Col>
+        );
+      }
+
+    });
+
+    return items;
+  };
+
+  return <><Grid grow gutter="sm">{renderButtons()}</Grid></>;
+};
+
 
 export interface MidjourneyDisplayProps {
     content: string;
@@ -62,6 +122,27 @@ export interface MidjourneyDisplayProps {
 
 export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
     const intl = useIntl();
+    const dispatch = useAppDispatch();
+    const context = useAppContext();
+    const message = useAppSelector(selectMessage);
+    const navigate = useNavigate();
+
+    const onChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        dispatch(setMessage(e.target.value));
+    }, [dispatch]);
+
+    const onSubmit = useCallback(async () => {
+
+        const id = await context.onNewMessage(message);
+
+        console.log("id for message=", id);
+        if (id) {
+            if (!window.location.pathname.includes(id)) {
+                navigate('/chat/' + id);
+            }
+            dispatch(setMessage(''));
+        }
+    }, [context, message, dispatch, navigate]);
 
     const classes = useMemo(() => {
         const classes = ['prose', 'dark:prose-invert'];
@@ -79,6 +160,8 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
         window.open(imageUrl, "_blank");
     };
 
+    
+
     if (props.content !== "") {
         try {
             midjourneyMessage = JSON.parse(props.content)
@@ -88,6 +171,7 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
             midjourneyMessage.progress="error";
         }
     }
+    console.log("props.content:", props.content, "midjourneyMessage:", midjourneyMessage);
 
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
@@ -96,14 +180,15 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
                      onClick={ () => handleOpenImage(midjourneyMessage.uri)}
                      style={{ cursor: "pointer" }}/>
             </ImagePreview>
-            { midjourneyMessage.progress === "done" ? <><CenteredButton><Button
-             variant="light"             
-             onClick={() => handleOpenImage(midjourneyMessage.uri)}>
-                Web
-            </Button></CenteredButton>
-            <div>/variations 1-4</div>
-            <div>/upscale 1-4</div>
-            </> : <h6>{ midjourneyMessage.progress }</h6> }
+            <MaxWidth>
+                { midjourneyMessage.progress === "done" ? <><CenteredButton><Button
+                variant="light"             
+                onClick={() => handleOpenImage(midjourneyMessage.uri)}>
+                    Web
+                </Button></CenteredButton>
+                { midjourneyMessage.options ? <ButtonList options={midjourneyMessage.options} id={midjourneyMessage.id} flags={midjourneyMessage.flags}/> : null }
+                </> : <h6>{ midjourneyMessage.progress }</h6> }
+            </MaxWidth>
             
 
         </div>

@@ -4,8 +4,8 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
-import { Button, CopyButton, Col, Grid } from '@mantine/core';
-import { useCallback, useMemo } from 'react';
+import { Button, CopyButton, Col, Grid, Tooltip } from '@mantine/core';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { MidjourneyMessage, MidjourneyMessageOption } from '../core/chat/types'  ;
 import { useAppDispatch, useAppSelector } from '../store';
@@ -62,8 +62,9 @@ const MaxWidth = styled.div`
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    max-width: 30rem !important;
     display: flex;
+    max-width: 30rem !important;
+    margin: auto;
 `
 
 interface ButtonListProps {
@@ -73,17 +74,21 @@ interface ButtonListProps {
 }
 
 const ButtonList: React.FC<ButtonListProps> = ({ options, id, flags }) => {
-  
+
+  const [buttonClicked, setButtonClicked] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
+
   const dispatch = useAppDispatch();
   const context = useAppContext();
   const message = useAppSelector(selectMessage);
   const navigate = useNavigate();
+  
 
   const onSubmit = useCallback(async () => {
 
       const messageId = await context.onNewMessage(message);
 
-      console.log("id for message=", messageId);
+      console.log(`id for message=${message}`, messageId);
       if (messageId) {
           if (!window.location.pathname.includes(messageId)) {
               navigate('/chat/' + messageId);
@@ -92,16 +97,28 @@ const ButtonList: React.FC<ButtonListProps> = ({ options, id, flags }) => {
       }
   }, [context, message, dispatch, navigate]);
 
+
+  useEffect(() => {
+    if (( message !== '' ) && buttonClicked && (!messageSent)) {            
+        setMessageSent(true);
+        onSubmit();
+    }
+  }, [message, buttonClicked]);
+
   const renderButtons = () => {
     let items: any[] = [];
     
     options.forEach((option, index) => {
       if (option.custom.startsWith("MJ::JOB::") || option.custom.startsWith("MJ::Outpaint")) {
+        const splitJobName = option.custom.split(":");
+
         items.push(
-          <Grid.Col span="auto" order={index}>
-            <Button onClick={() => { dispatch(setMessage(`/midjourneycustom --id ${id} --flags ${flags} --custom ${option.custom}`)); onSubmit(); }}>
-              {option.label}
-            </Button>
+          <Grid.Col span="auto" order={index} key={index}>
+            <Tooltip label={splitJobName[4]}>
+                <Button onClick={ async () => { dispatch(setMessage(`/midjourneycustom --id ${id} --flags ${flags} --custom ${option.custom}`)); setButtonClicked(true) }}>
+                {option.label}
+                </Button>
+            </Tooltip>
           </Grid.Col>
         );
       }
@@ -161,6 +178,7 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
     };
 
     
+    //console.log("MidjourneyDisplay props:", props) ;
 
     if (props.content !== "") {
         try {
@@ -171,7 +189,7 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
             midjourneyMessage.progress="error";
         }
     }
-    console.log("props.content:", props.content, "midjourneyMessage:", midjourneyMessage);
+    //console.log("props.content:", props.content, "midjourneyMessage:", midjourneyMessage);
 
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
@@ -192,7 +210,7 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
             
 
         </div>
-    ), [midjourneyMessage.uri, classes, intl]);
+    ), [midjourneyMessage.progress, midjourneyMessage.uri, classes, intl]);
 
     return elem;
 }

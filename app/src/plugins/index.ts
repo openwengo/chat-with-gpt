@@ -9,10 +9,10 @@ import ElevenLabsPlugin from "../tts-plugins/elevenlabs";
 import WebSpeechPlugin from "../tts-plugins/web-speech";
 
 export const registeredPlugins: Array<typeof Plugin<any>> = [
+    MidjourneyPlugin,
     SystemPromptPlugin,
     ContextTrimmerPlugin,
     TitlePlugin,
-    MidjourneyPlugin,
     WebSpeechPlugin,
     ElevenLabsPlugin,
 ];

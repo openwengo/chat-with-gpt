@@ -6,11 +6,13 @@ import { MidjourneyMessage } from '../core/chat/types' ;
 export interface MidjourneyPluginOptions {
 }
 
+export const midjourneyPrefixes = ["/imagine", "/midjourneycustom"] ; // "/variations", "/upscale", "/zoomout"
+
 export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
     describe(): PluginDescription {
         return {
             id: "midjourney",
-            name: "Routes /imagine, /variations, /upscale, /zoomout",
+            name: "Routes /imagine, /midjourneycustom, /variations, /upscale, /zoomout",
             options: [
                 // {
                 //     id: 'maxTokens',
@@ -41,8 +43,6 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
     async preprocessModelInput(messages: OpenAIMessage[], parameters: Parameters): Promise<{ messages: OpenAIMessage[]; parameters: Parameters; }> {
         
         const lastMessage = messages[messages.length -1 ];
-
-        const midjourneyPrefixes = ["/imagine", "/midjourneycustom"] // "/variations", "/upscale", "/zoomout",
 
         const prefixIndex = midjourneyPrefixes.findIndex(prefix => lastMessage.content.startsWith(prefix)) ;
 
@@ -157,8 +157,20 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
                 parameters: newParameters,
             }
         } else {
+
+            console.log("Not a midjourney command, filter out:", messages);
+            // remove midjourney messages from history
+            let newMessages: OpenAIMessage[] = [] ;
+
+            newMessages = messages.filter( m => (
+                ( m.role !== 'midjourney' ) && 
+                ( ( m.role === 'user' && midjourneyPrefixes.findIndex( prefix => m.content.startsWith(prefix)) == -1 ) ||
+                  ( m.role !== 'user')
+                )
+                ));
+
             return {
-                messages: messages,
+                messages: newMessages,
                 parameters,
             }            
         }

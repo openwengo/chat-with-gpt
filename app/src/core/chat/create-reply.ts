@@ -67,6 +67,7 @@ export class ReplyRequest extends EventEmitter {
     public async execute() {
         try {
             this.scheduleTimeout();
+            console.log("Before plugins, mutatedMessages:", this.mutatedMessages, "mutatedParameters:", this.mutatedParameters);
 
             await pluginRunner("preprocess-model-input", this.pluginContext, async plugin => {
                 const output = await plugin.preprocessModelInput(this.mutatedMessages, this.mutatedParameters);
@@ -156,7 +157,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: 'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : 'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, true);
 

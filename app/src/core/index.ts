@@ -13,6 +13,7 @@ import { Option } from './options/option';
 import { pluginMetadata } from './plugins/metadata';
 import { pluginRunner } from "./plugins/plugin-runner";
 import { createBasicPluginContext } from './plugins/plugin-context';
+import { midjourneyPrefixes } from '../plugins/midjourney';
 
 export const channel = new BroadcastChannel('chats');
 
@@ -170,8 +171,6 @@ export class ChatManager extends EventEmitter {
             throw new Error('Chat not found');
         }
         const lastMessage = messages[messages.length -1 ];
-
-        const midjourneyPrefixes = ["/imagine", "/midjourneycustom" ] //"/variations", "/upscale", "/zoomout"]
 
         const isMidjourney = midjourneyPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         

@@ -6,6 +6,7 @@ import { config } from '../../../config';
 // Function to handle Server-Sent Events
 const sendSSE = (req: Request, res: Response, data: any) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
+    res.flush();
 };
 
 type CommandParams = { [key: string]: string };
@@ -92,7 +93,10 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         } catch(error)  {
             // Handle any errors
             console.error(error);
-            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
+            sendSSE(req, res, { uri: "", progress: `error: ${error}` });
+            res.write(`data: [DONE]\n\n`);
+            res.flush();            
+            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
             return ;
         };
@@ -120,14 +124,17 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                 }},
             );
             sendSSE(req, res, msg);
-            console.log("Zoomout response:", msg) ;
+            console.log("Custom response:", msg) ;
             res.write(`data: [DONE]\n\n`);
             res.flush();
             res.end();
         } catch(error)  {
             // Handle any errors
             console.error(error);
-            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
+            sendSSE(req, res, { uri: "", progress: `error: ${error}` });
+            res.write(`data: [DONE]\n\n`);
+            res.flush();
+            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
             return ;
         };
@@ -166,6 +173,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         } catch(error)  {
             // Handle any errors
             console.error(error);
+            res.write(`{ error: 'An error occurred' , uri: "", progress:"error:${error}"}`);
+            res.flush();
             res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
             return ;

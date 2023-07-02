@@ -211,8 +211,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
     const [content, setContent] = useState('');
     const intl = useIntl();
 
-    const tab = useAppSelector(selectSettingsTab);
-    console.log("MessageComponent:", props.message) ;
+    const tab = useAppSelector(selectSettingsTab);    
 
     const getRoleName = useCallback((role: string, share = false) => {
         switch (role) {

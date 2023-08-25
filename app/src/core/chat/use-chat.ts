@@ -63,7 +63,7 @@ export function useChat(chatManager: ChatManager, id: string | undefined | null,
 
     if (leaf) {
         messages = (chat?.messages.getMessageChainTo(leaf?.id) || []);
-        messagesToDisplay = messages.filter(m => ['user', 'assistant', 'midjourney'].includes(m.role)) || [];
+        messagesToDisplay = messages.filter(m => ['user', 'assistant', 'midjourney', 'tarot'].includes(m.role)) || [];
     }
 
     return {

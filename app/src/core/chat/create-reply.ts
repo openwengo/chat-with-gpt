@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import { createChatCompletion, createStreamingChatCompletion } from "./openai";
 import { createStreamingMidjourneyCompletion } from "./midjourney";
+import { createStreamingTarotCompletion } from "./tarot";
 import { PluginContext } from "../plugins/plugin-context";
 import { pluginRunner } from "../plugins/plugin-runner";
 import { Chat, Message, OpenAIMessage, Parameters, getOpenAIMessageFromMessage } from "./types";
@@ -82,13 +83,18 @@ export class ReplyRequest extends EventEmitter {
 
             console.log("After plugins, mutatedMessages:", this.mutatedMessages, "mutatedParameters:", this.mutatedParameters);
 
-            if (! this.mutatedParameters.midjourney ) {
-                ({ emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
+            if (this.mutatedParameters.midjourney ) {
+                ({ emitter, cancel } = await createStreamingMidjourneyCompletion(this.mutatedMessages, {
                     ...this.mutatedParameters,
                     apiKey: this.requestedParameters.apiKey,
                 }));
+            } else if ( this.mutatedParameters.tarot) {
+                ({ emitter, cancel } = await createStreamingTarotCompletion(this.mutatedMessages, {
+                    ...this.mutatedParameters,
+                    apiKey: this.requestedParameters.apiKey,
+                }));                
             } else {
-                ({ emitter, cancel } = await createStreamingMidjourneyCompletion(this.mutatedMessages, {
+                ({ emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
                     ...this.mutatedParameters,
                     apiKey: this.requestedParameters.apiKey,
                 }));
@@ -157,7 +163,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : 'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : ( this.mutatedParameters.tarot ? 'tarot' : 'assistant'),
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, true);
 

@@ -14,6 +14,7 @@ import { pluginMetadata } from './plugins/metadata';
 import { pluginRunner } from "./plugins/plugin-runner";
 import { createBasicPluginContext } from './plugins/plugin-context';
 import { midjourneyPrefixes } from '../plugins/midjourney';
+import { tarotPrefixes } from '../plugins/tarot';
 
 export const channel = new BroadcastChannel('chats');
 
@@ -175,13 +176,17 @@ export class ChatManager extends EventEmitter {
         const isMidjourney = midjourneyPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
         console.log("getReply isMidjourney:", isMidjourney) ;
+
+        const isTarot = tarotPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
+        console.log("getReply isTarot:", isTarot) ;
+
         const message: Message = {
             id: uuidv4(),
             parentID,
             chatID,
             timestamp: Date.now(),
-            role: isMidjourney ? "midjourney" : 'assistant',
+            role: isMidjourney ? "midjourney" : ( isTarot ? "tarot" : 'assistant'),
             model: "midjourney",
             content: '',
         };

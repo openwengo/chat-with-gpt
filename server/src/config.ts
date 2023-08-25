@@ -37,6 +37,11 @@ export interface Config {
             apiKey?: string; // this isa copy of salaiToken
             loginRequired?: boolean;            
         }
+
+        tarot?: {
+            apiKey?: string;
+            loginRequired?: boolean;
+        }
     };
 
     /*

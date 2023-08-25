@@ -8,13 +8,17 @@ import https from 'https';
 import { configureAuth0 } from './auth0';
 import { config } from './config';
 import Database from './database/index';
+import TextsDatabase from './tarotdatabase/index';
 import KnexDatabaseAdapter from './database/knex';
+import KnexTextsDatabaseAdapter from './tarotdatabase/knex';
+
 import GetShareRequestHandler from './endpoints/get-share';
 import HealthRequestHandler from './endpoints/health';
 import DeleteChatRequestHandler from './endpoints/delete-chat';
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech';
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
+import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
 
 import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai';
 import SessionRequestHandler from './endpoints/session';
@@ -29,7 +33,6 @@ import { getActiveUsersInLast5Minutes } from './endpoints/base';
 import { formatTime } from './utils';
 import morgan from 'morgan';
 import ip from 'ip';
-
 
 
 process.on('unhandledRejection', (reason, p) => {
@@ -47,6 +50,7 @@ export default class ChatServer {
     app: express.Application;
     objectStore: ObjectStore = process.env.S3_BUCKET ? new S3ObjectStore() : new SQLiteObjectStore();
     database: Database = new KnexDatabaseAdapter();
+    tarotdatabase: TextsDatabase = new KnexTextsDatabaseAdapter();
 
     constructor() {
         this.app = express();
@@ -71,6 +75,7 @@ export default class ChatServer {
         
         // Initialize database before auth
         await this.database.initialize();
+        await this.tarotdatabase.initialize();
 
         this.app.use(express.urlencoded({ extended: false }));
         
@@ -132,6 +137,11 @@ export default class ChatServer {
         if (config.services?.midjourney?.salaiToken) {
             console.log("Create midjourney routes");
             this.app.post('/chatapi/proxies/midjourney/v1/midjourney', (req, res) => new MidjourneyRequestHandler(this, req, res));
+        }
+
+        if (config.services?.tarot?.apiKey) {
+            console.log("Create tarot routes");
+            this.app.post('/chatapi/proxies/tarot/v1/tarot/completions', (req, res) => new TarotProxyRequestHandler(this, req, res));
         }
 
         if (fs.existsSync('public')) {

@@ -27,6 +27,18 @@ export interface MidjourneyParameters {
     level?: string;
 }
 
+export interface TarotParameters {
+    game: string;
+    card1: string;
+    card2: string;
+    card3: string;
+    card4?: number;
+    card5?: number;
+    lang: string;
+    prompt: string;
+}
+
+
 export interface Parameters {
     temperature: number;
     apiKey?: string;
@@ -35,7 +47,8 @@ export interface Parameters {
     wengoplusmode?: boolean;
     midjourney?: boolean;
     midjourneyParameters?: MidjourneyParameters;
-
+    tarot?: boolean;
+    tarotParameters?: TarotParameters;
 }
 
 

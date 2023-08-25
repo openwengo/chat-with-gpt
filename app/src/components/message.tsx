@@ -224,6 +224,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 break;
             case 'assistant':
                 return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'ChatGPT', description: "Label that is shown above messages written by the AI (as opposed to the user)" });
+            case 'tarot':
+                return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'Tarot Adviser', description: "Label that is shown above messages written by the Tarot Advisor" });    
             case 'midjourney':
                 return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
             case 'system':
@@ -246,7 +248,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             <strong>
                                 {getRoleName(props.message.role, props.share)}{props.message.model === 'gpt-4' && ' (GPT 4)'}<SROnly>:</SROnly>
                             </strong>
-                            {(props.message.role === 'assistant' || props.message.role === 'midjourney' ) && props.last && !props.message.done && <InlineLoader />}
+                            {(props.message.role === 'assistant' || props.message.role === 'midjourney' || props.message.role === 'tarot' ) && props.last && !props.message.done && <InlineLoader />}
                         </span>
                         { props.message.role !== 'midjourney' ? <><TTSButton id={props.message.id}
                             selector={'.content-' + props.message.id}

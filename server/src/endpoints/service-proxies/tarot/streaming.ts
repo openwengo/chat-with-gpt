@@ -76,6 +76,24 @@ function computeHash(text: string): string {
 }
 
 
+
+function sendChunkResponse(res: express.Response, message: string) {
+    const data = `data: {"id":"send${uuidv4()}","object":"chat.completion.chunk","choices":[{"delta":{"content":${JSON.stringify(message)},"index":0,"finish_reason":null}}]}\n\n`;
+    //console.log("data:", data);
+    res.write(data);
+    res.flush();
+}
+
+function cloneWithoutAttributes(source: Record<string, any>, excludepattern: string): Record<string, any> {
+    return Object.entries(source).reduce((accumulator, [key, value]) => {
+        if (!key.startsWith(excludepattern)) {
+            accumulator[key] = value;
+        }
+        return accumulator;
+    }, {} as Record<string, any>);
+}
+
+
 async function generateNewText(prompt: string, text: string, model: any): Promise<string> {
 
     const chatPrompt = ChatPromptTemplate.fromPromptMessages([
@@ -97,7 +115,7 @@ async function generateNewText(prompt: string, text: string, model: any): Promis
 }
 
 // Main Function
-async function processWengoodResponse(responseData: any, prompt: string, tarotdatabase: TextsDatabase, model: any) {
+async function processWengoodResponse(res: express.Response, responseData: any, prompt: string, tarotdatabase: TextsDatabase, model: any) {
   // Compute prompt hash
   const promptHash = computeHash(`${prompt}-${model.modelName}`);
 
@@ -108,6 +126,9 @@ async function processWengoodResponse(responseData: any, prompt: string, tarotda
   if (!existingPrompt) {
     await tarotdatabase.insertPrompt(promptHash, prompt);
   }
+
+  let newResponse = {...responseData} ;
+  newResponse.values=cloneWithoutAttributes( responseData.values, "XLHTML") ;
 
   // Iterate through the keys starting with "XLHTML"
   for (const key of Object.keys(responseData.values)) {
@@ -123,27 +144,20 @@ async function processWengoodResponse(responseData: any, prompt: string, tarotda
       if (existingText) {
         // Replace the value in the result object with it
         responseData.values[key] = existingText.text;
+        newResponse.values[key] = existingText.text;
       } else {
         // Generate a new text, compute hash, insert in the database, and replace the value
         const newText = await generateNewText(prompt, textContent, model);
         await tarotdatabase.insertText(textHash, promptHash, newText);
         responseData.values[key] = newText;
+        newResponse.values[key] = newText;
       }
+      sendChunkResponse(res, JSON.stringify(newResponse));
     }
   }
 
   return responseData; // Modified response data
 }
-
-
-
-function sendChunkResponse(res: express.Response, message: string) {
-    const data = `data: {"id":"send${uuidv4()}","object":"chat.completion.chunk","choices":[{"delta":{"content":${JSON.stringify(message)},"index":0,"finish_reason":null}}]}\n\n`;
-    //console.log("data:", data);
-    res.write(data);
-    res.flush();
-}
-
 
 export async function streamingHandler(req: express.Request, res: express.Response) {
     res.set({
@@ -169,11 +183,12 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         streaming: true,
         temperature: req.body.temperature ? req.body.temperature : 0,
         modelName: req.body.model ? req.body.model : "gpt-3.5-turbo-16k",
-        callbacks: [{
-            handleLLMNewToken(token: string) {
-            sendChunkResponse(res, token);
-            },
-        },]});
+        // callbacks: [{
+        //     handleLLMNewToken(token: string) {
+        //     sendChunkResponse(res, token);
+        //     },
+        // },]
+    });
         
         const responseApi = await callWengoodApi( {
             lang: req.body.lang,
@@ -186,7 +201,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
         const tarotdatabase: TextsDatabase = new KnexTextsDatabaseAdapter();
 
-        const modifiedResponse = await processWengoodResponse(responseApi, req.body.prompt, tarotdatabase, model) ;
+        const modifiedResponse = await processWengoodResponse(res, responseApi, req.body.prompt, tarotdatabase, model) ;
 
         console.log("modifiedResponse:", modifiedResponse);
         sendChunkResponse(res, JSON.stringify(modifiedResponse));

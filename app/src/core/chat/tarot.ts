@@ -105,7 +105,7 @@ export async function createStreamingTarotCompletion(messages: OpenAIMessage[], 
         try {
             const chunk = parseResponseChunk(event.data);
             if (chunk.choices && chunk.choices.length > 0) {
-                contents += chunk.choices[0]?.delta?.content || '';
+                contents = chunk.choices[0]?.delta?.content || '';
                 emitter.emit('data', contents);
             }
         } catch (e) {

@@ -181,6 +181,10 @@
 "defaultMessage": "Système",
 "description": "Étiquette qui est affichée au-dessus des messages insérés automatiquement dans la conversation par le système (par opposition à l'utilisateur ou à l'IA)"
 },
+"role-tarot": {
+"defaultMessage": "Tarot Adviser",
+"description": "Étiquette qui est affichée au-dessus des messages écrits par Tarot"
+},
 "role-user": {
 "defaultMessage": "Vous",
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'utilisateur (par opposition à l'IA) dans les sessions de chat de l'utilisateur (à la première personne)."

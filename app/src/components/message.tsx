@@ -6,6 +6,7 @@ import { share } from '../core/utils';
 import { TTSButton } from './tts-button';
 import { Markdown } from './markdown';
 import { MidjourneyDisplay } from './midjourney-display';
+import { TarotDisplay } from './tarot-display';
 import { useAppContext } from '../core/context';
 import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -225,7 +226,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
             case 'assistant':
                 return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'ChatGPT', description: "Label that is shown above messages written by the AI (as opposed to the user)" });
             case 'tarot':
-                return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'Tarot Adviser', description: "Label that is shown above messages written by the Tarot Advisor" });    
+                return intl.formatMessage({ id: 'role-tarot', defaultMessage: 'Tarot Adviser', description: "Label that is shown above messages written by the Tarot Advisor" });    
             case 'midjourney':
                 return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
             case 'system':
@@ -296,7 +297,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </Button>
                         )}
                     </div>
-                    {!editing && props.message.role !== 'midjourney' &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && ! ['tarot','midjourney'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && props.message.role === 'tarot' &&  <TarotDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     
                     {editing && (<Editor>

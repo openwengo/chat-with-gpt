@@ -3,7 +3,8 @@ import { Button, CopyButton } from '@mantine/core';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import React from 'react';
-import { Paper, Text, Container, Title } from '@mantine/core';
+import { Paper, Text, Container, Title, Grid, Col } from '@mantine/core';
+import { tarotCardDict } from './tarotinput';
 
 const Code = styled.div`
     padding: 0;
@@ -95,6 +96,37 @@ const TarotTexts: React.FC<TarotTextsProps> = ({ jsonData }) => {
     return <div>{renderXLHTMLKeys()}{renderError()}</div>
 }
 
+const TarotCards: React.FC<TarotTextsProps> = ({ jsonData }) => {
+
+    const renderTarotCards = () => {
+        const textValues = jsonData.values;
+        if (textValues) {
+            console.log("render keys:",Object.keys(textValues));
+            const listCols =  Object.keys(textValues).filter((key) => key.startsWith('realcard'))
+            .map((key, index) => (
+                <Col span={4}>
+                    <Text size="xs" color="dimmed" align="center">
+                        {tarotCardDict[textValues[key]]}
+                    </Text>
+                </Col>
+            ));
+            return <Grid gutter="xs" justify="center">{listCols}</Grid>
+        } else {
+            return <div>No texts yet..</div>
+        }
+    };
+
+    const renderError = () => {
+        if (jsonData.errorMsg) {
+            return <><b>{jsonData.errorMsg}</b></>
+        } else {
+            return <></>;
+        }
+    }
+    return <div>{renderTarotCards()}{renderError()}</div>
+}
+
+
 export interface TarotDisplayProps {
     content: string;
     className?: string;
@@ -127,8 +159,8 @@ export function TarotDisplay(props: TarotDisplayProps) {
     }
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
-            <b>Tarot!</b>
-            <MaxWidth>
+            <TarotCards jsonData={tarotData}/>
+            <MaxWidth>                
                 <TarotTexts jsonData={tarotData}/>
             </MaxWidth>
         </div>

@@ -5,7 +5,7 @@ import { OpenAIMessage, Parameters, TarotParameters } from "../core/chat/types";
 export interface TarotPluginOptions {
 }
 
-export const tarotPrefixes = ["/tarotdujour"] ; // "/variations", "/upscale", "/zoomout"
+export const tarotPrefixes = ["/tarotouinon"] ; // "/variations", "/upscale", "/zoomout"
 
 export class TarotPlugin extends Plugin<TarotPluginOptions> {
     describe(): PluginDescription {

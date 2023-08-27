@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
-import { Button, ActionIcon, Textarea, Loader, Popover } from '@mantine/core';
+import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem } from '@mantine/core';
 import { getHotkeyHandler, useHotkeys, useMediaQuery } from '@mantine/hooks';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../core/context';
@@ -12,6 +12,57 @@ import { speechRecognition, supportsSpeechRecognition } from '../core/speech-rec
 import { useWhisper } from '@chengsokdara/use-whisper';
 import QuickSettings from './quick-settings';
 import { useOption } from '../core/options/use-option';
+import { Autocomplete, Switch } from '@mantine/core' ;
+import { TarotInput } from './tarotinput' ;
+
+interface SlashCommand {
+    name: string;
+    parameters: Array<{
+        name: string;
+        description: string;
+    }>;
+}
+
+const slashCommands: SlashCommand[] = [
+    {
+        name: "/tarotouinon",
+        parameters: [
+            {
+                name: 'Tarot Oui-Non',
+                description: 'Tirage tarot Oui-Non'
+            }
+        ]
+    },
+    {
+        name: "/imagine",
+        parameters: [
+            {
+                name: 'Midjourney',
+                description: 'Creation image Midjourney'
+            }
+        ]
+    }
+]
+
+function getCursorPosition(textarea: HTMLTextAreaElement | null) {
+    const range = document.createRange();
+    const sel = window.getSelection();
+
+    if (! textarea) {
+        return null;
+    }
+    
+
+    range.setStart(textarea, textarea.selectionStart);
+    range.setEnd(textarea, textarea.selectionStart);
+    const rect = range.getBoundingClientRect();
+
+    console.log("getCursorPosition:", textarea, rect.top, rect.left);
+    return {
+        top: rect.top,
+        left: rect.left,
+    };
+}
 
 const Container = styled.div`
     background: #292933;
@@ -46,6 +97,18 @@ export default function MessageInput(props: MessageInputProps) {
     const [openAIApiKey] = useOption<string>('openai', 'apiKey');
 
     const [initialMessage, setInitialMessage] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [showDropdown, setShowDropDown] = useState(false);    
+    const [showTarotInput, setShowTarotInput] = useState(false);    
+
+    // useEffect(() => {
+    //     if (showDropdown) {
+    //         //const position = getCursorPosition(textareaRef.current);
+    //         //setCursorPosition(position);
+    //         console.log("showDropdown:", textareaRef);
+    //     }
+    // }, [showDropdown]);
+
     const {
         transcribing,
         transcript,
@@ -67,7 +130,21 @@ export default function MessageInput(props: MessageInputProps) {
     const [submitOnEnter] = useOption<boolean>('input', 'submit-on-enter');
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        dispatch(setMessage(e.target.value));
+
+        const value = e.target.value;
+        //console.log("input onChange:", value);
+
+        if ( false && value.startsWith('/')) {
+            const matchingCommands = slashCommands
+                .filter((cmd) => cmd.name.includes(value))
+                .map((cmd) => cmd.name);
+            setSuggestions(matchingCommands);
+            setShowDropDown(true);
+        } else {
+            setShowDropDown(false);
+            dispatch(setMessage(e.target.value));
+        }
+
     }, [dispatch]);
 
     const pathname = useLocation().pathname;
@@ -273,8 +350,73 @@ export default function MessageInput(props: MessageInputProps) {
         return handler;
     }, [onSubmit, blur, submitOnEnter]);
 
+    const DropdownDiv = styled.div`
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        background-color: #333;
+        border: 1px solid #ccc;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    `
+
+    const SuggestionItem = styled.div`
+        padding: 8px 12px;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+            background-color: #555555;
+        }
+    `
+
+    const innerStyle: React.CSSProperties = {
+        position: 'relative'
+    };
+
+    const renderDropdown = () => {
+        if (!showDropdown || !suggestions.length) return null ;
+        return (
+            <DropdownDiv>
+                {suggestions.map( suggestion => (
+                    <SuggestionItem
+                        key={suggestion}
+                        onClick={ () => {
+                            dispatch(setMessage(suggestion));
+                            //setMessage(suggestion);
+                            setShowDropDown(false);
+                        }}
+                    >
+                        {suggestion}
+                    </SuggestionItem>
+                ))}
+            </DropdownDiv>
+        );
+    };
+
+    const setInputFromTarot = (message) => {
+        console.log("setInputFromTarot:", message);
+        setShowTarotInput(false);
+        dispatch(setMessage(message))
+    };
+
     return <Container>
-        <div className="inner">
+        <div className="inner" style={innerStyle}>
+            { showTarotInput ? null : 
+            <div style={{ marginBottom: '10px' }}>
+                    <Switch 
+                        checked={showTarotInput} 
+                        label="Tarot Mode"
+                        size="sm"
+                        onChange={() => setShowTarotInput(!showTarotInput)} 
+                        color="blue"  // Choose the color you prefer
+                    />
+            </div>
+            }
+            { showTarotInput ? <TarotInput setMessage={setInputFromTarot} initialText={message}/> : 
             <Textarea disabled={props.disabled || disabled}
                 id="message-input"
                 autosize
@@ -285,7 +427,8 @@ export default function MessageInput(props: MessageInputProps) {
                 onChange={onChange}
                 rightSection={rightSection}
                 rightSectionWidth={context.generating ? 100 : 55}
-                onKeyDown={hotkeyHandler} />
+                onKeyDown={hotkeyHandler} /> 
+            }
             <QuickSettings key={tab} />
         </div>
     </Container>;

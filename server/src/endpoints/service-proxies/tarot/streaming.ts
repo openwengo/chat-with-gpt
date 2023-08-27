@@ -190,7 +190,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         // },]
     });
         
-        const responseApi = await callWengoodApi( {
+        let responseApi = await callWengoodApi( {
             lang: req.body.lang,
             card1: req.body.card1,
             card2: req.body.card2,
@@ -198,6 +198,10 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             card4: req.body.card4 ? req.body.card4 : 4,
             card5: req.body.card5 ? req.body.card5 : 5,
         })
+
+        responseApi['values']['realcard1'] = req.body.card1;
+        responseApi['values']['realcard2'] = req.body.card2;
+        responseApi['values']['realcard3'] = req.body.card3;
 
         const tarotdatabase: TextsDatabase = new KnexTextsDatabaseAdapter();
 

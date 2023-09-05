@@ -33,46 +33,42 @@ const Container = styled.form`
         margin-bottom: 0.25rem;
     }
 `;
-const tarotCards = [
-    { value: '1', label: 'Le Bateleur (The Magician)' },
-    { value: '2', label: 'La Papesse (The High Priestess)' },
-    { value: '3', label: 'L\'Impératrice (The Empress)' },
-    { value: '4', label: 'L\'Empereur (The Emperor)' },
-    { value: '5', label: 'Le Pape (The Hierophant)' },
-    { value: '6', label: 'L\'Amoureux (The Lovers)' },
-    { value: '7', label: 'Le Chariot (The Chariot)' },
-    { value: '8', label: 'La Justice (Justice)' },
-    { value: '9', label: 'L\'Ermite (The Hermit)' },
-    { value: '10', label: 'La Roue de Fortune (Wheel of Fortune)' },
-    { value: '11', label: 'La Force (Strength)' },
-    { value: '12', label: 'Le Pendu (The Hanged Man)' },
-    { value: '13', label: 'La Mort (Death)' },
-    { value: '14', label: 'Tempérance (Temperance)' },
-    { value: '15', label: 'Le Diable (The Devil)' },
-    { value: '16', label: 'La Tour (The Tower)' },
-    { value: '17', label: 'L\'Étoile (The Star)' },
-    { value: '18', label: 'La Lune (The Moon)' },
-    { value: '19', label: 'Le Soleil (The Sun)' },
-    { value: '20', label: 'Le Jugement (Judgment)' },
-    { value: '21', label: 'Le Monde (The World)' },
-    { value: '22', label: 'Le Mat (The Fool)' },  
+const signesAstro = [
+    { value: '0', label: 'Bélier' },
+    { value: '1', label: 'Taureau' },
+    { value: '2', label: 'Gémeaux' },
+    { value: '3', label: 'Cancer' },
+    { value: '4', label: 'Lion' },
+    { value: '5', label: 'Vierge' },
+    { value: '6', label: 'Balance' },
+    { value: '7', label: 'Scorpion' },
+    { value: '8', label: 'Sagittaire' },
+    { value: '9', label: 'Capricorne' },
+    { value: '10', label: 'Verseau' },
+    { value: '11', label: 'Poissons' },
 ];
 
-export const tarotCardDict = tarotCards.reduce((acc, card) => {
+export const signesAstroDict = signesAstro.reduce((acc, card) => {
     acc[card.value] = card.label;
     return acc;
 }, {});
 
-export function TarotInput(props: any) {
+const slugs = [
+    { value: 'grand-horoscope-2022', label: 'GH 2022' },
+    { value: 'grand-horoscope-2023', label: 'GH 2023' },
+    { value: 'grand-horoscope-2024', label: 'GH 2024' },
+]
+
+export function GHInput(props: any) {
     const defaultFormValues = {
-        card1: "",
-        card2: "",
-        card3: "",
+        slug: "",
+        userNatalSign: "",
+        userRisingSign: "",
         lang: "",
         prompt: ""
     }
 
-    const cleanedGameName = 'tarotouinon';
+    const cleanedSlug = 'gh';
     let jsonText = '';
 
     if ( props.initialText && props.initialText.startsWith('/')) {
@@ -92,13 +88,13 @@ export function TarotInput(props: any) {
         
 
         if ( separatorIndex !== -1 ) {
-            //cleanedGameName = props.initialText.substring(1, separatorIndex) ;
+            //cleanedSlug = props.initialText.substring(1, separatorIndex) ;
             jsonText = props.initialText.substring(separatorIndex + 1);
-            //console.log("Detect compatible input:", cleanedGameName, jsonText);
+            //console.log("Detect compatible input:", cleanedSlug, jsonText);
         }
     }
     
-    const [nameOfGame, setNameOfGame] = useState(cleanedGameName);
+    const [nameOfSlug, setNameOfSlug] = useState(cleanedSlug);
 
 
     const [formValues, setFormValues] = useState( () => {
@@ -128,9 +124,9 @@ export function TarotInput(props: any) {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log("TarotInput: handleSubmit", formValues, props);
+        console.log("GHInput: handleSubmit", formValues, props);
         const formattedMessage = JSON.stringify(formValues, null, 2);
-        props.setMessage(`/${nameOfGame}\n${formattedMessage}`);
+        props.setMessage(`/${nameOfSlug}\n${formattedMessage}`);
     }
 
     return <Container>
@@ -138,26 +134,26 @@ export function TarotInput(props: any) {
             <Paper style={{ marginBottom: '20px' }}>
                     <form onSubmit={handleSubmit}>
                         <Select
-                            data={tarotCards} 
-                            name="card1" 
-                            value={formValues.card1} 
-                            onChange={(value) => handleChange('card1', value )}
-                            placeholder="Enter card1"
+                                data={slugs} 
+                                name="slug" 
+                                value={formValues.slug} 
+                                onChange={(value) => handleChange('slug', value )}
+                                placeholder="Report"
                         />
                         <Select
-                            data={tarotCards} 
-                            name="card2" 
-                            value={formValues.card2} 
-                            onChange={(value) => handleChange('card2', value )}
-                            placeholder="Enter card2"
+                            data={signesAstro} 
+                            name="userNatalSign" 
+                            value={formValues.userNatalSign} 
+                            onChange={(value) => handleChange('userNatalSign', value )}
+                            placeholder="Sun Sign"
                         />
                         <Select
-                            data={tarotCards} 
-                            name="card3" 
-                            value={formValues.card3} 
-                            onChange={(value) => handleChange('card3', value )}
-                            placeholder="Enter card3"
-                        />                                                
+                            data={signesAstro} 
+                            name="userRisingSign" 
+                            value={formValues.userRisingSign} 
+                            onChange={(value) => handleChange('userRisingSign', value )}
+                            placeholder="Rising Sign"
+                        />
                         <Select 
                             data={[
                                 { value: 'FR_FR', label: 'FR_FR' }, 

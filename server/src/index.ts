@@ -19,6 +19,7 @@ import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/eleven
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
 import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
+import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope' ;
 
 import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai';
 import SessionRequestHandler from './endpoints/session';
@@ -142,6 +143,9 @@ export default class ChatServer {
         if (config.services?.tarot?.apiKey) {
             console.log("Create tarot routes");
             this.app.post('/chatapi/proxies/tarot/v1/tarot/completions', (req, res) => new TarotProxyRequestHandler(this, req, res));
+
+            console.log("Create GH routes");
+            this.app.post('/chatapi/proxies/gh/v1/gh/completions', (req, res) => new GHProxyRequestHandler(this, req, res));
         }
 
         if (fs.existsSync('public')) {

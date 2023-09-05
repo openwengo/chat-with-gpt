@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem } from '@mantine/core';
+import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem, Radio } from '@mantine/core';
 import { getHotkeyHandler, useHotkeys, useMediaQuery } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -12,8 +12,9 @@ import { speechRecognition, supportsSpeechRecognition } from '../core/speech-rec
 import { useWhisper } from '@chengsokdara/use-whisper';
 import QuickSettings from './quick-settings';
 import { useOption } from '../core/options/use-option';
-import { Autocomplete, Switch } from '@mantine/core' ;
 import { TarotInput } from './tarotinput' ;
+import { GHInput } from './ghinput' ;
+
 
 interface SlashCommand {
     name: string;
@@ -43,26 +44,6 @@ const slashCommands: SlashCommand[] = [
         ]
     }
 ]
-
-function getCursorPosition(textarea: HTMLTextAreaElement | null) {
-    const range = document.createRange();
-    const sel = window.getSelection();
-
-    if (! textarea) {
-        return null;
-    }
-    
-
-    range.setStart(textarea, textarea.selectionStart);
-    range.setEnd(textarea, textarea.selectionStart);
-    const rect = range.getBoundingClientRect();
-
-    console.log("getCursorPosition:", textarea, rect.top, rect.left);
-    return {
-        top: rect.top,
-        left: rect.left,
-    };
-}
 
 const Container = styled.div`
     background: #292933;
@@ -100,6 +81,7 @@ export default function MessageInput(props: MessageInputProps) {
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [showDropdown, setShowDropDown] = useState(false);    
     const [showTarotInput, setShowTarotInput] = useState(false);    
+    const [showGHInput, setShowGHInput] = useState(false);    
 
     // useEffect(() => {
     //     if (showDropdown) {
@@ -397,26 +379,44 @@ export default function MessageInput(props: MessageInputProps) {
         );
     };
 
+    const renderModeChoice = () => {
+        if ( showGHInput || showTarotInput ) return null ;
+        return (
+            <Radio.Group 
+                label=""
+                value="Normal"
+                onChange={ (value) => { if ( value == 'Tarot') { setShowTarotInput(true)}; if ( value == 'GH') { setShowGHInput(true)} }}
+                spacing={1}
+                size="xs"
+                color="blue"
+                >
+                    <Radio value="Normal" label="Normal" />
+                    <Radio value="Tarot" label="Tarot" />
+                    <Radio value="GH" label="GH" />
+                </Radio.Group>
+        )
+    }
     const setInputFromTarot = (message) => {
         console.log("setInputFromTarot:", message);
         setShowTarotInput(false);
         dispatch(setMessage(message))
     };
 
+    const setInputFromGH = (message) => {
+        console.log("setInputFromGH:", message);
+        setShowGHInput(false);
+        dispatch(setMessage(message))
+    };
+
     return <Container>
         <div className="inner" style={innerStyle}>
-            { showTarotInput ? null : 
-            <div style={{ marginBottom: '10px' }}>
-                    <Switch 
-                        checked={showTarotInput} 
-                        label="Tarot Mode"
-                        size="sm"
-                        onChange={() => setShowTarotInput(!showTarotInput)} 
-                        color="blue"  // Choose the color you prefer
-                    />
+            { showTarotInput || showGHInput ? null : 
+            <div style={{ marginBottom: '5px' }}>
+                    { renderModeChoice() }
             </div>
             }
             { showTarotInput ? <TarotInput setMessage={setInputFromTarot} initialText={message}/> : 
+              showGHInput ? <GHInput setMessage={setInputFromGH} initialText={message}/> :
             <Textarea disabled={props.disabled || disabled}
                 id="message-input"
                 autosize

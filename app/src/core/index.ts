@@ -15,6 +15,7 @@ import { pluginRunner } from "./plugins/plugin-runner";
 import { createBasicPluginContext } from './plugins/plugin-context';
 import { midjourneyPrefixes } from '../plugins/midjourney';
 import { tarotPrefixes } from '../plugins/tarot';
+import { ghPrefixes } from '../plugins/grandhoroscope';
 
 export const channel = new BroadcastChannel('chats');
 
@@ -181,12 +182,16 @@ export class ChatManager extends EventEmitter {
         
         console.log("getReply isTarot:", isTarot) ;
 
+        const isGH = ghPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
+        
+        console.log("getReply isGH:", isGH) ;
+
         const message: Message = {
             id: uuidv4(),
             parentID,
             chatID,
             timestamp: Date.now(),
-            role: isMidjourney ? "midjourney" : ( isTarot ? "tarot" : 'assistant'),
+            role: isMidjourney ? "midjourney" : ( isTarot ? "tarot" : ( isGH ? "gh" :'assistant')),
             model: "midjourney",
             content: '',
         };

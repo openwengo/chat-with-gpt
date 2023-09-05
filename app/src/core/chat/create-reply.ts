@@ -2,6 +2,7 @@ import EventEmitter from "events";
 import { createChatCompletion, createStreamingChatCompletion } from "./openai";
 import { createStreamingMidjourneyCompletion } from "./midjourney";
 import { createStreamingTarotCompletion } from "./tarot";
+import { createStreamingGHCompletion } from "./grandhoroscope";
 import { PluginContext } from "../plugins/plugin-context";
 import { pluginRunner } from "../plugins/plugin-runner";
 import { Chat, Message, OpenAIMessage, Parameters, getOpenAIMessageFromMessage } from "./types";
@@ -93,6 +94,11 @@ export class ReplyRequest extends EventEmitter {
                     ...this.mutatedParameters,
                     apiKey: this.requestedParameters.apiKey,
                 }));                
+            } else if ( this.mutatedParameters.gh) {
+                ({ emitter, cancel } = await createStreamingGHCompletion(this.mutatedMessages, {
+                    ...this.mutatedParameters,
+                    apiKey: this.requestedParameters.apiKey,
+                }));                
             } else {
                 ({ emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
                     ...this.mutatedParameters,
@@ -163,7 +169,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : ( this.mutatedParameters.tarot ? 'tarot' : 'assistant'),
+                role: this.mutatedParameters.midjourney ? 'midjourney' : ( this.mutatedParameters.tarot ? 'tarot' : ( this.mutatedParameters.gh ? 'gh' : 'assistant')),
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, true);
 

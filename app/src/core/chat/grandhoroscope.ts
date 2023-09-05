@@ -4,8 +4,8 @@ import SSE from "../utils/sse";
 import { OpenAIMessage, Parameters } from "./types";
 import { backend } from "../backend";
 
-//export const defaultModel = 'gpt-3.5-turbo';
-export const defaultModel = 'gpt-4';
+export const defaultModel = 'gpt-3.5-turbo-16k';
+//export const defaultModel = 'gpt-4';
 
 export function isProxySupported() {
     return !!backend.current?.services?.includes('tarot');
@@ -16,7 +16,7 @@ function shouldUseProxy(apiKey: string | undefined | null) {
 }
 
 function getEndpoint(proxied = true) {
-    return '/chatapi/proxies/tarot';
+    return '/chatapi/proxies/gh';
 }
 
 export interface OpenAIResponseChunk {
@@ -51,7 +51,7 @@ function parseResponseChunk(buffer: any): OpenAIResponseChunk {
     };
 }
 
-export async function createStreamingTarotCompletion(messages: OpenAIMessage[], parameters: Parameters) {
+export async function createStreamingGHCompletion(messages: OpenAIMessage[], parameters: Parameters) {
     const emitter = new EventEmitter();
 
     const proxied = shouldUseProxy(parameters.apiKey);
@@ -61,7 +61,7 @@ export async function createStreamingTarotCompletion(messages: OpenAIMessage[], 
         throw new Error('No API key provided');
     }
 
-    const eventSource = new SSE(endpoint + '/v1/tarot/completions', {
+    const eventSource = new SSE(endpoint + '/v1/gh/completions', {
         method: "POST",
         headers: {
             'Accept': 'application/json, text/plain, */*',
@@ -72,15 +72,11 @@ export async function createStreamingTarotCompletion(messages: OpenAIMessage[], 
             "messages": messages,
             "model": parameters.model,
             "stream": true,
-            "tarot": true,
-            "tarotgame": parameters.tarotParameters?.game,
-            "card1": parameters.tarotParameters?.card1,
-            "card2": parameters.tarotParameters?.card2,
-            "card3": parameters.tarotParameters?.card3,
-            "card4": parameters.tarotParameters?.card4,
-            "card5": parameters.tarotParameters?.card5,
-            "prompt": parameters.tarotParameters?.prompt,
-            "lang": parameters.tarotParameters?.lang,
+            "gh": true,
+            "slug": parameters.ghParameters?.slug,
+            "lang": parameters.ghParameters?.lang,
+            "userNatalSign": parameters.ghParameters?.userNatalSign,
+            "userRisingSign": parameters.ghParameters?.userRisingSign,
         }),        
     }) as SSE;
 

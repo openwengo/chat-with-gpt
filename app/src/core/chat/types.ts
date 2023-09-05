@@ -38,6 +38,15 @@ export interface TarotParameters {
     prompt: string;
 }
 
+export interface GHParameters {
+    slug: string;
+    lang: string;
+    userNatalSign: number;
+    userRisingSign: number;
+    prompt: string;
+}
+
+
 
 export interface Parameters {
     temperature: number;
@@ -49,6 +58,8 @@ export interface Parameters {
     midjourneyParameters?: MidjourneyParameters;
     tarot?: boolean;
     tarotParameters?: TarotParameters;
+    gh?: boolean;
+    ghParameters?: GHParameters;
 }
 
 

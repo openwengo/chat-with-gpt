@@ -146,7 +146,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : 'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, false);
 
@@ -172,7 +172,6 @@ export class ReplyRequest extends EventEmitter {
                 role: this.mutatedParameters.midjourney ? 'midjourney' : ( this.mutatedParameters.tarot ? 'tarot' : ( this.mutatedParameters.gh ? 'gh' : 'assistant')),
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, true);
-
             this.content = output.content;
         });
 

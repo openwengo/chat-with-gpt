@@ -20,7 +20,7 @@ export class ContextTrimmerPlugin extends Plugin<ContextTrimmerPluginOptions> {
                 {
                     id: 'maxTokens',
                     displayOnSettingsScreen: "chat",
-                    defaultValue: 2048,
+                    defaultValue: 8192,
                     scope: "chat",
                     renderProps: (value, options) => ({
                         label: `Include a maximum of ${value} tokens`,
@@ -87,7 +87,7 @@ export class ContextTrimmerPlugin extends Plugin<ContextTrimmerPluginOptions> {
         const options = this.options;
 
         const trimmed = await runChatTrimmer(messages, {
-            maxTokens: options?.maxTokens ?? 2048,
+            maxTokens: options?.maxTokens ?? 8192,
             nMostRecentMessages: options?.maxMessages ?? undefined,
             preserveFirstUserMessage: options?.preserveFirstUserMessage || true,
             preserveSystemPrompt: options?.preserveSystemPrompt || true,

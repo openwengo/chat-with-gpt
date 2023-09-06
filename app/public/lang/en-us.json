@@ -166,6 +166,10 @@
     "defaultMessage": "ChatGPT",
     "description": "Label that is shown above messages written by the AI (as opposed to the user)"
   },
+  "role-gh": {
+    "defaultMessage": "GH",
+    "description": "Label that is shown above messages written by the Grand Horoscope"
+  },
   "role-midjourney": {
     "defaultMessage": "Midjourney",
     "description": "Label that is shown above messages written by Midjourney"

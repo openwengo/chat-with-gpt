@@ -72,7 +72,7 @@ function sendChunkResponse(res: express.Response, message: string) {
 
 function cloneWithoutAttributes(source: Record<string, any>, excludepattern: string): Record<string, any> {
     return Object.entries(source).reduce((accumulator, [key, value]) => {
-        if (!key.startsWith(excludepattern)) {
+        if ( !key.startsWith(excludepattern) ) {
             accumulator[key] = value;
         }
         return accumulator;
@@ -107,14 +107,14 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
 
   // Check if prompt exists, if not insert
   const existingPrompt = await tarotdatabase.getPrompt(promptHash);
-  console.log(`Existing prompt ${promptHash}:`, existingPrompt);
-  console.log('model:', model);
+  console.log(`Existing prompt ${promptHash} / ${prompt}-${model.modelName}:`, existingPrompt);
+  //console.log('model:', model);
   if (!existingPrompt) {
     await tarotdatabase.insertPrompt(promptHash, prompt);
   }
 
   let newResponse = {...responseData} ;
-  newResponse.values=cloneWithoutAttributes( responseData.values, "GH20") ;
+  newResponse.values=cloneWithoutAttributes( responseData.values, "GH20" ) ;
 
   // Iterate through the keys starting with "GH20"
   for (const key of Object.keys(responseData.values)) {
@@ -130,7 +130,7 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
 
       // Check if the text with prompt exists in the database
       const existingText = await tarotdatabase.getText(textHash, promptHash);
-      console.log(`Existing text for ${key} (${textHash}):`, existingText);
+      //console.log(`Existing text for ${key} (${textHash}):`, existingText);
       if (existingText) {
         // Replace the value in the result object with it
         responseData.values[key] = existingText.text;
@@ -146,7 +146,7 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
     }
   }
 
-  return responseData; // Modified response data
+  return newResponse; // Modified response data
 }
 
 export async function streamingHandler(req: express.Request, res: express.Response) {
@@ -169,10 +169,11 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     console.log("LastMessage:", lastMessage);
 
     if ( req.body.slug ) {
+        console.log("Req.body:", req.body);
         const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
         temperature: req.body.temperature ? req.body.temperature : 0,
-        modelName: req.body.model ? req.body.model : "gpt-3.5-turbo-16k",
+        modelName: "gpt-3.5-turbo-16k" //req.body.model ? req.body.model : "gpt-3.5-turbo-16k",
         // callbacks: [{
         //     handleLLMNewToken(token: string) {
         //     sendChunkResponse(res, token);
@@ -191,7 +192,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
         const modifiedResponse = await processWengoodResponse(res, responseApi, req.body.prompt, tarotdatabase, model) ;
 
-        console.log("modifiedResponse:", modifiedResponse);
+        //console.log("modifiedResponse:", modifiedResponse);
         sendChunkResponse(res, JSON.stringify(modifiedResponse));
 
         res.write(`data: [DONE]\n\n`);

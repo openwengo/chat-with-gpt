@@ -77,6 +77,7 @@ export async function createStreamingGHCompletion(messages: OpenAIMessage[], par
             "lang": parameters.ghParameters?.lang,
             "userNatalSign": parameters.ghParameters?.userNatalSign,
             "userRisingSign": parameters.ghParameters?.userRisingSign,
+            "prompt": parameters.ghParameters?.prompt,
         }),        
     }) as SSE;
 
@@ -93,6 +94,7 @@ export async function createStreamingGHCompletion(messages: OpenAIMessage[], par
     });
 
     eventSource.addEventListener('message', async (event: any) => {
+
         if (event.data === '[DONE]') {
             emitter.emit('done');
             return;

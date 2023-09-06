@@ -17,7 +17,7 @@ export interface TitlePluginOptions {
 }
 
 const userPrompt = (messages: OpenAIMessage[]) => {
-    return messages.map(m => `${m.role.toLocaleUpperCase()}:\n${m.content}`)
+    return messages.map(m => `${m.role.toLocaleUpperCase()}:\n${m.content.substring(0,250)}`)
         .join("\n===\n")
         + "\n===\nTitle:";
 }

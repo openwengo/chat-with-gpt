@@ -44,7 +44,9 @@ export function countTokensForMessage(message: OpenAIMessage) {
 export function countTokensForMessages(messages: OpenAIMessage[]) {
     let tokens = overheadTokens.perPrompt;
     for (const m of messages) {
-        tokens += countTokensForMessage(m);
+        if ( ['user','assistant','system'].includes(m.role) ) {
+            tokens += countTokensForMessage(m);
+        }
     }
     return tokens;
 }

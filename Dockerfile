@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy package.json and tsconfig.json
 COPY ./app/package.json ./
+COPY ./app/package-lock.json ./
 COPY ./app/tsconfig.json ./
 
 # Install Node.js dependencies
@@ -51,7 +52,7 @@ WORKDIR /app
 #     libssl-dev \
 #     openssl
 
-COPY ./server/package.json ./server/tsconfig.json ./
+COPY ./server/package.json ./server/package-lock.json  ./server/tsconfig.json ./
 
 # Install Node.js dependencies from package.json
 RUN npm install

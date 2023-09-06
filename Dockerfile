@@ -27,6 +27,19 @@ RUN npm run build
 
 FROM node:19-bullseye-slim AS server
 
+RUN apt-get update && \
+    apt-get install -y \
+    ca-certificates && \
+    update-ca-certificates
+
+COPY MYBESTPRO-CA.crt /usr/local/share/ca-certificates/
+COPY WENGO.PRIV-CA.crt /usr/local/share/ca-certificates/
+
+RUN update-ca-certificates
+ENV NODE_EXTRA_CA_CERTS /etc/ssl/certs/ca-certificates.crt
+
+ENV NODE_ENV=production
+
 # Set the working directory
 WORKDIR /app
 

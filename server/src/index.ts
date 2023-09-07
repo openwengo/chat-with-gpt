@@ -66,6 +66,11 @@ export default class ChatServer {
         // logs
         if (config.httpLogs) {
             console.log("Enable http logs with value:", config.httpLogs)
+
+            morgan.token('remote-user', function (req ,res) {
+                return (req as any).session?.passport?.user?.id ;
+            })
+            
             this.app.use(morgan(config.httpLogs))
         }
         // trusted proxies
@@ -213,8 +218,8 @@ export default class ChatServer {
         const displayStatistics = () => {
             const activeUsers = getActiveUsersInLast5Minutes();
             
-            const activeUsersToDisplay = activeUsers.slice(0, 10);
-            const extraActiveUsers = activeUsers.slice(10);
+            const activeUsersToDisplay = activeUsers.slice(0, 20);
+            const extraActiveUsers = activeUsers.slice(20);
 
             const numRecentUpdates = getNumUpdatesProcessedIn5Minutes();
 

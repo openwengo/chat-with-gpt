@@ -229,6 +229,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     console.log("wengoplusmode:", req.body.wengoplusmode);
     console.log("temperature:", req.body.temperature);
     console.log("model:", req.body.model);    
+    console.log("user:", (req as any).session?.passport?.user?.id );    
 
     let completion = '';
     console.log("messages:", messages);

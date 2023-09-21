@@ -52,6 +52,8 @@ async function callWengoodApi(data: {
     url.searchParams.append(`staticKeys[card_${i}][context][Card]`, (i * 3).toString());
   }
 
+  console.log("appel api wengood avec:", url.searchParams) ;
+
   // Making the HTTP request with the required header
   try {
     const response = await axios.get(url.toString(), {
@@ -131,7 +133,10 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
   newResponse.values=cloneWithoutAttributes( responseData.values, "XLHTML") ;
 
   // Iterate through the keys starting with "XLHTML"
-  for (const key of Object.keys(responseData.values)) {
+  for (const key in ['XLHTMLDescriptionCard_1_YN', 'XLHTMLDescriptionSumarize_1_YN',
+    'XLHTMLDescriptionCard_2_YN', 'XLHTMLDescriptionSumarize_2_YN',
+    'XLHTMLDescriptionCard_3_YN', 'XLHTMLDescriptionSumarize_3_YN',
+    'XLHTMLConclusionCard_YN' ]) {
     if (key.startsWith('XLHTML')) {
       const textContent = responseData.values[key];
 
@@ -153,6 +158,8 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
         newResponse.values[key] = newText;
       }
       sendChunkResponse(res, JSON.stringify(newResponse));
+    } else {
+      console.log(`Ignore key ${key}`);
     }
   }
 
@@ -189,14 +196,29 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         //     },
         // },]
     });
-        
+
+        const cardsRating = [2, 2, 3, 3, 2, 1, 3, 2, 1, 2, 3, 1, 1, 2, 2, 1, 3, 1, 3, 2, 3, 2];          
+        const card1Rating = cardsRating[(req.body.card1 - 1)];
+        const card2Rating = cardsRating[(req.body.card2 - 1)];
+        const card3Rating = cardsRating[(req.body.card3 - 1)];
+        // card 4 result
+        const finalRating = card1Rating - card2Rating + card3Rating + 2;
+        // evaluate card 5
+        // card 5 result
+        const versionNumber = Math.floor((Math.random() * 3) + 1);
+
+        const score = 100 * ( cardsRating[req.body.card1 - 1]
+                      - cardsRating[req.body.card2 - 1]
+                      + cardsRating[req.body.card3 - 1]
+                      + 2 ) / 7.0;
+
         let responseApi = await callWengoodApi( {
             lang: req.body.lang,
             card1: req.body.card1,
             card2: req.body.card2,
             card3: req.body.card3,
-            card4: req.body.card4 ? req.body.card4 : 4,
-            card5: req.body.card5 ? req.body.card5 : 5,
+            card4: req.body.card4 ? req.body.card4 : finalRating,
+            card5: req.body.card5 ? req.body.card5 : versionNumber,
         })
 
         responseApi['values']['realcard1'] = req.body.card1;
@@ -208,7 +230,12 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         const modifiedResponse = await processWengoodResponse(res, responseApi, req.body.prompt, tarotdatabase, model) ;
 
         console.log("modifiedResponse:", modifiedResponse);
-        sendChunkResponse(res, JSON.stringify(modifiedResponse));
+
+        const responseWithScore = {
+          ...modifiedResponse, 'score': score
+        }
+        
+        sendChunkResponse(res, JSON.stringify(responseWithScore));
 
         res.write(`data: [DONE]\n\n`);
         res.flush();

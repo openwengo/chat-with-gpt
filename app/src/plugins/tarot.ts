@@ -66,9 +66,7 @@ export class TarotPlugin extends Plugin<TarotPluginOptions> {
                 card2: jsonObject.card2,
                 card3: jsonObject.card3,
                 lang: jsonObject.lang,
-                prompt: jsonObject.prompt,
-                card4: 4,
-                card5: 5
+                prompt: jsonObject.prompt
             }
 
             const newParameters: Parameters = {

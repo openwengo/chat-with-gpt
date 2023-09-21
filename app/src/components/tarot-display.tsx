@@ -69,9 +69,17 @@ const TarotTexts: React.FC<TarotTextsProps> = ({ jsonData }) => {
         const textValues = jsonData.values;
         if (textValues) {
             console.log("render keys:",Object.keys(textValues));
-            return Object.keys(textValues).filter((key) => key.startsWith('XLHTML'))
-            .map((key, index) => (
-                <Paper key={index}
+            // Object.keys(textValues).filter((key) => key.startsWith('XLHTML'))
+            return  [   {'index': 1, 'key': 'XLHTMLDescriptionCard_1_YN'},
+                {'index': 2, 'key': 'XLHTMLDescriptionSumarize_1_YN'},
+                {'index': 3, 'key': 'XLHTMLDescriptionCard_2_YN'},
+                {'index': 4, 'key': 'XLHTMLDescriptionSumarize_2_YN'},                
+                {'index': 5, 'key': 'XLHTMLDescriptionCard_3_YN'},
+                {'index': 6, 'key': 'XLHTMLDescriptionSumarize_3_YN'},                
+                {'index': 7, 'key': 'XLHTMLConclusionCard_YN'},
+            ]
+            .map(({key, index: objIndex}, arrayIndex)=> (
+                <Paper key={arrayIndex}
                 style={{ overflowY: 'auto', maxHeight: '200px', marginBottom: '10px' }}>
                     <Container>
                         <Title order={5}>{key}</Title>
@@ -126,6 +134,25 @@ const TarotCards: React.FC<TarotTextsProps> = ({ jsonData }) => {
     return <div>{renderTarotCards()}{renderError()}</div>
 }
 
+const TarotScore: React.FC<TarotTextsProps> = ({ jsonData }) => {
+
+    const renderTarotScore = () => {
+        if ('score' in jsonData) {
+            return <Grid gutter="xs" justify="center">
+                        <Col span={4}>
+                            <Text size="xs" color="dimmed" align="center">
+                                Score: {jsonData['score']}%
+                            </Text>
+                        </Col> 
+                    </Grid>;
+
+        } else {
+            return <></>;
+        }
+ 
+    }
+    return <div>{renderTarotScore()}</div>;
+}
 
 export interface TarotDisplayProps {
     content: string;
@@ -163,6 +190,7 @@ export function TarotDisplay(props: TarotDisplayProps) {
             <MaxWidth>                
                 <TarotTexts jsonData={tarotData}/>
             </MaxWidth>
+            <TarotScore jsonData={tarotData}/>
         </div>
     ), [props.content, classes, intl]);
 

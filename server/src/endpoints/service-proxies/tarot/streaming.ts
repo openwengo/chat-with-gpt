@@ -133,7 +133,7 @@ async function processWengoodResponse(res: express.Response, responseData: any, 
   newResponse.values=cloneWithoutAttributes( responseData.values, "XLHTML") ;
 
   // Iterate through the keys starting with "XLHTML"
-  for (const key in ['XLHTMLDescriptionCard_1_YN', 'XLHTMLDescriptionSumarize_1_YN',
+  for (const key of ['XLHTMLDescriptionCard_1_YN', 'XLHTMLDescriptionSumarize_1_YN',
     'XLHTMLDescriptionCard_2_YN', 'XLHTMLDescriptionSumarize_2_YN',
     'XLHTMLDescriptionCard_3_YN', 'XLHTMLDescriptionSumarize_3_YN',
     'XLHTMLConclusionCard_YN' ]) {
@@ -234,7 +234,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         const responseWithScore = {
           ...modifiedResponse, 'score': score
         }
-        
+
         sendChunkResponse(res, JSON.stringify(responseWithScore));
 
         res.write(`data: [DONE]\n\n`);

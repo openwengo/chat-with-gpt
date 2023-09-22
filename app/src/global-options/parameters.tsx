@@ -50,7 +50,7 @@ export const parameterOptions: OptionGroup = {
         },        
         {
             id: "temperature",
-            defaultValue: 0.5,
+            defaultValue: 0.2,
             resettable: true,
             scope: "chat",
             displayOnSettingsScreen: "chat",

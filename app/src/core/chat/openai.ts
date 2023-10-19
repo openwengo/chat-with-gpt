@@ -19,6 +19,11 @@ function getEndpoint(proxied = false) {
     return proxied ? '/chatapi/proxies/openai' : 'https://api.openai.com';
 }
 
+function getOpenRouterEndpoint(proxied = true) {
+    return proxied ? '/chatapi/proxies/openrouter' : 'https://openrouter.ai/api';
+}
+
+
 export interface OpenAIResponseChunk {
     id?: string;
     done: boolean;
@@ -53,11 +58,17 @@ function parseResponseChunk(buffer: any): OpenAIResponseChunk {
 
 export async function createChatCompletion(messages: OpenAIMessage[], parameters: Parameters): Promise<string> {
     const proxied = shouldUseProxy(parameters.apiKey);
-    const endpoint = getEndpoint(proxied);
+    let endpoint = getEndpoint(proxied);
 
     if (!proxied && !parameters.apiKey) {
         throw new Error('No API key provided');
     }
+
+    if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {
+        endpoint = getOpenRouterEndpoint(proxied);
+    }
+
+    console.log("Configured endpoint:", endpoint);
 
     const response = await fetch(endpoint + '/v1/chat/completions', {
         method: "POST",
@@ -82,11 +93,17 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     const emitter = new EventEmitter();
 
     const proxied = shouldUseProxy(parameters.apiKey);
-    const endpoint = getEndpoint(proxied);
+    let endpoint = getEndpoint(proxied);
 
     if (!proxied && !parameters.apiKey) {
         throw new Error('No API key provided');
     }
+
+    if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {
+        endpoint = getOpenRouterEndpoint(proxied);
+    }
+
+    console.log("Configured endpoint:", endpoint);
 
     const eventSource = new SSE(endpoint + '/v1/chat/completions', {
         method: "POST",
@@ -142,6 +159,9 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
 }
 
 export const maxTokensByModel = {
-    "chatgpt-3.5-turbo-16k": 16384,
-    "gpt-4": 8192,
+    "chatgpt-3.5-turbo-16k": 16383,
+    "gpt-4": 8191,
+    "openai/gpt-4-32k": 32767,
+    "anthropic/claude-2": 100000,
+    "anthropic/claude-instant-v1": 100000
 }

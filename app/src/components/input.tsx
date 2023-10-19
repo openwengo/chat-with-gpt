@@ -14,6 +14,7 @@ import QuickSettings from './quick-settings';
 import { useOption } from '../core/options/use-option';
 import { TarotInput } from './tarotinput' ;
 import { GHInput } from './ghinput' ;
+import { countTokensForText } from '../core/tokenizer';
 
 
 interface SlashCommand {
@@ -355,6 +356,13 @@ export default function MessageInput(props: MessageInputProps) {
         }
     `
 
+    const TokenCount = styled.div`
+        color: #ccc;
+        font-size: 0.8rem;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+    `
     const innerStyle: React.CSSProperties = {
         position: 'relative'
     };
@@ -410,13 +418,13 @@ export default function MessageInput(props: MessageInputProps) {
 
     return <Container>
         <div className="inner" style={innerStyle}>
-            { showTarotInput || showGHInput ? null : 
+            { (showTarotInput || showGHInput) || true ? null : 
             <div style={{ marginBottom: '5px' }}>
                     { renderModeChoice() }
             </div>
             }
-            { showTarotInput ? <TarotInput setMessage={setInputFromTarot} initialText={message}/> : 
-              showGHInput ? <GHInput setMessage={setInputFromGH} initialText={message}/> :
+            { showTarotInput && false ? <TarotInput setMessage={setInputFromTarot} initialText={message}/> : 
+              showGHInput && false ? <GHInput setMessage={setInputFromGH} initialText={message}/> :
             <Textarea disabled={props.disabled || disabled}
                 id="message-input"
                 autosize
@@ -429,7 +437,7 @@ export default function MessageInput(props: MessageInputProps) {
                 rightSectionWidth={context.generating ? 100 : 55}
                 onKeyDown={hotkeyHandler} /> 
             }
-            <QuickSettings key={tab} />
+            <TokenCount>tokens: {countTokensForText(message)}</TokenCount><QuickSettings key={tab} />
         </div>
     </Container>;
 }

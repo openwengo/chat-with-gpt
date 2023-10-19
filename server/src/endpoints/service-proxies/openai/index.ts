@@ -6,6 +6,7 @@ import { config } from '../../../config';
 
 export const endpoint = 'https://api.openai.com/v1/chat/completions';
 export const apiKey = config.services?.openai?.apiKey || process.env.OPENAI_API_KEY;
+export const openrouterApiKey = config.services?.openrouter?.apiKey || process.env.OPENROUTER_API_KEY;
 
 export default class OpenAIProxyRequestHandler extends RequestHandler {
     async handler(req: express.Request, res: express.Response) {

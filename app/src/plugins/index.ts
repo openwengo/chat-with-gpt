@@ -15,7 +15,6 @@ export const registeredPlugins: Array<typeof Plugin<any>> = [
     TarotPlugin,
     GHPlugin,
     SystemPromptPlugin,
-    ContextTrimmerPlugin,
     TitlePlugin,
     WebSpeechPlugin,
     ElevenLabsPlugin,

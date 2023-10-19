@@ -13,6 +13,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useAppSelector } from '../store';
 import { selectSettingsTab } from '../store/settings-ui';
+import { countTokensForMessages } from '../core/tokenizer';
 
 // hide for everyone but screen readers
 const SROnly = styled.span`
@@ -159,6 +160,14 @@ const Container = styled.div`
                 align-items: center;
             }
         }
+
+        .token-count {
+            color: #ccc;
+            font-size: 0.8rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+        }
     }
 
     .fa {
@@ -196,6 +205,14 @@ const Editor = styled.div`
         margin-top: 1rem;
     }
 `;
+
+const TokenCount = styled.div`
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+`
 
 function InlineLoader() {
     return (
@@ -317,6 +334,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                         </Button>
                     </Editor>)}
                 </div>
+                { ['system','assistant','user'].includes(props.message.role)  && <TokenCount>tokens: {countTokensForMessages([props.message])} </TokenCount> }
                 {props.last && <EndOfChatMarker />}
             </Container>
         )

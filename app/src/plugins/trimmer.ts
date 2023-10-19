@@ -87,7 +87,7 @@ export class ContextTrimmerPlugin extends Plugin<ContextTrimmerPluginOptions> {
         const options = this.options;
 
         const trimmed = await runChatTrimmer(messages, {
-            maxTokens: options?.maxTokens ?? 8192,
+            maxTokens: options?.maxTokens ?? 100000,
             nMostRecentMessages: options?.maxMessages ?? undefined,
             preserveFirstUserMessage: options?.preserveFirstUserMessage || true,
             preserveSystemPrompt: options?.preserveSystemPrompt || true,

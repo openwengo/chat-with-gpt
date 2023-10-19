@@ -2,6 +2,7 @@
 import { EventSource } from "launchdarkly-eventsource";
 import express from 'express';
 import { apiKey } from ".";
+import { openrouterApiKey } from "." ;
 import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
@@ -254,20 +255,38 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     delete req.body.wengoplusmode;
     
-    const eventSource = new EventSource('https://api.openai.com/v1/chat/completions', {
+    const openaiEndpoint = 'https://api.openai.com/v1/chat/completions';
+    const openrouterEndpoint = 'https://openrouter.ai/api/v1/chat/completions' ;
+
+    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterEndpoint : openaiEndpoint ;
+    const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
+
+
+    console.log("Sending message to:", endpoint);
+    const eventSource = new EventSource( endpoint, {
         method: "POST",
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${endpointApiKey}`,
             'Content-Type': 'application/json',
+            'X-Title': 'localhost',
+            'HTTP-Referer': 'http://localhost'
         },
         body: JSON.stringify({
             ...req.body,
             stream: true,
         }),
+        timeout: 10000,
+        initialRetryDelayMillis: 10000, maxRetryDelayMillis: 30000 ,
+        readTimeoutMillis: 20000
     });
 
     eventSource.addEventListener('message', async (event: any) => {
+
+        if (! event.data) {
+            console.log("Event without data:", event) ;
+            return ;
+        }
         //console.log("new message:", `data: ${event.data}\n\n`);
         res.write(`data: ${event.data}\n\n`);
         res.flush();

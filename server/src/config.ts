@@ -20,7 +20,15 @@ export interface Config {
             apiKey?: string;
             loginRequired?: boolean;
         };
-
+        
+        openrouter?: {
+            // The API key required to authenticate with the OpenRouter.ai.
+            // When provided, signed in users will be able to access OpenRouter through the server
+            // without needing their own API key.
+            apiKey?: string;
+            loginRequired?: boolean;
+        };
+        
         elevenlabs?: {
             // The API key required to authenticate with the ElevenLabs service.
             // When provided, signed in users will be able to access ElevenLabs through the server

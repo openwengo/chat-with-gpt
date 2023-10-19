@@ -135,6 +135,10 @@ export default class ChatServer {
             this.app.post('/chatapi/proxies/openai/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
         }
 
+        if (config.services?.openrouter?.apiKey) {
+            this.app.post('/chatapi/proxies/openrouter/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
+        }
+
         if (config.services?.elevenlabs?.apiKey) {
             this.app.post('/chatapi/proxies/elevenlabs/v1/text-to-speech/:voiceID', (req, res) => new ElevenLabsTTSProxyRequestHandler(this, req, res));
             this.app.get('/chatapi/proxies/elevenlabs/v1/voices', (req, res) => new ElevenLabsVoicesProxyRequestHandler(this, req, res));

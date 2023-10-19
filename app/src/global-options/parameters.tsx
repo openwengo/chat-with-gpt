@@ -28,6 +28,18 @@ export const parameterOptions: OptionGroup = {
                         label: "GPT 3.5 Turbo (16k)",
                         value: "gpt-3.5-turbo-16k",
                     },
+                    {
+                        label: "GPT 4 (32k)",
+                        value: "openai/gpt-4-32k",
+                    },
+                    {
+                        label: "Claude v2 (100k)",
+                        value: "anthropic/claude-2",
+                    },
+                    {
+                        label: "Claude Instant v1 (100k)",
+                        value: "anthropic/claude-instant-v1",
+                    },
                 ],
             }),
         },

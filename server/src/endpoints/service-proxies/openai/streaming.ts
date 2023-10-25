@@ -7,7 +7,7 @@ import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
 import { HttpHandlerOptions } from "@aws-sdk/types";
-import { Lambda, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { Lambda, InvokeCommand, LambdaClient, LambdaClientConfig, InvokeCommandInput } from "@aws-sdk/client-lambda";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
 //const { OpenAI } = require("langchain/llms/openai");
@@ -97,14 +97,16 @@ const agent = new Agent({
     // scheduling: "fifo",
 });
 
+
 const lambdaClient = new Lambda({
     region: "eu-west-3",
     logger: console,
-    requestHandler: new NodeHttpHandler({
+    //httpOptions: 
+    /*requestHandler: new NodeHttpHandler({
         connectionTimeout: 8000,
         socketTimeout: 400 * 1000,
         httpAgent: agent,
-    }),
+    })*/
 });
 
   
@@ -114,7 +116,7 @@ const customGptDataTool = new DynamicTool({
      Input must be a string with the plain text question about the data you need",
     func: async (input: string) => {
                   
-        const params = {
+        const params : InvokeCommandInput = {
             FunctionName: "lambda_gptdata",
             Payload: new TextEncoder().encode(JSON.stringify(input)),
             InvocationType: "RequestResponse",
@@ -122,7 +124,7 @@ const customGptDataTool = new DynamicTool({
 
         // Hack to trigger tcp keepAlives on socket
 
-        const paramsDryRun = { 
+        const paramsDryRun : InvokeCommandInput = { 
             ...params,
             InvocationType: "DryRun",
         }
@@ -276,8 +278,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             ...req.body,
             stream: true,
         }),
-        timeout: 10000,
-        initialRetryDelayMillis: 10000, maxRetryDelayMillis: 30000 ,
         readTimeoutMillis: 20000
     });
 

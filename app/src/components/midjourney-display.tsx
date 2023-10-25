@@ -193,11 +193,13 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
 
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
+            { ( ( midjourneyMessage.uri !== "" ) && ( midjourneyMessage.uri !== "about:blank" )) &&
             <ImagePreview>
                 <img src={midjourneyMessage.uri} 
                      onClick={ () => handleOpenImage(midjourneyMessage.uri)}
                      style={{ cursor: "pointer" }}/>
             </ImagePreview>
+            }
             <MaxWidth>
                 { midjourneyMessage.progress === "done" ? <><CenteredButton><Button
                 variant="light"             

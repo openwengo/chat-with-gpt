@@ -68,7 +68,9 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         Limit: 99,
         MaxWait: 30,
         Debug: true,
-        Ws: true
+        Ws: true,
+        UpdateProgressWithoutImage: true,
+        EmptyImageUri: "about:blank",
         } );
 
     await midjourneyClient.Connect();

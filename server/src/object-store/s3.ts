@@ -2,6 +2,7 @@ import {
     S3,
     PutObjectCommand,
     GetObjectCommand,
+    PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
 import type {Readable} from 'stream';
 import ObjectStore from "./index";
@@ -23,7 +24,7 @@ export default class S3ObjectStore extends ObjectStore {
     }
 
     public async put(key: string, value: string, contentType: string) {
-        const params = {
+        const params : PutObjectCommandInput = {
             Bucket: bucket,
             Key: key,
             Body: value,

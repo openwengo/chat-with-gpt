@@ -5,7 +5,7 @@ import { OpenAIMessage, Parameters } from "../core/chat/types";
 
 export const defaultSystemPrompt = `
 You are ChatGPT, a large language model trained by OpenAI.
-Knowledge cutoff: 2021-09
+Knowledge cutoff: 2023-04
 Current date and time: {{ datetime }}
 `.trim();
 

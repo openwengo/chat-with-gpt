@@ -1,9 +1,9 @@
 import express from 'express';
 import axios from 'axios';
-import { apiKey, endpoint } from './index';
+import { apiKey, endPoint } from './index';
 
 export async function basicHandler(req: express.Request, res: express.Response) {
-    const response = await axios.post(endpoint, JSON.stringify(req.body), {
+    const response = await axios.post(endPoint, JSON.stringify(req.body), {
         headers: {
             'Accept': 'application/json, text/plain, */*',
             'Authorization': `Bearer ${apiKey}`,

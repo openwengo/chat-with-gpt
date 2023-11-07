@@ -2,7 +2,9 @@
 import { EventSource } from "launchdarkly-eventsource";
 import express from 'express';
 import { apiKey } from ".";
+import { endPoint } from ".";
 import { openrouterApiKey } from "." ;
+import { openrouterEndpoint } from "." ;
 import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
@@ -257,12 +259,9 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     delete req.body.wengoplusmode;
     
-    const openaiEndpoint = 'https://api.openai.com/v1/chat/completions';
-    const openrouterEndpoint = 'https://openrouter.ai/api/v1/chat/completions' ;
-
-    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterEndpoint : openaiEndpoint ;
+    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterEndpoint : endPoint ;
     const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
-
+    
 
     console.log("Sending message to:", endpoint);
     const eventSource = new EventSource( endpoint, {

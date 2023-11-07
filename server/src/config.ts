@@ -19,6 +19,7 @@ export interface Config {
             // without needing their own API key.
             apiKey?: string;
             loginRequired?: boolean;
+            endPoint?: string;
         };
         
         openrouter?: {
@@ -27,6 +28,7 @@ export interface Config {
             // without needing their own API key.
             apiKey?: string;
             loginRequired?: boolean;
+            endPoint?: string;
         };
         
         elevenlabs?: {

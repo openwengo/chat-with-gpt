@@ -2,9 +2,9 @@
 import { EventSource } from "launchdarkly-eventsource";
 import express from 'express';
 import { apiKey } from ".";
-import { endPoint } from ".";
+import { baseUrl } from ".";
 import { openrouterApiKey } from "." ;
-import { openrouterEndpoint } from "." ;
+import { openrouterBaseUrl } from "." ;
 import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
@@ -161,12 +161,13 @@ async function chainPreprocess(message: string, res: express.Response, modelName
         streaming: true,
         temperature: temperature ? temperature : 0,
         modelName: modelName ? modelName : "gpt-3.5-turbo",
+        configuration: { baseURL: `${baseUrl}` },
         callbacks: [{
             handleLLMNewToken(token: string) {
               sendChunkResponse(res, token);
             },
           },]});
-    const embeddings = new OpenAIEmbeddings({openAIApiKey: `${apiKey}`}
+    const embeddings = new OpenAIEmbeddings({openAIApiKey: `${apiKey}`, configuration: { baseURL: `${baseUrl}` }}
       );
     const tools =  [
         //new Calculator(),
@@ -235,12 +236,16 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     console.log("temperature:", req.body.temperature);
     console.log("model:", req.body.model);    
     console.log("user:", (req as any).session?.passport?.user?.id );    
+    console.log(`baseUrl: ${baseUrl}`);    
 
     let completion = '';
     console.log("messages:", messages);
 
     const lastMessage = messages[messages.length -1 ];
     console.log("LastMessage:", lastMessage);
+
+    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? `${openrouterBaseUrl}/chat/completions` : `${baseUrl}/chat/completions` ;
+    const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
 
     if ( req.body.wengoplusmode ) {
         const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body.model, req.body.temperature);
@@ -258,10 +263,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     } 
 
     delete req.body.wengoplusmode;
-    
-    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterEndpoint : endPoint ;
-    const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
-    
+        
 
     console.log("Sending message to:", endpoint);
     const eventSource = new EventSource( endpoint, {

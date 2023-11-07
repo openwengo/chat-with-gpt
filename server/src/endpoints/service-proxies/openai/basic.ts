@@ -1,12 +1,15 @@
 import express from 'express';
 import axios from 'axios';
-import { apiKey, endPoint } from './index';
+import { apiKey, baseUrl, openrouterBaseUrl, openrouterApiKey } from './index';
 
 export async function basicHandler(req: express.Request, res: express.Response) {
-    const response = await axios.post(endPoint, JSON.stringify(req.body), {
+    const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? `${openrouterBaseUrl}/chat/completions` : `${baseUrl}/chat/completions` ;
+    const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
+
+    const response = await axios.post(endpoint, JSON.stringify(req.body), {
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${endpointApiKey}`,
             'Content-Type': 'application/json',
         },
     })

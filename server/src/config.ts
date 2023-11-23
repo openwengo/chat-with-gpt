@@ -20,6 +20,8 @@ export interface Config {
             apiKey?: string;
             loginRequired?: boolean;
             baseUrl?: string;
+            user?: string;         // If configured sent to OpenAI
+            appendUserId?: boolean; // appends the userid of the logged-in "user-userid"
         };
         
         openrouter?: {

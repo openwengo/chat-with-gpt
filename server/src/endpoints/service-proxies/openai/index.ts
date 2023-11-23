@@ -6,6 +6,7 @@ import { config } from '../../../config';
 
 export const baseUrl = config.services?.openai?.baseUrl || 'https://api.openai.com/v1';
 export const apiKey = config.services?.openai?.apiKey || process.env.OPENAI_API_KEY;
+export const openAiUser = config.services?.openai?.user ;
 export const openrouterApiKey = config.services?.openrouter?.apiKey || process.env.OPENROUTER_API_KEY;
 export const openrouterBaseUrl = config.services?.openrouter?.baseUrl || 'https://openrouter.ai/api/v1';
 

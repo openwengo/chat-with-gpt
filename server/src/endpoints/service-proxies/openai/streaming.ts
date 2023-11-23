@@ -1,10 +1,6 @@
 // @ts-ignore
 import { EventSource } from "launchdarkly-eventsource";
 import express from 'express';
-import { apiKey } from ".";
-import { baseUrl } from ".";
-import { openrouterApiKey } from "." ;
-import { openrouterBaseUrl } from "." ;
 import { countTokensForMessages } from "./tokenizer";
 import { v4 as uuidv4 } from  'uuid' ;
 import { Agent } from "http";
@@ -22,6 +18,16 @@ const { BaseCallbackHandler } = require("langchain/callbacks");
 const { AWSLambda } = require("langchain/tools/aws_lambda");
 const { DynamicTool } = require("langchain/tools");
 //const { HumanChatMessage, SystemChatMessage } = require("langchain/schema");
+import { config } from '../../../config';
+
+const baseUrl = config.services?.openai?.baseUrl || 'https://api.openai.com/v1';
+const apiKey = config.services?.openai?.apiKey || process.env.OPENAI_API_KEY;
+const openAiUser = config.services?.openai?.user ;
+const appendUserId = config.services?.openai?.appendUserId ;
+
+const openrouterApiKey = config.services?.openrouter?.apiKey || process.env.OPENROUTER_API_KEY;
+const openrouterBaseUrl = config.services?.openrouter?.baseUrl || 'https://openrouter.ai/api/v1';
+
 
 
 
@@ -232,11 +238,20 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     const messages = req.body.messages;
     const promptTokens = countTokensForMessages(messages);
 
+    const loggedUser = (req as any).session?.passport?.user?.id;
     console.log("wengoplusmode:", req.body.wengoplusmode);
     console.log("temperature:", req.body.temperature);
     console.log("model:", req.body.model);    
-    console.log("user:", (req as any).session?.passport?.user?.id );    
+    console.log("user:", loggedUser );    
     console.log(`baseUrl: ${baseUrl}`);    
+
+    if (! req.body.user && openAiUser ) {
+        if (appendUserId) {
+            req.body['user'] = `${openAiUser}-${loggedUser}`;
+        } else {
+            req.body['user'] = `${openAiUser}` ;
+        }
+    }
 
     let completion = '';
     console.log("messages:", messages);

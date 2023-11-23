@@ -162,12 +162,13 @@ const customGptDataTool = new DynamicTool({
 
 
 
-async function chainPreprocess(message: string, res: express.Response, modelName?: string, temperature?: number) {
+async function chainPreprocess(message: string, res: express.Response, body: any  ) {
     const model = new ChatOpenAI({openAIApiKey: `${apiKey}`,
         streaming: true,
-        temperature: temperature ? temperature : 0,
-        modelName: modelName ? modelName : "gpt-3.5-turbo",
+        temperature: body.temperature ? body.temperature : 0,
+        modelName: body.modelName ? body.modelName : "gpt-3.5-turbo",
         configuration: { baseURL: `${baseUrl}` },
+        user: body.user,
         callbacks: [{
             handleLLMNewToken(token: string) {
               sendChunkResponse(res, token);
@@ -263,7 +264,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
 
     if ( req.body.wengoplusmode ) {
-        const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body.model, req.body.temperature);
+        const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body);
 
         if (preprocessedMessage !== '') {
             sendChunkResponse(res, preprocessedMessage);        

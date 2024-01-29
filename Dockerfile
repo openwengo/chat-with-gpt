@@ -1,4 +1,4 @@
-FROM node:19-bullseye-slim AS build
+FROM node:lts-bullseye-slim AS build
 
 RUN apt-get update && \
     apt-get install -y \
@@ -26,7 +26,7 @@ ENV NODE_ENV=production
 # Build the application
 RUN npm run build
 
-FROM node:19-bullseye-slim AS server
+FROM node:lts-bullseye-slim AS server
 
 RUN apt-get update && \
     apt-get install -y \

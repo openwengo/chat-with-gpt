@@ -155,9 +155,11 @@ export default class KnexDatabaseAdapter extends Database {
 
         const ydoc = new Y.Doc();
 
+        console.log("reading updates for", userID);
         const updates = await this.knex(tableNames.yjsUpdates)
             .where('user_id', userID)
             .select();
+        console.log(`read ${updates.length} for ${userID}`);
 
         updates.forEach((updateRow: any) => {
             try {
@@ -175,17 +177,20 @@ export default class KnexDatabaseAdapter extends Database {
         if (updates.length) {
             // In a transaction, insert the merged update, then delete all previous updates (lower ID).
             // This needs to be done together in a transaction to avoid consistency errors or data loss!
+            console.log(`cleanup updates for ${userID}`);
+
             await this.knex.transaction(async (trx) => {
                 await trx(tableNames.yjsUpdates)
                     .insert({
                         user_id: userID,
                         update: Buffer.from(merged),
                     });
-
+                console.log(`insert merged update ok for ${userID}`);
                 await trx(tableNames.yjsUpdates)
                     .where('user_id', userID)
                     .where('id', '<', updates[updates.length - 1].id)
                     .delete();
+                console.log(`deleted id < ${updates[updates.length - 1].id} for ${userID}`);
             });
         }
         

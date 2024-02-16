@@ -252,7 +252,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         } else {
             req.body['user'] = `${openAiUser}` ;
         }
-    }
+    }console
 
     let completion = '';
     console.log("messages:", messages);
@@ -269,7 +269,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         if (preprocessedMessage !== '') {
             sendChunkResponse(res, preprocessedMessage);        
             messages[messages.length -1 ].content = `${lastMessage.content}\n${preprocessedMessage}` ;
-            console.log("New message:", messages[messages.length -1 ].content );
+            //console.log("New message:", messages[messages.length -1 ].content );
         }
         sendChunkResponse(res, `Chain has completed`);
         res.write(`data: [DONE]\n\n`);
@@ -304,7 +304,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             console.log("Event without data:", event) ;
             return ;
         }
-        console.log("new message:", `data: ${event.data}\n\n`);
+        //console.log("new message:", `data: ${event.data}\n\n`);
         res.write(`data: ${event.data}\n\n`);
         res.flush();
 

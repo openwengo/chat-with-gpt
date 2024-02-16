@@ -4,7 +4,7 @@ import ExpiryMap from "expiry-map";
 import type { Doc } from "yjs";
 
 // const documents = new ExpiryMap<string, Doc>(60 * 60 * 1000);
-const documents = new ExpiryMap<string, Doc>(48 * 60 * 60 * 1000);
+const documents = new ExpiryMap<string, Doc>(1 * 60 * 60 * 1000);
 
 export default abstract class Database {
     public async initialize() {}

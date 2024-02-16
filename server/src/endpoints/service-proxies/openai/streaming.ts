@@ -304,7 +304,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             console.log("Event without data:", event) ;
             return ;
         }
-        //console.log("new message:", `data: ${event.data}\n\n`);
+        console.log("new message:", `data: ${event.data}\n\n`);
         res.write(`data: ${event.data}\n\n`);
         res.flush();
 

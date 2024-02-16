@@ -166,6 +166,10 @@
     "defaultMessage": "ChatGPT",
     "description": "Label that is shown above messages written by the AI (as opposed to the user)"
   },
+  "role-dalle3": {
+    "defaultMessage": "Dalle3",
+    "description": "Label that is shown above messages written by Dalle3"
+  },
   "role-gh": {
     "defaultMessage": "GH",
     "description": "Label that is shown above messages written by the Grand Horoscope"

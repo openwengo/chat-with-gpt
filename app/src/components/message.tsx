@@ -6,6 +6,7 @@ import { share } from '../core/utils';
 import { TTSButton } from './tts-button';
 import { Markdown } from './markdown';
 import { MidjourneyDisplay } from './midjourney-display';
+import { Dalle3Display } from './dalle3-display';
 import { TarotDisplay } from './tarot-display';
 import { GHDisplay } from './gh-display';
 import { useAppContext } from '../core/context';
@@ -249,6 +250,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 return intl.formatMessage({ id: 'role-tarot', defaultMessage: 'Tarot Adviser', description: "Label that is shown above messages written by the Tarot Advisor" });    
             case 'midjourney':
                 return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
+            case 'dalle3':
+                return intl.formatMessage({ id: 'role-dalle3', defaultMessage: 'Dalle3', description: "Label that is shown above messages written by Dalle3" });        
             case 'system':
                 return intl.formatMessage({ id: 'role-system', defaultMessage: 'System', description: "Label that is shown above messages inserted into the conversation automatically by the system (as opposed to either the user or AI)" });
             default:
@@ -269,9 +272,9 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             <strong>
                                 {getRoleName(props.message.role, props.share)}{props.message.model === 'gpt-4' && ' (GPT 4)'}<SROnly>:</SROnly>
                             </strong>
-                            {(props.message.role === 'assistant' || props.message.role === 'midjourney' || props.message.role === 'tarot' || props.message.role === 'gh' ) && props.last && !props.message.done && <InlineLoader />}
+                            {(props.message.role !== 'system' ) && props.last && !props.message.done && <InlineLoader />}
                         </span>
-                        { props.message.role !== 'midjourney' ? <><TTSButton id={props.message.id}
+                        { ( props.message.role !== 'midjourney' && props.message.role !== 'dalle3' )? <><TTSButton id={props.message.id}
                             selector={'.content-' + props.message.id}
                             complete={!!props.message.done}
                             autoplay={props.last && context.chat.lastReplyID === props.message.id} />
@@ -317,10 +320,11 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </Button>
                         )}
                     </div>
-                    {!editing && ! ['tarot','midjourney','gh'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && ! ['tarot','midjourney','gh','dalle3'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'gh' &&  <GHDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'tarot' &&  <TarotDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && props.message.role === 'dalle3' &&  <Dalle3Display content={props.message.content} className={"content content-" + props.message.id} />}
                     
                     {editing && (<Editor>
                         <Textarea value={content}

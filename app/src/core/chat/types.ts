@@ -27,6 +27,29 @@ export interface MidjourneyParameters {
     level?: string;
 }
 
+export interface DalleImageObject {
+    b64_json?: string;
+    url?: string;
+    revised_prompt?: string;
+}
+
+export interface DalleImageList {
+    created: number;
+    data: DalleImageObject[];
+}
+
+export interface Dalle3Message {
+    images?: DalleImageList;
+    error?: string;
+}
+
+export interface Dalle3Parameters {
+    format: "portrait" | "landscape";
+    style: "vivid" | "natural";
+    quality: "standard" | "hd";
+    prompt: string;
+}
+
 export interface TarotParameters {
     game: string;
     card1: string;
@@ -60,6 +83,8 @@ export interface Parameters {
     tarotParameters?: TarotParameters;
     gh?: boolean;
     ghParameters?: GHParameters;
+    dalle3?: boolean;
+    dalle3Parameters?: Dalle3Parameters;
 }
 
 

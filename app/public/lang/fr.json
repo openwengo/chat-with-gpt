@@ -177,6 +177,10 @@
 "defaultMessage": "ChatGPT",
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'IA (par opposition à l'utilisateur)"
 },
+"role-dalle3": {
+    "defaultMessage": "Dalle3",
+    "description": "Étiquette qui est affichée au-dessus des messages écrits par Dalle3"
+},
 "role-gh": {
     "defaultMessage": "GH",
     "description": "Étiquette qui est affichée au-dessus des messages écrits par Grand Horoscope"

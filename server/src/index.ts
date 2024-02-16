@@ -18,6 +18,7 @@ import DeleteChatRequestHandler from './endpoints/delete-chat';
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech';
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
+import Dalle3RequestHandler from './endpoints/service-proxies/dall-e3/';
 import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
 import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope' ;
 
@@ -147,6 +148,10 @@ export default class ChatServer {
         if (config.services?.midjourney?.salaiToken) {
             console.log("Create midjourney routes");
             this.app.post('/chatapi/proxies/midjourney/v1/midjourney', (req, res) => new MidjourneyRequestHandler(this, req, res));
+        }
+
+        if (config.services?.openai?.apiKey) {
+            this.app.post('/chatapi/proxies/dalle3/v1/dalle3', (req, res) => new Dalle3RequestHandler(this, req, res));
         }
 
         if (config.services?.tarot?.apiKey) {

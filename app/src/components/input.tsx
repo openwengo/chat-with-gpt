@@ -43,6 +43,15 @@ const slashCommands: SlashCommand[] = [
                 description: 'Creation image Midjourney'
             }
         ]
+    },
+    {
+        name: "/dalle3",
+        parameters: [
+            {
+                name: 'Dall3',
+                description: 'Creation image Dalle3'
+            }
+        ]
     }
 ]
 

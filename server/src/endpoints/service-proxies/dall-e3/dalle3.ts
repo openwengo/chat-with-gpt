@@ -23,6 +23,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     console.log("dalle body:", req.body);
 
+    const loggedUser = (req as any).session?.passport?.user?.id;
+
     const clientOptions: ClientOptions = {
         apiKey: apiKey,
         baseURL: baseUrl
@@ -64,7 +66,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                size: imageformat,
                style: style,
                quality: quality,
-               response_format: "url"
+               response_format: "url",
+               user: loggedUser
            }
        )
         sendSSE(req, res, { 'images': images });

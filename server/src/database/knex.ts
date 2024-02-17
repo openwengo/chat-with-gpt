@@ -158,7 +158,7 @@ export default class KnexDatabaseAdapter extends Database {
         console.log("reading updates for", userID);
         const updates = await this.knex(tableNames.yjsUpdates)
             .where('user_id', userID)
-            .select();
+            .select().orderBy('id');
         console.log(`read ${updates.length} for ${userID}`);
 
         updates.forEach((updateRow: any) => {

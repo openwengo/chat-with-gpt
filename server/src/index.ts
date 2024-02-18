@@ -29,7 +29,7 @@ import ObjectStore from './object-store/index';
 import S3ObjectStore from './object-store/s3';
 import SQLiteObjectStore from './object-store/sqlite';
 import { configurePassport } from './passport';
-import SyncRequestHandler, { getNumUpdatesProcessedIn5Minutes } from './endpoints/sync';
+import SyncRequestHandler, { getNumUpdatesProcessedIn5Minutes, YdocRequestHandler } from './endpoints/sync';
 import LegacySyncRequestHandler from './endpoints/sync-legacy';
 import { getActiveUsersInLast5Minutes } from './endpoints/base';
 import { formatTime } from './utils';
@@ -116,8 +116,13 @@ export default class ChatServer {
 
         this.app.post('/chatapi/y-sync',
             rateLimit({ windowMs: 60 * 1000, max: 100 }),
-            express.raw({ type: 'application/octet-stream', limit: '10mb' }),
+            express.raw({ type: 'application/octet-stream', limit: '20mb' }),
             (req, res) => new SyncRequestHandler(this, req, res));
+
+        this.app.get('/chatapi/y-doc',
+            rateLimit({ windowMs: 60 * 1000, max: 100 }),
+            express.raw({ type: 'application/octet-stream', limit: '10mb' }),
+            (req, res) => new YdocRequestHandler(this, req, res));
 
         this.app.get('/chatapi/legacy-sync',
             rateLimit({ windowMs: 60 * 1000, max: 100 }),

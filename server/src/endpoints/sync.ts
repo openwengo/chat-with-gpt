@@ -1,7 +1,7 @@
 import express from 'express';
 import { encode } from '@msgpack/msgpack';
 import ExpirySet from 'expiry-set';
-
+import { memcached, storeValue, getValue} from '../database/memcached' ;
 import RequestHandler from "./base";
 
 let totalUpdatesProcessed = 0;
@@ -58,5 +58,50 @@ export default class SyncRequestHandler extends RequestHandler {
 
     public isProtected() {
         return true;
+    }
+}
+
+export class YdocRequestHandler extends RequestHandler {
+    async handler(req: express.Request, res: express.Response) {
+
+        const encoding = await import('lib0/encoding');
+        const syncProtocol = await import('y-protocols/sync');
+
+        // Use userID from the query string parameter
+        const userID = req.query.userID as string;
+        if (!userID) {
+            res.status(400).send('UserID is required');
+            return;
+        }
+
+        try {
+            const { doc, merged } = await this.context.database.loadYDoc(userID);
+            //console.log("doc=", doc);
+
+            const Y = await import('yjs');            
+            const  buffer = Buffer.from(merged.buffer)
+
+            if ( memcached) {
+                console.log(`store statte for ${userID} in memcached`) ;
+                try {
+                    await storeValue(`chatwithgpt-state-${userID}`, buffer.toString('base64'));
+                } catch (error) {
+                    console.log("Failed to save state in memcached:", error);
+                }
+            }
+
+            // Set appropriate headers for binary data
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.setHeader('Content-Length', merged.byteLength);
+
+            res.send(buffer);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error');
+        }
+    }
+
+    public isProtected() {
+        return false;
     }
 }

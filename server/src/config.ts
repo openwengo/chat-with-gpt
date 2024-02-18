@@ -140,6 +140,20 @@ export interface Config {
     */
    httpLogs?: string;
 
+
+    /*
+    If set use this url to fetch ydocs instead of direct process in the database
+    */
+    ydocsUrl?: string;
+
+    /*
+    If set these memcached server will be used to store states snapshots
+    */
+    memcached?: {
+        servers: string[]; // list of server:port
+        timeout: number;   // duration for which states are stored
+    }
+
 }
 
 // default config:

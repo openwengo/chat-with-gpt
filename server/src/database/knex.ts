@@ -150,7 +150,7 @@ export default class KnexDatabaseAdapter extends Database {
         return rows.map((row: any) => row.id);
     }
 
-    protected async loadYDoc(userID: string) {
+    public async loadYDoc(userID: string) {
         const Y = await import('yjs');
 
         const ydoc = new Y.Doc();
@@ -194,7 +194,7 @@ export default class KnexDatabaseAdapter extends Database {
             });
         }
         
-        return ydoc;
+        return { doc: ydoc, merged};
     }
 
     public async saveYUpdate(userID: string, update: Uint8Array): Promise<void> {

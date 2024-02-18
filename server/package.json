@@ -13,16 +13,16 @@
     "@aws-sdk/client-s3": "^3.385.0",
     "@aws-sdk/client-sts": "^3.385.0",
     "@aws-sdk/credential-provider-node": "^3.385.0",
-    "@aws-sdk/node-http-handler": "^3.360.0",
-    "@aws-sdk/types": "^3.378.0",
     "@aws-sdk/middleware-host-header": "3.379.1",
     "@aws-sdk/middleware-logger": "3.378.0",
     "@aws-sdk/middleware-recursion-detection": "3.378.0",
     "@aws-sdk/middleware-signing": "3.379.1",
     "@aws-sdk/middleware-user-agent": "3.382.0",
+    "@aws-sdk/node-http-handler": "^3.360.0",
+    "@aws-sdk/types": "^3.378.0",
     "@aws-sdk/util-endpoints": "3.382.0",
     "@aws-sdk/util-user-agent-browser": "3.378.0",
-    "@aws-sdk/util-user-agent-node": "3.378.0",    
+    "@aws-sdk/util-user-agent-node": "3.378.0",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@types/bcrypt": "^5.0.0",
     "@types/compression": "^1.7.2",
@@ -68,6 +68,7 @@
     "lib0": "^0.2.73",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
+    "memcached": "^2.2.2",
     "midjourney": "owengo/midjourney-api.git#patch_notifs",
     "morgan": "^1.10.0",
     "nanoid": "^4.0.1",
@@ -87,6 +88,7 @@
     "yjs": "^13.5.51"
   },
   "devDependencies": {
+    "@types/memcached": "^2.2.10",
     "@types/uuid": "^9.0.1"
   }
 }

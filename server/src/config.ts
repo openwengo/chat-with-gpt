@@ -22,6 +22,7 @@ export interface Config {
             baseUrl?: string;
             user?: string;         // If configured sent to OpenAI
             appendUserId?: boolean; // appends the userid of the logged-in "user-userid"
+            imagesBaseUrl?: string; // base url for generated dall-e images
         };
         
         openrouter?: {

@@ -33,6 +33,18 @@ export default class S3ObjectStore extends ObjectStore {
         };
         await s3.send(new PutObjectCommand(params));
     }
+    
+    public async putBinary(key: string, value: Buffer, contentType: string) {
+        const params : PutObjectCommandInput = {
+            Bucket: bucket,
+            Key: key,
+            Body: value,
+            ContentType: contentType,
+            StorageClass: "INTELLIGENT_TIERING",
+        };
+        await s3.send(new PutObjectCommand(params));
+    }
+
 }
 
 async function readStream(stream: Readable) {

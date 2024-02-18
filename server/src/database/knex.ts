@@ -10,6 +10,7 @@ const tableNames = {
     messages: 'messages',
     shares: 'shares',
     yjsUpdates: 'updates',
+    images: 'images',
 };
 
 export default class KnexDatabaseAdapter extends Database {
@@ -63,6 +64,14 @@ export default class KnexDatabaseAdapter extends Database {
             table.binary('update');
             table.index('user_id');
         });
+
+        await this.createTableIfNotExists(tableNames.images, (table) => {
+            table.text('id').primary();
+            table.text('user_id');
+            table.dateTime('created_at');
+        });
+
+
     }
 
     private async createTableIfNotExists(tableName: string, tableBuilderCallback: (tableBuilder: Knex.CreateTableBuilder) => any) {
@@ -121,6 +130,17 @@ export default class KnexDatabaseAdapter extends Database {
 
     public async createShare(userID: string | null, id: string): Promise<boolean> {
         await this.knex(tableNames.shares)
+            .insert({
+                id,
+                user_id: userID,
+                created_at: new Date(),
+            });
+
+        return true;
+    }
+
+    public async createImage(userID: string | null, id: string): Promise<boolean> {
+        await this.knex(tableNames.images)
             .insert({
                 id,
                 user_id: userID,

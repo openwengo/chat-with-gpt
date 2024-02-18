@@ -13,6 +13,7 @@ const db = new sqlite3.Database('./data/object-store.sqlite');
 export interface StoredObject {
     key: string;
     value: string;
+    binaryValue: Blob;
 }
 
 export default class SQLiteObjectStore extends ObjectStore {
@@ -40,6 +41,17 @@ export default class SQLiteObjectStore extends ObjectStore {
     public async put(key: string, value: string, contentType: string): Promise<void> {
         return new Promise((resolve, reject) => {
             db.run(`INSERT OR REPLACE INTO objects (key, value) VALUES (?, ?)`, [key, value], (err: any) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+    public async putBinary(key: string, value: Buffer, contentType: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            db.run(`INSERT OR REPLACE INTO objects (key, valueBinary) VALUES (?, ?)`, [key, value], (err: any) => {
                 if (err) {
                     reject(err);
                 } else {

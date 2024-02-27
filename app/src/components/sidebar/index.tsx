@@ -128,7 +128,7 @@ export default function Sidebar(props: {
     const elem = useMemo(() => (
         <Container className={"sidebar " + (sidebarOpen ? 'opened' : 'closed')} ref={ref}>
             <div className="sidebar-header">
-                <h2><FormattedMessage defaultMessage={"Chat History"} description="Heading for the chat history screen" /></h2>
+                <h2><FormattedMessage defaultMessage={"Chat History"} description="Heading for the chat history screen" />{ "(" + context.chat.all().length + ")"}</h2>
                 <Burger opened={sidebarOpen} onClick={onBurgerClick} aria-label={burgerLabel} transitionDuration={0} />
             </div>
             <div className="sidebar-content">

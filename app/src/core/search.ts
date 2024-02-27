@@ -41,12 +41,12 @@ export class Search {
         if (!query?.trim().length) {
             const searchResults = this.context.all()
                 .sort((a, b) => b.updated - a.updated)
-                .slice(0, 100);
+                .slice(0, 1000);
             const results = this.processSearchResults(searchResults);
             return results;
         }
 
-        let searchResults = this.index.search(query, { fuzzy: 0.2 });
+        let searchResults = this.index.search(query, { fuzzy: 2 });
 
         let output = this.processSearchResults(searchResults);
 

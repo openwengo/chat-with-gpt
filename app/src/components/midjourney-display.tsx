@@ -4,7 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
-import { Button, CopyButton, Col, Grid, Tooltip } from '@mantine/core';
+import { Button, CopyButton, Col, Grid, Tooltip, Paper, Text } from '@mantine/core';
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { MidjourneyMessage, MidjourneyMessageOption } from '../core/chat/types'  ;
@@ -12,6 +12,8 @@ import { useAppDispatch, useAppSelector } from '../store';
 import { selectMessage, setMessage } from '../store/message';
 import { useAppContext } from '../core/context';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 
 const Code = styled.div`
     padding: 0;
@@ -199,6 +201,17 @@ export function MidjourneyDisplay(props: MidjourneyDisplayProps) {
                      onClick={ () => handleOpenImage(midjourneyMessage.uri)}
                      style={{ cursor: "pointer" }}/>
             </ImagePreview>
+            }
+            {
+                midjourneyMessage.descriptions &&
+                <>
+                {midjourneyMessage.descriptions.map((desc, index) => (
+                    <Paper key={index} shadow="xs" p="md" withBorder>
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{desc}</ReactMarkdown>
+                    </Paper>
+                ))
+                }
+                </>
             }
             <MaxWidth>
                 { midjourneyMessage.progress === "done" ? <><CenteredButton><Button

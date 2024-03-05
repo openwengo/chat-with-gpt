@@ -66,8 +66,7 @@ export default class DalleProxyRequestHandler extends RequestHandler {
         
             sendSSE(req, res, { 'images': images } );
         
-            try {
-                images = await openai.images.generate(
+            try {                images = await openai.images.generate(
                     {                 
                        "prompt":  req.body.prompt, 
                        model: "dall-e-3",

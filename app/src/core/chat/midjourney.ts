@@ -96,7 +96,7 @@ export async function createStreamingMidjourneyCompletion(messages: OpenAIMessag
 
         try {
             const chunk = parseResponseChunk(event.data);
-            if (chunk.uri && chunk.progress && ( chunk.uri !== "" ) || chunk.progress.indexOf("error") >= 0) {                
+            if (chunk.uri && chunk.progress && ( chunk.uri !== "" ) || ( chunk.progress && ( chunk.progress.indexOf("error") >= 0))) {                
                 emitter.emit('data', event.data);
             } else {
                 console.log("Received midjourney SSE without uri:", event.data);

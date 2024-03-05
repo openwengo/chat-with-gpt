@@ -15,6 +15,7 @@ export interface MidjourneyMessage {
     hash?: string;
     flags?: number;
     options?: MidjourneyMessageOption[];
+    descriptions?: string[];
 }
 
 export interface MidjourneyParameters {

@@ -6,13 +6,13 @@ import { MidjourneyMessage } from '../core/chat/types' ;
 export interface MidjourneyPluginOptions {
 }
 
-export const midjourneyPrefixes = ["/imagine", "/midjourneycustom"] ; // "/variations", "/upscale", "/zoomout"
+export const midjourneyPrefixes = ["/imagine", "/midjourneycustom", "/describe"] ; // "/variations", "/upscale", "/zoomout"
 
 export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
     describe(): PluginDescription {
         return {
             id: "midjourney",
-            name: "Routes /imagine, /midjourneycustom, /variations, /upscale, /zoomout",
+            name: "Routes /imagine, /midjourneycustom, /describe",
             options: [
                 // {
                 //     id: 'maxTokens',
@@ -61,91 +61,7 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
             let midjourneyParameters: MidjourneyParameters =  {
                 midjourneyMethod: midjourneyPrefixes[prefixIndex]
             }
-
-            /*
-            if ((prefixIndex > 0 ) && ( prefixIndex < 3)) {
-                if (lastMidjourneyIndex !== -1 ) {
-                    let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
-
-                    try {
-                        midjourneyMessage = JSON.parse(messages[lastMidjourneyIndex].content);
-
-                        console.log("Found image generation:", midjourneyMessage);
-                        
-                    } catch (error) {
-                        console.log("Failed to parse midjourney message:", messages[lastMidjourneyIndex].content, "with error:", error) ;
-                        throw new Error("Internal error, generation can't be parsed");
-                    }
-
-                    let messageSplit = lastMessage.content.split(" ") ;
-
-                    if ( messageSplit.length < 2 ) {
-                        throw new Error(`Syntax is ${messageSplit[0]} <image index>`);
-                    }
-                    let imageIndex: number = Number(messageSplit[1]);
-
-                    if ( (imageIndex < 1) || ( imageIndex > 4) ) {
-                        throw new Error("Image index must be between 1 and 4") ;
-                    }
-                    midjourneyParameters = {
-                        ...midjourneyParameters,
-                        uri: midjourneyMessage.uri,
-                        id: midjourneyMessage.id,
-                        hash: midjourneyMessage.hash,
-                        index: imageIndex,
-                        flags: midjourneyMessage.flags,
-
-                    }
-
-                } else {
-                    throw new Error("You must /imagine before /variations or /upscale or /zoomout") ;
-                }
-            } else if ( prefixIndex == 3 ) { // zoomout
-                if (lastMidjourneyIndex !== -1 ) {
-                    let midjourneyMessage: MidjourneyMessage = { uri: "", progress:"error"} ;
-
-                    try {
-                        midjourneyMessage = JSON.parse(messages[lastMidjourneyIndex].content);
-
-                        console.log("Found image generation:", midjourneyMessage);
-                        
-                    } catch (error) {
-                        console.log("Failed to parse midjourney message:", messages[lastMidjourneyIndex].content, "with error:", error) ;
-                        throw new Error("Internal error, generation can't be parsed");
-                    }
-
-                    let messageSplit = lastMessage.content.split(" ") ;
-
-                    if ( messageSplit.length < 2 ) {
-                        throw new Error(`Syntax is ${messageSplit[0]} <"high" | "low" | "2x" | "1.5x">`);
-                    }
-                    let zoomLevel: string = messageSplit[1];
-
-                    const zoomLevels = [ "high", "low", "2x", "1.5x" ] ;
-
-                    const zoomIndex = zoomLevels.indexOf( zoomLevel ) ;
-
-
-                    if (zoomIndex < 0) {
-                        zoomLevel = "2x";
-                    }
-
-                    midjourneyParameters = {
-                        ...midjourneyParameters,
-                        uri: midjourneyMessage.uri,
-                        id: midjourneyMessage.id,
-                        hash: midjourneyMessage.hash,
-                        level: zoomLevel,
-                        flags: midjourneyMessage.flags,
-
-                    }
-
-                } else {
-                    throw new Error("You must /imagine before /zoomout") ;
-                }            
-
-            }
-            */
+            
             const newParameters: Parameters = {
                 ...parameters,
                 midjourney: true,

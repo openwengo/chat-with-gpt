@@ -27,6 +27,20 @@ function parseCommand(command: string): CommandParams {
   return result;
 }
 
+        
+// Using the Midjourney client
+const  midjourneyClient = new Midjourney({
+    ServerId: <string> config.services?.midjourney?.serverId,
+    ChannelId: <string> config.services?.midjourney?.channelId,
+    SalaiToken: <string> config.services?.midjourney?.salaiToken,
+    Limit: 99,
+    MaxWait: 30,
+    Debug: true,
+    Ws: true,
+    UpdateProgressWithoutImage: true,
+    EmptyImageUri: "about:blank",
+    } );
+    
 export async function streamingHandler(req: express.Request, res: express.Response) {
     res.set({
         'Content-Type': 'text/event-stream',
@@ -58,20 +72,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     let completion = '';
     const lastMessage = messages[messages.length -1 ];
     console.log("LastMessage:", lastMessage);
-
-        
-    // Using the Midjourney client
-    const  midjourneyClient = new Midjourney({
-        ServerId: <string> config.services?.midjourney?.serverId,
-        ChannelId: <string> config.services?.midjourney?.channelId,
-        SalaiToken: <string> config.services?.midjourney?.salaiToken,
-        Limit: 99,
-        MaxWait: 30,
-        Debug: true,
-        Ws: true,
-        UpdateProgressWithoutImage: true,
-        EmptyImageUri: "about:blank",
-        } );
 
     await midjourneyClient.Connect();
 
@@ -142,104 +142,37 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         };
     }
 
-    if ( req.body.midjourneyMethod == '/variations') {
+    if ( req.body.midjourneyMethod == '/describe') {       
         
-        /*
-        { index, msgId, hash, content, flags, loading, }: {
-            index: 1 | 2 | 3 | 4;
-            msgId: string;
-            hash: string;
-            content?: string;
-            flags: number;
-            loading?: LoadingHandler;
-        }*/
+        const command = lastMessage.content ;
+
+        const parts = command.split(' ');
+
+        const params = parts.slice(1).join(' ');
+
+        console.log("Midjourney describe params:", params);
+
 
         try {
-            const msg = await midjourneyClient.Variation({
-                index: req.body.index ,
-                msgId: req.body.id,
-                hash: req.body.hash,                
-                content: req.body.messages[0].content, 
-                flags: req.body.flags,                                
-                loading: (uri: string, progress: string) => {
-                    // Send updates to the client every time the callback is executed
-                    console.log("midjourney progress:", progress) ;
-                    sendSSE(req, res, { uri, progress });
-                }},
-            );
-            sendSSE(req, res, msg);
-            console.log("Variations response:", msg) ;
+            sendSSE(req, res, { uri:"about:blank", progress: "0%"});
+            const msg = await midjourneyClient.Describe(params);
+            
+            sendSSE(req, res, { ...msg,  ...{ progress: "done"}});
+            console.log("Describe response:", msg) ;
             res.write(`data: [DONE]\n\n`);
             res.flush();
             res.end();
         } catch(error)  {
             // Handle any errors
             console.error(error);
-            res.write(`{ error: 'An error occurred' , uri: "", progress:"error:${error}"}`);
-            res.flush();
-            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
-            res.end();
-            return ;
-        };
-    }
-
-    if ( req.body.midjourneyMethod == '/upscale') {
-        
-        try {
-            const msg = await midjourneyClient.Upscale({
-                index: req.body.index ,
-                msgId: req.body.id,
-                hash: req.body.hash,                
-                content: req.body.messages[0].content, 
-                flags: req.body.flags,                                
-                loading: (uri: string, progress: string) => {
-                    // Send updates to the client every time the callback is executed
-                    console.log("midjourney progress:", progress) ;
-                    sendSSE(req, res, { uri, progress });
-                }},
-            );
-            sendSSE(req, res, msg);
-            console.log("Upscale response:", msg) ;
+            sendSSE(req, res, { uri: "", progress: `error: ${error}` });
             res.write(`data: [DONE]\n\n`);
             res.flush();
-            res.end();
-        } catch(error)  {
-            // Handle any errors
-            console.error(error);
-            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
+            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
             return ;
         };
     }
-
-    if ( req.body.midjourneyMethod == '/zoomout') {            
-        try {
-            const msg = await midjourneyClient.ZoomOut({
-                level: req.body.level ,
-                msgId: req.body.id,
-                hash: req.body.hash,                
-                //content: req.body.messages[0].content, 
-                flags: req.body.flags,                                
-                loading: (uri: string, progress: string) => {
-                    // Send updates to the client every time the callback is executed
-                    console.log("midjourney progress:", progress) ;
-                    sendSSE(req, res, { uri, progress });
-                }},
-            );
-            sendSSE(req, res, msg);
-            console.log("Zoomout response:", msg) ;
-            res.write(`data: [DONE]\n\n`);
-            res.flush();
-            res.end();
-        } catch(error)  {
-            // Handle any errors
-            console.error(error);
-            res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
-            res.end();
-            return ;
-        };
-    }
-
 
     return;
 }

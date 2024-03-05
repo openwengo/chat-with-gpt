@@ -82,7 +82,7 @@ export class YdocRequestHandler extends RequestHandler {
             const  buffer = Buffer.from(merged.buffer)
 
             if ( memcached) {
-                console.log(`store statte for ${userID} in memcached`) ;
+                console.log(`store state for ${userID} in memcached`) ;
                 try {
                     await storeValue(`chatwithgpt-state-${userID}`, buffer.toString('base64'));
                 } catch (error) {

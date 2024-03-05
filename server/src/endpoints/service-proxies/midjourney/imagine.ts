@@ -29,18 +29,8 @@ function parseCommand(command: string): CommandParams {
 
         
 // Using the Midjourney client
-const  midjourneyClient = new Midjourney({
-    ServerId: <string> config.services?.midjourney?.serverId,
-    ChannelId: <string> config.services?.midjourney?.channelId,
-    SalaiToken: <string> config.services?.midjourney?.salaiToken,
-    Limit: 99,
-    MaxWait: 30,
-    Debug: true,
-    Ws: true,
-    UpdateProgressWithoutImage: true,
-    EmptyImageUri: "about:blank",
-    } );
-    
+let  midjourneyClient: Midjourney | null = null;
+
 export async function streamingHandler(req: express.Request, res: express.Response) {
     res.set({
         'Content-Type': 'text/event-stream',
@@ -50,6 +40,20 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     const messages = req.body.messages;
 
+    if (!midjourneyClient) {
+      midjourneyClient = new Midjourney({
+        ServerId: <string> config.services?.midjourney?.serverId,
+        ChannelId: <string> config.services?.midjourney?.channelId,
+        SalaiToken: <string> config.services?.midjourney?.salaiToken,
+        Limit: 99,
+        MaxWait: 30,
+        Debug: true,
+        Ws: true,
+        UpdateProgressWithoutImage: true,
+        EmptyImageUri: "about:blank",
+        } );
+    }
+        
     console.log("midjourney body:", req.body);
     /*
     midjourney body: {
@@ -91,7 +95,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             console.log("Imagine response:", msg) ;
             res.write(`data: [DONE]\n\n`);
             res.flush();
-            res.end();
+            res.end();            
         } catch(error)  {
             // Handle any errors
             console.error(error);
@@ -173,6 +177,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             return ;
         };
     }
-
+    
+    midjourneyClient.Close();
     return;
 }

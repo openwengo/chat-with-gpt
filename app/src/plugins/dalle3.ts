@@ -75,10 +75,13 @@ export class Dalle3Plugin extends Plugin<Dalle3PluginOptions> {
                 .replace(styleRegex,'')
                 .replace(qualityRegex,'')
                 .substring(8) ;
-            let format: "portrait" | "landscape" = "landscape" ;
+            let format: "square" | "portrait" | "landscape" = "landscape" ;
 
             if ((pformat === 'portrait')) {
-                format = "portrait"
+                format = "portrait" 
+            }
+            if ((pformat === 'square')) {
+                format = "square" 
             }
 
             let style: "vivid" | "natural" = "vivid" ;

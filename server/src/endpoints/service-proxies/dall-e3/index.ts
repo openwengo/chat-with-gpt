@@ -47,6 +47,8 @@ export default class DalleProxyRequestHandler extends RequestHandler {
                 imageformat = '1024x1792'
             } else if (req.body.format === 'landscape'){
                 imageformat = '1792x1024'
+            } else if (req.body.format === 'square'){
+                imageformat = '1024x1024'
             }
         
             let style: "vivid" | "natural" = 'vivid' ;

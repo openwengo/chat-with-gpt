@@ -45,7 +45,7 @@ export interface Dalle3Message {
 }
 
 export interface Dalle3Parameters {
-    format: "portrait" | "landscape";
+    format: "portrait" | "landscape" | "square";
     style: "vivid" | "natural";
     quality: "standard" | "hd";
     prompt: string;

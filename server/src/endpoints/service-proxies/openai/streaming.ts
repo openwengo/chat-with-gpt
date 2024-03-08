@@ -252,7 +252,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         } else {
             req.body['user'] = `${openAiUser}` ;
         }
-    }console
+    }
 
     let completion = '';
     console.log("messages:", messages);

@@ -21,12 +21,8 @@ export const parameterOptions: OptionGroup = {
                 label: "Model",
                 options: [
                     {
-                        label: "GPT-4 Turbo ( 0125 )",
-                        value: "gpt-4-0125-preview",
-                    },
-                    {
-                        label: "GPT-4 Turbo ( 1106 )",
-                        value: "gpt-4-1106-preview",
+                        label: "GPT-4 Turbo",
+                        value: "gpt-4-turbo-preview",
                     },
                     {
                         label: "GPT 3.5 1106",
@@ -45,12 +41,12 @@ export const parameterOptions: OptionGroup = {
                         value: "openai/gpt-4-32k",
                     },
                     {
-                        label: "Claude v2 (100k)",
-                        value: "anthropic/claude-2",
+                        label: "Claude v3 opus",
+                        value: "anthropic/claude-3-opus:beta",
                     },
                     {
-                        label: "Claude Instant v1 (100k)",
-                        value: "anthropic/claude-instant-v1",
+                        label: "Claude v3 sonnet",
+                        value: "anthropic/claude-3-sonnet:beta",
                     },
                 ],
             }),

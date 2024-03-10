@@ -19,6 +19,7 @@
     "@aws-sdk/middleware-signing": "3.379.1",
     "@aws-sdk/middleware-user-agent": "3.382.0",
     "@aws-sdk/node-http-handler": "^3.360.0",
+    "@aws-sdk/s3-request-presigner": "^3.529.1",
     "@aws-sdk/types": "^3.378.0",
     "@aws-sdk/util-endpoints": "3.382.0",
     "@aws-sdk/util-user-agent-browser": "3.378.0",

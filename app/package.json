@@ -15,6 +15,7 @@
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@reduxjs/toolkit": "^1.9.7",
     "@svgr/webpack": "^6.5.1",
+    "@tabler/icons-react": "^2.47.0",
     "broadcast-channel": "^4.20.2",
     "buffer": "^6.0.3",
     "csv": "^6.3.6",

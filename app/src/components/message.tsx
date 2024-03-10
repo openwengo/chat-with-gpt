@@ -263,7 +263,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
         if (props.message.role === 'system') {
             return null;
         }        
-        
+            
         return (
             <Container className={"message by-" + props.message.role}>
                 <div className="inner">
@@ -338,6 +338,12 @@ export default function MessageComponent(props: { message: Message, last: boolea
                         </Button>
                     </Editor>)}
                 </div>
+                { props.message.images && props.message.images.length > 0 && 
+                <>{ props.message.images.map( (image_url, index) => ( 
+                    <div key={index}>
+                    <img key={index} src={image_url} alt={`Uploaded ${index}`} style={{ width: '100px', height: 'auto', margin: '2px' }} />
+                    </div>
+                ))}</>}
                 { ['system','assistant','user'].includes(props.message.role)  && <TokenCount>tokens: {countTokensForMessages([props.message])} </TokenCount> }
                 {props.last && <EndOfChatMarker />}
             </Container>

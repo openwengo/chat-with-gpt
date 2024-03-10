@@ -98,6 +98,7 @@ export interface Message {
     role: string;
     model?: string;
     content: string;
+    images?: string[];
     parameters?: Parameters;
     done?: boolean;
 }
@@ -106,19 +107,31 @@ export interface UserSubmittedMessage {
     chatID: string;
     parentID?: string;
     content: string;
+    images?: string[];
     requestedParameters: Parameters;
 }
 
 export interface OpenAIMessage {
     role: string;
     content: string;
+    images?: string[];
 }
 
 export function getOpenAIMessageFromMessage(message: Message): OpenAIMessage {
-    return {
-        role: message.role,
-        content: message.content,
-    };
+    
+    
+    if (!message.images) {
+        return {
+            role: message.role,
+            content: message.content,        
+        };
+    } else {
+        return {
+            role: message.role,
+            content: message.content,        
+            images: message.images
+        };
+    }
 }
 
 export interface Chat {

@@ -249,6 +249,15 @@ export class Backend extends EventEmitter {
         return this.post(endpoint + '/delete', { id });
     }
 
+
+    async getPresignedUploadUrl(file: File, hash: string) {
+        if (!this.isAuthenticated) {
+            return;
+        }
+
+        return this.post(endpoint + '/presignedUrl', { fileType: file.type, hash})
+    }    
+
     async get(url: string) {
         const response = await fetch(url);
         if (response.status === 429) {
@@ -276,4 +285,23 @@ export class Backend extends EventEmitter {
         }
         return response.json();
     }
+
+    async put(url: string, contentType: string, body: any) {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': contentType,
+            },
+            body: body,
+        });
+        if (response.status === 429) {
+            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+        }
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        console.log("put response:", response) ;
+        return response;
+    }
+
 }

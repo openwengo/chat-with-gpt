@@ -4,6 +4,7 @@ import {
     GetObjectCommand,
     PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 import type {Readable} from 'stream';
 import ObjectStore from "./index";
 
@@ -45,6 +46,17 @@ export default class S3ObjectStore extends ObjectStore {
         await s3.send(new PutObjectCommand(params));
     }
 
+    public async getSignedPutUrl(key: string, contentType: string) {
+        const params = new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            ContentType: contentType
+        });
+
+        const presignedUrl = await getSignedUrl(s3 , params, { expiresIn: 60 });
+        console.log("presigned url=", presignedUrl);
+        return presignedUrl ;
+    }
 }
 
 async function readStream(stream: Readable) {

@@ -81,10 +81,11 @@ export class MessageTree {
      * Method to add a message to the tree. If a message with the same ID already exists in the tree, this method does nothing.
      * @param {Message} message - The message to add to the tree.
      */
-    public addMessage(inputMessage: Message, content: string | undefined = '', done: boolean | undefined = false): void {
+    public addMessage(inputMessage: Message, content: string | undefined = '', done: boolean | undefined = false, images: string[] | undefined = []): void {
         const message = {
             ...inputMessage,
             content: content || inputMessage.content || '',
+            images: images || inputMessage.images || [],
             done: typeof done === 'boolean' ? done : inputMessage.done,
         };
 
@@ -145,6 +146,7 @@ export class MessageTree {
         }
 
         messageNode.content = message.content;
+        messageNode.images = message.images;
         messageNode.timestamp = message.timestamp;
         messageNode.done = message.done;
     }

@@ -60,4 +60,8 @@ export default class SQLiteObjectStore extends ObjectStore {
             });
         });
     }
+
+    public async getSignedPutUrl(key: string, contentType: string) {
+        return null ;
+    }    
 }

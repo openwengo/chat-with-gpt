@@ -148,6 +148,7 @@ export class ChatManager extends EventEmitter {
             timestamp: Date.now(),
             role: 'user',
             content: userSubmittedMessage.content,
+            images: userSubmittedMessage.images,
             done: true,
         };
 
@@ -199,6 +200,7 @@ export class ChatManager extends EventEmitter {
             role: isMidjourney ? "midjourney" : isDalle3 ? "dalle3" : isTarot ? "tarot" : isGH ? "gh" :'assistant',
             model: "midjourney",
             content: '',
+            images: []
         };
 
         this.lastReplyID = message.id;

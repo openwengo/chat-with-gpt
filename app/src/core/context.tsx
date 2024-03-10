@@ -23,7 +23,7 @@ export interface Context {
     isHome: boolean;
     isShare: boolean;
     generating: boolean;
-    onNewMessage: (message?: string) => Promise<string | false>;
+    onNewMessage: (message?: string, images?: string[]) => Promise<string | false>;
     regenerateMessage: (message: Message) => Promise<boolean>;
     editMessage: (message: Message, content: string) => Promise<boolean>;
 }
@@ -75,7 +75,7 @@ export function useCreateAppContext(): Context {
         };
     }, [updateAuth]);
 
-    const onNewMessage = useCallback(async (message?: string) => {
+    const onNewMessage = useCallback(async (message?: string, images?: string[]) => {
         resetAudioContext();
         
         if (isShare) {
@@ -131,6 +131,7 @@ export function useCreateAppContext(): Context {
             chatManager.sendMessage({
                 chatID: id,
                 content: message.trim(),
+                images: images,
                 requestedParameters: {
                     ...parameters,
                     apiKey: openaiApiKey,

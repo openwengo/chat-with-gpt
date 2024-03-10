@@ -1,7 +1,5 @@
 import express, { Request, Response } from 'express';
 import RequestHandler from "../../base";
-//import { streamingHandler } from './dalle3';
-//import { basicHandler } from './basic';
 import { config } from '../../../config';
 import { ClientOptions, OpenAI } from 'openai';
 import fetch from 'node-fetch';

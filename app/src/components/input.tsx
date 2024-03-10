@@ -1,12 +1,12 @@
 import styled from '@emotion/styled';
-import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem, Radio } from '@mantine/core';
+import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem, Radio, Tooltip, Box } from '@mantine/core';
 import { getHotkeyHandler, useHotkeys, useMediaQuery } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../core/context';
 import { useAppDispatch, useAppSelector } from '../store';
-import { selectMessage, setMessage } from '../store/message';
+import { selectMessage, setMessage, selectImageUrls, addImageUrl, removeImageUrl, clearImageList } from '../store/message';
 import { selectSettingsTab, openOpenAIApiKeyPanel } from '../store/settings-ui';
 import { speechRecognition, supportsSpeechRecognition } from '../core/speech-recognition-types'
 import { useWhisper } from '@chengsokdara/use-whisper';
@@ -15,7 +15,9 @@ import { useOption } from '../core/options/use-option';
 import { TarotInput } from './tarotinput' ;
 import { GHInput } from './ghinput' ;
 import { countTokensForText } from '../core/tokenizer';
-
+import { backend } from '../core/backend';
+import FileUpload, { computeSHA1 } from './file-upload';
+import { IconX } from '@tabler/icons-react';
 
 interface SlashCommand {
     name: string;
@@ -81,6 +83,7 @@ export interface MessageInputProps {
 
 export default function MessageInput(props: MessageInputProps) {
     const message = useAppSelector(selectMessage);
+    const imageUrls = useAppSelector(selectImageUrls);
     const [recording, setRecording] = useState(false);
     const [speechError, setSpeechError] = useState<string | null>(null);
     const hasVerticalSpace = useMediaQuery('(min-height: 1000px)');
@@ -144,15 +147,16 @@ export default function MessageInput(props: MessageInputProps) {
     const onSubmit = useCallback(async () => {
         setSpeechError(null);
 
-        const id = await context.onNewMessage(message);
+        const id = await context.onNewMessage(message, imageUrls);
 
         if (id) {
             if (!window.location.pathname.includes(id)) {
                 navigate('/chat/' + id);
             }
             dispatch(setMessage(''));
+            dispatch(clearImageList());
         }
-    }, [context, message, dispatch, navigate]);
+    }, [context, message, imageUrls, dispatch, navigate]);
 
     const onSpeechError = useCallback((e: any) => {
         console.error('speech recognition error', e);
@@ -263,6 +267,49 @@ export default function MessageInput(props: MessageInputProps) {
     const blur = useCallback(() => {
         document.querySelector<HTMLTextAreaElement>('#message-input')?.blur();
     }, []);
+
+    function getSupportedExtension(mimeType: string): string | false {
+        const mapping: Record<string, string> = {
+          'image/jpeg': 'jpg',
+          'image/png': 'png',
+          'image/gif': 'gif',
+          'image/webp': 'webp',
+        };
+      
+        return mapping[mimeType] || false;
+      }
+
+    const handleFileCb = useCallback( async (file: File) => {
+        try {
+            
+            if (! file.type.startsWith('image/') ) {
+                console.log(`upload file: ${file.name} is not an image: ${file.type}`)
+                return ;
+            }
+
+            if (! getSupportedExtension(file.type)){
+                console.log(`upload file: ${file.name} is not a supported image type: ${file.type}`)
+                return ;
+            }
+            // get sha1 of the file
+            const sha1 = await computeSHA1(file) ;
+            // Request pre-signed URL from the backend
+            const response = await backend.current?.getPresignedUploadUrl(file, sha1);
+            console.log("getPresignedUpload=>", response);
+            const url = response.upload_url;
+            const public_url: string = response.public_image_url ;
+            // Upload the file directly to S3 using the pre-signed URL
+            
+            const uploadResponse = await backend.current?.put(url, file.type, file);
+      
+            dispatch(addImageUrl(public_url));
+  
+            console.log('File uploaded successfully', uploadResponse);
+          } catch (error) {
+            console.error('Error uploading file:', error);
+          }
+  
+    }, [dispatch]);
 
     const rightSection = useMemo(() => {
         return (
@@ -425,16 +472,73 @@ export default function MessageInput(props: MessageInputProps) {
         dispatch(setMessage(message))
     };
 
+    interface RemovableImageProps {
+        imageUrl: string;
+        onRemove: () => void;
+        index: number; // Optional, depending on your needs
+      }
+
+    const  RemovableImage: React.FC<RemovableImageProps> = ({ imageUrl, onRemove, index }) => {
+        const [isHovered, setIsHovered] = useState(false);
+
+        return (
+                <Box onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} style={{ position: 'relative', display: 'inline-block' }}>
+                  <img src={imageUrl} alt={`Uploaded ${index}`} style={{ width: '100px', height: 'auto', margin: '2px' }} />
+                  {isHovered && (
+                    <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    }}>
+                    <Tooltip label="Remove image" withArrow position="top">
+                        <ActionIcon 
+                        variant="filled" 
+                        color="red" 
+                        onClick={onRemove}
+                        >
+                        <IconX size={16} />
+                        </ActionIcon>
+                    </Tooltip>
+                    </div>
+                )}
+                </Box>
+            );
+    }
+
+    const ImageList: React.FC<{ imageUrls: string[] }> = ({ imageUrls }) => {
+        //const dispatch = useDispatch();
+      
+        return (
+          <>
+            {imageUrls.map((imageUrl, index) => (
+              <RemovableImage 
+                key={index} 
+                imageUrl={imageUrl} 
+                index={index} 
+                onRemove={() => dispatch(removeImageUrl(imageUrl))}
+              />
+            ))}
+          </>
+        );
+      };    
+
     return <Container>
-        <div className="inner" style={innerStyle}>
-            { (showTarotInput || showGHInput) || true ? null : 
-            <div style={{ marginBottom: '5px' }}>
-                    { renderModeChoice() }
+        <div className="inner" style={innerStyle}>    
+        <div style={{
+                opacity: '0.8',
+                paddingRight: '0.5rem',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                width: '100%',
+            }}>
+                <FileUpload onFileSelected={handleFileCb} />
+                <ImageList imageUrls={imageUrls}/>
             </div>
-            }
-            { showTarotInput && false ? <TarotInput setMessage={setInputFromTarot} initialText={message}/> : 
-              showGHInput && false ? <GHInput setMessage={setInputFromGH} initialText={message}/> :
-            <Textarea disabled={props.disabled || disabled}
+    
+              <Textarea disabled={props.disabled || disabled}
                 id="message-input"
                 autosize
                 minRows={(hasVerticalSpace || context.isHome) ? 3 : 2}
@@ -445,7 +549,6 @@ export default function MessageInput(props: MessageInputProps) {
                 rightSection={rightSection}
                 rightSectionWidth={context.generating ? 100 : 55}
                 onKeyDown={hotkeyHandler} /> 
-            }
             <TokenCount>tokens: {countTokensForText(message)}</TokenCount><QuickSettings key={tab} />
         </div>
     </Container>;

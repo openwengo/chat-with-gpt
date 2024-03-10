@@ -21,6 +21,7 @@ import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
 import Dalle3RequestHandler from './endpoints/service-proxies/dall-e3/';
 import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
 import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope' ;
+import PresignedRequestHandler from './endpoints/presignedurl' ;
 
 import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai';
 import SessionRequestHandler from './endpoints/session';
@@ -137,6 +138,8 @@ export default class ChatServer {
         this.app.get('/chatapi/share/:id', (req, res) => new GetShareRequestHandler(this, req, res));
         this.app.post('/chatapi/share', (req, res) => new ShareRequestHandler(this, req, res));
 
+        this.app.post('/chatapi/presignedUrl', (req, res) => new PresignedRequestHandler(this, req, res));
+        
         if (config.services?.openai?.apiKey) {
             this.app.post('/chatapi/proxies/openai/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
         }

@@ -65,12 +65,36 @@ export async function createChatCompletion(messages: OpenAIMessage[], parameters
         throw new Error('No API key provided');
     }
 
+    
     if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {
         endpoint = getOpenRouterEndpoint(proxied);
     }
-
+    
+   
     console.log("Configured endpoint:", endpoint);
+    let messagesWithImages: any[] = [];
 
+    let image_input = false ;
+
+    for( const message of messages ) {
+        if ( Array.isArray(message.content ) ) {
+            for ( const content of message.content ) {
+                if ( content.type === 'image_url ') {
+                    image_input = true ;
+                    break
+                }
+            }
+        }
+        if (image_input) {
+            break
+        }
+    }
+
+    if (image_input) {
+        console.log("image input detected! Force gpt-4-vision-preview");
+        parameters.model = "gpt-4-vision-preview"
+    }
+    
     const response = await fetch(endpoint + '/v1/chat/completions', {
         method: "POST",
         headers: {
@@ -99,12 +123,54 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     if (!proxied && !parameters.apiKey) {
         throw new Error('No API key provided');
     }
+    
 
+    let image_input = false ;
+
+    const formattedMessages = messages.map((message) => {
+        let contentObjects: any = null;
+        
+        if ( message.role === 'system' ) {
+            contentObjects =  message.content ;
+        } else {
+            contentObjects =  [{type: "text", text: message.content }];
+        }
+    
+        if (message.images && message.images.length > 0) {
+          image_input = true;
+          const imageObjects = message.images.map((imageUrl) => ({
+            type: "image_url",
+            image_url: { url: imageUrl },
+          }));
+          contentObjects.push(...imageObjects);
+        }
+    
+        return {
+          role: message.role,
+          content: contentObjects,
+        };
+      });
+  
+    let payload_object: any = {
+        "model": parameters.model,
+        "messages": formattedMessages,
+        "temperature": parameters.temperature,
+        "stream": true,
+        "wengoplusmode": parameters.wengoplusmode
+    }
+
+    if (image_input) {
+        console.log("image input detected! Force gpt-4-vision-preview");
+        parameters.model = "gpt-4-vision-preview" ;
+        payload_object.model = parameters.model ;
+        payload_object = {...payload_object, max_tokens: 1000} ;
+    }
+  
     if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {
         endpoint = getOpenRouterEndpoint(proxied);
     }
 
-    console.log("Configured endpoint:", endpoint);
+    console.log("Configured endpoint:", endpoint, "formattedMessages:", formattedMessages);
 
     const eventSource = new SSE(endpoint + '/v1/chat/completions', {
         method: "POST",
@@ -113,13 +179,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
             'Authorization': !proxied ? `Bearer ${parameters.apiKey}` : '',
             'Content-Type': 'application/json',
         },
-        payload: JSON.stringify({
-            "model": parameters.model,
-            "messages": messages,
-            "temperature": parameters.temperature,
-            "stream": true,
-            "wengoplusmode": parameters.wengoplusmode
-        }),
+        payload: JSON.stringify(payload_object),
     }) as SSE;
 
     let contents = '';

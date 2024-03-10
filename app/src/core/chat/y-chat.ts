@@ -3,17 +3,20 @@ import { Chat, Message } from './types';
 import EventEmitter from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTree } from './message-tree';
+import { get } from 'http';
 
 const METADATA_KEY = 'metadata';
 const IMPORTED_METADATA_KEY = 'imported-metadata';
 const PLUGIN_OPTIONS_KEY = 'plugin-options';
 const MESSAGES_KEY = 'messages';
 const CONTENT_KEY = 'messages:content';
+const IMAGES_KEY = 'messages:images';
 const DONE_KEY = 'messages:done';
 
 export class YChat {
     private callback: any;
     private pendingContent = new Map<string, string>();
+    private pendingImages = new Map<string, string[]>();
     private prefix = 'chat.' + this.id + '.';
 
     public static from(root: Y.Doc, id: string) {
@@ -31,6 +34,7 @@ export class YChat {
         this.pluginOptions?.observeDeep(callback);
         this.messages?.observeDeep(callback);
         this.content?.observeDeep(callback);
+        this.images?.observeDeep(callback);
         this.done?.observeDeep(callback);
     }
 
@@ -56,6 +60,10 @@ export class YChat {
 
     public get content(): Y.Map<Y.Text> {
         return this.root.getMap<Y.Text>(this.prefix + CONTENT_KEY);
+    }
+
+    public get images(): Y.Map<Y.Array<Y.Text>> {
+        return this.root.getMap<Y.Array<Y.Text>>(this.prefix + IMAGES_KEY);
     }
 
     public get done(): Y.Map<boolean> {
@@ -86,6 +94,31 @@ export class YChat {
         return this.pendingContent.get(messageID) || this.content.get(messageID)?.toString() || "";
     }
 
+    public setPendingMessageImages(messageID: string, value: string[]) {
+        this.pendingImages.set(messageID, value);
+        this.callback?.();
+    }
+
+    public setMessageImages(messageID: string, value: string[]) {
+        this.pendingImages.delete(messageID);
+        const imagesArray: Y.Array<Y.Text> = new Y.Array<Y.Text>();
+
+        this.images.set(messageID, imagesArray);
+        // For each string URL, create a Y.Text and add it to imagesArray
+        value.forEach(url => {
+            const yText = new Y.Text();
+            yText.insert(0, url); // Insert the string into the Y.Text
+            imagesArray.push([yText]);
+        });
+        
+        this.images.set(messageID, imagesArray);
+
+    }
+
+    public getMessageImages(messageID: string) {
+        return this.pendingImages.get(messageID) ||  this.images.get(messageID)?.map(str => str.toString()) || [] ;
+    }
+
     public onMessageDone(messageID: string) {
         this.done.set(messageID, true);
     }
@@ -110,6 +143,7 @@ export class YChat {
             this.metadata.clear();
             this.pluginOptions.clear();
             this.messages.clear();
+            this.images.clear();
             this.content.clear();
             this.done.clear();
         } else {
@@ -134,6 +168,9 @@ export class YChat {
             }
             if (this.content.size > 0) {
                 this.content.clear();
+            }
+            if (this.images.size > 0) {
+                this.images.clear();
             }
             if (this.done.size > 0) {
                 this.done.clear();
@@ -226,13 +263,25 @@ export class YChatDoc extends EventEmitter {
         if (!chat) {
             throw new Error('Chat not found');
         }
-
+                
         this.transact(() => {
             chat.messages.set(message.id, {
                 ...message,
                 content: '',
+                images: []
             });
             chat.content.set(message.id, new Y.Text(message.content || ''));
+            if ( message.images && message.images.length > 0) {
+                const imagesArray: Y.Array<Y.Text> = new Y.Array<Y.Text>()
+                
+                message.images.map( url => { 
+                    const yText = new Y.Text();
+                    yText.insert(0,url);
+                    imagesArray.push([yText])
+                    }
+                );
+                chat.images.set(message.id, imagesArray);
+            }
             if (message.done) {
                 chat.done.set(message.id, message.done);
             }
@@ -252,8 +301,9 @@ export class YChatDoc extends EventEmitter {
         chat?.messages?.forEach(m => {
             try {
                 const content = chat.getMessageContent(m.id);
+                const images = chat.getMessageImages(m.id);
                 const done = chat.done.get(m.id) || false;
-                tree.addMessage(m, content, done);
+                tree.addMessage(m, content, done, images );
             } catch (e) {
                 console.warn(`failed to load message ${m.id}`, e);
             }

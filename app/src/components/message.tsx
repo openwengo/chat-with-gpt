@@ -232,7 +232,6 @@ export default function MessageComponent(props: { message: Message, last: boolea
     const intl = useIntl();
 
     const tab = useAppSelector(selectSettingsTab);    
-
     const getRoleName = useCallback((role: string, share = false) => {
         switch (role) {
             case 'user':
@@ -339,11 +338,11 @@ export default function MessageComponent(props: { message: Message, last: boolea
                     </Editor>)}
                 </div>
                 { props.message.images && props.message.images.length > 0 && 
-                <>{ props.message.images.map( (image_url, index) => ( 
+                <div className="metadata">{ props.message.images.map( (image_url, index) => ( 
                     <div key={index}>
                     <img key={index} src={image_url} alt={`Uploaded ${index}`} style={{ width: '100px', height: 'auto', margin: '2px' }} />
                     </div>
-                ))}</>}
+                ))}</div>}
                 { ['system','assistant','user'].includes(props.message.role)  && <TokenCount>tokens: {countTokensForMessages([props.message])} </TokenCount> }
                 {props.last && <EndOfChatMarker />}
             </Container>

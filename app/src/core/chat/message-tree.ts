@@ -85,10 +85,10 @@ export class MessageTree {
         const message = {
             ...inputMessage,
             content: content || inputMessage.content || '',
-            images: images || inputMessage.images || [],
+            images: images?.length ? images : ( inputMessage.images || [] ),
             done: typeof done === 'boolean' ? done : inputMessage.done,
         };
-
+        
         if (this.messageNodes.get(message.id)?.content) {
             return;
         }

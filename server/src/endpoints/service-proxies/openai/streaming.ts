@@ -295,7 +295,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             ...req.body,
             stream: true,
         }),
-        readTimeoutMillis: 20000
+        readTimeoutMillis: 60000
     });
 
     eventSource.addEventListener('message', async (event: any) => {

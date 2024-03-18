@@ -29,7 +29,7 @@ function parseCommand(command: string): CommandParams {
 
         
 // Using the Midjourney client
-let  midjourneyClient: Midjourney | null = null;
+// let  midjourneyClient: Midjourney | null = null;
 
 export async function streamingHandler(req: express.Request, res: express.Response) {
     res.set({
@@ -38,10 +38,12 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         Connection: 'keep-alive',
     });
 
+    res.flush();
+
     const messages = req.body.messages;
 
-    if (!midjourneyClient) {
-      midjourneyClient = new Midjourney({
+    //if (!midjourneyClient) {
+    const midjourneyClient = new Midjourney({
         ServerId: <string> config.services?.midjourney?.serverId,
         ChannelId: <string> config.services?.midjourney?.channelId,
         SalaiToken: <string> config.services?.midjourney?.salaiToken,
@@ -52,7 +54,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         UpdateProgressWithoutImage: true,
         EmptyImageUri: "about:blank",
         } );
-    }
+    //}
         
     console.log("midjourney body:", req.body);
     /*
@@ -103,8 +105,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             res.write(`data: [DONE]\n\n`);
             res.flush();            
             //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
-            res.end();
-            return ;
+            res.end();    
         };
     }
 
@@ -142,7 +143,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             res.flush();
             //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
-            return ;
         };
     }
 
@@ -174,7 +174,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             res.flush();
             //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
-            return ;
         };
     }
     

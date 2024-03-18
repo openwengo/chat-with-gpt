@@ -163,7 +163,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
         console.log("image input detected! Force gpt-4-vision-preview");
         parameters.model = "gpt-4-vision-preview" ;
         payload_object.model = parameters.model ;
-        payload_object = {...payload_object, max_tokens: 1000} ;
+        payload_object = {...payload_object, max_tokens: 3000} ;
     }
   
     if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {

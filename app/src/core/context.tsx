@@ -11,6 +11,7 @@ import { TTSContextProvider } from "./tts/use-tts";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { isProxySupported } from "./chat/openai";
 import { audioContext, resetAudioContext } from "./tts/audio-file-player";
+import { ToolFunction } from "./chat/types" ;
 
 export interface Context {
     authenticated: boolean;
@@ -23,7 +24,7 @@ export interface Context {
     isHome: boolean;
     isShare: boolean;
     generating: boolean;
-    onNewMessage: (message?: string, images?: string[]) => Promise<string | false>;
+    onNewMessage: (message?: string, images?: string[], tools?: ToolFunction[]) => Promise<string | false>;
     regenerateMessage: (message: Message) => Promise<boolean>;
     editMessage: (message: Message, content: string) => Promise<boolean>;
 }
@@ -75,7 +76,9 @@ export function useCreateAppContext(): Context {
         };
     }, [updateAuth]);
 
-    const onNewMessage = useCallback(async (message?: string, images?: string[]) => {
+    const onNewMessage = useCallback(async (message?: string, images?: string[],tools?: ToolFunction[]) => {
+        
+        console.log("onNewMessage:", tools) ;
         resetAudioContext();
         
         if (isShare) {
@@ -132,6 +135,7 @@ export function useCreateAppContext(): Context {
                 chatID: id,
                 content: message.trim(),
                 images: images,
+                callableTools: tools,
                 requestedParameters: {
                     ...parameters,
                     apiKey: openaiApiKey,

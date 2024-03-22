@@ -1,6 +1,7 @@
 import express from 'express';
 import RequestHandler from "../../base";
 import { streamingHandler } from './streaming';
+import { callWephoneTool } from './wengo_tool' ;
 import { basicHandler } from './basic';
 import { config } from '../../../config';
 
@@ -21,5 +22,15 @@ export default class OpenAIProxyRequestHandler extends RequestHandler {
 
     public isProtected() {
         return config.services?.openai?.loginRequired ?? true;
+    }
+}
+
+export class WengoToolRequestHandler extends RequestHandler {
+    async handler(req: express.Request, res: express.Response) {
+        await callWephoneTool(req, res);
+    }
+
+    public isProtected() {
+        return true;
     }
 }

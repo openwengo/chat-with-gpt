@@ -18,7 +18,7 @@ import { countTokensForText } from '../core/tokenizer';
 import { backend } from '../core/backend';
 import FileUpload, { computeSHA1 } from './file-upload';
 import { IconX } from '@tabler/icons-react';
-
+import { ToolFunction } from '../core/chat/types' ;
 interface SlashCommand {
     name: string;
     parameters: Array<{
@@ -144,10 +144,29 @@ export default function MessageInput(props: MessageInputProps) {
 
     const pathname = useLocation().pathname;
 
+    const tools : ToolFunction[] =[
+        { 
+            'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
+            'name': 'graam-tool',
+            'parameters': {
+                "type": "object",
+                "properties" : {
+                    "question" : {
+                        'description': "The question to ask about Graam ( aka Wephone ) 's database",
+                        'type': 'string'
+                    }
+                },
+                "required": ["question"]
+            }
+        }
+    ]
+
     const onSubmit = useCallback(async () => {
         setSpeechError(null);
 
-        const id = await context.onNewMessage(message, imageUrls);
+        console.log("onSubmit!", tools);
+        
+        const id = await context.onNewMessage(message, imageUrls, tools);
 
         if (id) {
             if (!window.location.pathname.includes(id)) {
@@ -483,7 +502,7 @@ export default function MessageInput(props: MessageInputProps) {
 
         return (
                 <Box onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} style={{ position: 'relative', display: 'inline-block' }}>
-                  <img src={imageUrl} alt={`Uploaded ${index}`} style={{ width: '100px', height: 'auto', margin: '2px' }} />
+                  <img src={imageUrl} alt={`Uploaded ${index}`} style={{ width: '50px', height: 'auto', margin: '2px' }} />
                   {isHovered && (
                     <div style={{
                     position: 'absolute',

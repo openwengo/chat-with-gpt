@@ -23,7 +23,7 @@ import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
 import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope' ;
 import PresignedRequestHandler from './endpoints/presignedurl' ;
 
-import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai';
+import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai';
 import SessionRequestHandler from './endpoints/session';
 import ShareRequestHandler from './endpoints/share';
 import ObjectStore from './object-store/index';
@@ -143,6 +143,8 @@ export default class ChatServer {
         if (config.services?.openai?.apiKey) {
             this.app.post('/chatapi/proxies/openai/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
         }
+        
+        this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
 
         if (config.services?.openrouter?.apiKey) {
             this.app.post('/chatapi/proxies/openrouter/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));

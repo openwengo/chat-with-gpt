@@ -149,6 +149,7 @@ export class ChatManager extends EventEmitter {
             role: 'user',
             content: userSubmittedMessage.content,
             images: userSubmittedMessage.images,
+            callableTools: userSubmittedMessage.callableTools,
             done: true,
         };
 
@@ -207,6 +208,7 @@ export class ChatManager extends EventEmitter {
 
         this.doc.addMessage(message);
 
+        console.log("new ReplyRequest for:", messages) ;
         const request = new ReplyRequest(this.get(chatID), chat, messages, message.id, requestedParameters, this.options);
         request.on('done', () => this.activeReplies.delete(message.id));
         request.execute();

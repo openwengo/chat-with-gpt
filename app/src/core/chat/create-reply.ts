@@ -10,6 +10,7 @@ import { Chat, Message, OpenAIMessage, Parameters, getOpenAIMessageFromMessage }
 import { EventEmitterAsyncIterator } from "../utils/event-emitter-async-iterator";
 import { YChat } from "./y-chat";
 import { OptionsManager } from "../options";
+import { backend } from "../backend";
 
 export class ReplyRequest extends EventEmitter {
     private mutatedMessages: OpenAIMessage[];
@@ -27,7 +28,7 @@ export class ReplyRequest extends EventEmitter {
                 private requestedParameters: Parameters,
                 private pluginOptions: OptionsManager) {
         super();
-        this.mutatedMessages = [...messages];
+        //this.mutatedMessages = [...messages];
         this.mutatedMessages = messages.map(m => getOpenAIMessageFromMessage(m));
         this.mutatedParameters = { ...requestedParameters };
         delete this.mutatedParameters.apiKey;
@@ -114,7 +115,7 @@ export class ReplyRequest extends EventEmitter {
 
             this.cancelSSE = cancel;
 
-            const eventIterator = new EventEmitterAsyncIterator<string>(emitter, ["data", "done", "error"]);
+            const eventIterator = new EventEmitterAsyncIterator<string>(emitter, ["data", "done", "error", "tool_call"]);
 
             for await (const event of eventIterator) {
                 const { eventName, value } = event;
@@ -124,6 +125,10 @@ export class ReplyRequest extends EventEmitter {
                         await this.onData(value);
                         break;
 
+                    case 'tool_call':
+                        await this.onToolCall(value);
+                        break;
+    
                     case 'done':
                         await this.onDone();
                         break;
@@ -208,6 +213,37 @@ export class ReplyRequest extends EventEmitter {
         this.emit('done');
     }
 
+
+    public async onToolCall(value: any) {
+        if (this.done) {
+            return;
+        }
+        const [functionName, args ] = value.split('|') ;
+
+        console.log(`Call function ${functionName} with args ${args}`);
+        const tool_answer = await backend.current?.callTool({...JSON.parse(args), "agent_type": "audioinsight"});
+
+        this.content = tool_answer || '';
+
+        this.yChat.setPendingMessageContent(this.replyID, this.content);
+
+        return ;
+
+        this.lastChunkReceivedAt = Date.now();
+
+        this.content = value;
+
+        await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
+            const output = await plugin.postprocessModelOutput({
+                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
+                content: this.content,
+            }, this.mutatedMessages, this.mutatedParameters, false);
+
+            this.content = output.content;
+        });
+
+        this.yChat.setPendingMessageContent(this.replyID, this.content);
+    }
     // private setMessageContent(content: string) {
     //     const text = this.yChat.content.get(this.replyID);
     //     if (text && text.toString() !== content) {

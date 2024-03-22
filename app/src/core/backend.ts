@@ -286,6 +286,74 @@ export class Backend extends EventEmitter {
         return response.json();
     }
 
+    async callTool(data: object) {
+        //this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
+        const response = await fetch(endpoint + '/proxies/tools/wengo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      
+        if (!response.ok || response === null || response?.body === null) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+      
+        let buffer = '';
+      
+        while (true) {
+          const { done, value } = await reader.read();
+      
+          console.log("wengo tool:", done, decoder.decode(value));
+          if (done) {
+            break;
+          }
+      
+          buffer += decoder.decode(value);
+      
+          const lines = buffer.split('\n');
+      
+          for (let i = 0; i < lines.length - 1; i++) {
+            const line = lines[i].trim();
+      
+            if (line) {
+              const { event, data } = JSON.parse(line);
+              this.processToolEvent(event, data);
+            }
+          }
+      
+          buffer = lines[lines.length - 1];
+        }
+        return buffer ;
+      }
+
+      processToolEvent(event: string, data: any) {
+        switch (event) {
+          case 'on_chain_start':
+            console.log('Chain started:', data);
+            break;
+          case 'on_tool_start':
+            console.log('Tool started:', data);
+            break;
+          case 'on_tool_end':
+            console.log('Tool ended:', data);
+            break;
+          case 'on_chat_model_stream':
+            console.log('Chat model stream:', data);
+            break;
+          case 'on_chain_end':
+            console.log('Chain ended:', data);
+            break;
+          default:
+            console.log('Unknown event:', event, data);
+        }
+      }
+    
     async put(url: string, contentType: string, body: any) {
         const response = await fetch(url, {
             method: 'PUT',

@@ -1,4 +1,4 @@
-import { Message } from "./types";
+import { Message, ToolCall, ToolMessage, ToolFunction } from "./types";
 
 /**
  * MessageNode interface that extends the Message type and includes parent and replies properties.
@@ -81,14 +81,23 @@ export class MessageTree {
      * Method to add a message to the tree. If a message with the same ID already exists in the tree, this method does nothing.
      * @param {Message} message - The message to add to the tree.
      */
-    public addMessage(inputMessage: Message, content: string | undefined = '', done: boolean | undefined = false, images: string[] | undefined = []): void {
+    public addMessage(inputMessage: Message, 
+        content: string | undefined = '',
+         done: boolean | undefined = false,
+          images: string[] | undefined = [],
+          tool_calls: ToolCall[] | undefined = [],
+          tool_message: ToolMessage | undefined = undefined,
+          callable_tools: ToolFunction[] | undefined = [],): void {
         const message = {
             ...inputMessage,
             content: content || inputMessage.content || '',
             images: images?.length ? images : ( inputMessage.images || [] ),
+            tool_calls: tool_calls?.length ? tool_calls : ( inputMessage.toolCalls || [] ),
+            tool_message: tool_message,
+            callable_tools: callable_tools?.length ? callable_tools : ( inputMessage.callableTools || []),
             done: typeof done === 'boolean' ? done : inputMessage.done,
         };
-        
+
         if (this.messageNodes.get(message.id)?.content) {
             return;
         }
@@ -147,6 +156,9 @@ export class MessageTree {
 
         messageNode.content = message.content;
         messageNode.images = message.images;
+        messageNode.toolCalls = message.toolCalls;
+        messageNode.toolMessage = message.toolMessage;
+        messageNode.callableTools = message.callableTools;
         messageNode.timestamp = message.timestamp;
         messageNode.done = message.done;
     }

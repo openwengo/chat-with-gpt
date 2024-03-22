@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { Configuration, OpenAIApi } from "openai";
 import SSE from "../utils/sse";
-import { OpenAIMessage, Parameters } from "./types";
+import { OpenAIMessage, Parameters, OpenAIFunctionCall, OpenAIToolCall } from "./types";
 import { backend } from "../backend";
 
 //export const defaultModel = 'gpt-3.5-turbo';
@@ -31,6 +31,7 @@ export interface OpenAIResponseChunk {
     choices?: {
         delta: {
             content: string;
+            tool_calls?: OpenAIToolCall[];
         };
         index: number;
         finish_reason: string | null;
@@ -128,27 +129,51 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     let image_input = false ;
 
     const formattedMessages = messages.map((message) => {
-        let contentObjects: any = null;
+        
         
         if ( message.role === 'system' ) {
-            contentObjects =  message.content ;
-        } else {
-            contentObjects =  [{type: "text", text: message.content }];
-        }
-    
-        if (message.images && message.images.length > 0) {
-          image_input = true;
-          const imageObjects = message.images.map((imageUrl) => ({
-            type: "image_url",
-            image_url: { url: imageUrl },
-          }));
-          contentObjects.push(...imageObjects);
-        }
-    
-        return {
-          role: message.role,
-          content: contentObjects,
-        };
+            const contentObjects =  message.content ;
+            return {
+                role: message.role,
+                content: contentObjects
+              };            
+        } else if ( message.role === 'user' ) {
+            const contentObjects: any =  [{type: "text", text: message.content }];
+            if (message.images && message.images.length > 0) {
+                image_input = true;
+                const imageObjects = message.images.map((imageUrl) => ({
+                  type: "image_url",
+                  image_url: { url: imageUrl },
+                }));
+                contentObjects.push(...imageObjects);
+            }      
+            let tools: any = [] ;
+            if (message.callable_tools) {
+                tools = message.callable_tools.map((tool) => ({
+                    type: "function",
+                    function: tool
+                }))
+            }
+            return {
+                role: message.role,
+                content: contentObjects,
+                tools: tools.length > 0 ? tools : undefined
+            };
+        } else if ( message.role === 'assistant' ) {
+                        
+            return {
+                role: message.role,
+                content: message.content,
+                tool_calls: message.tool_calls
+            }
+        } else if ( message.role === 'tool') {
+            return {
+                role: message.role,
+                content: message.tool_message?.content,
+                tool_call_id: message.tool_message?.tool_call_id
+            }
+        }    
+        throw(`Unmanaged message role: ${message.role}`);
       });
   
     let payload_object: any = {
@@ -183,6 +208,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     }) as SSE;
 
     let contents = '';
+    let tool_calls: OpenAIToolCall[] = [];
 
     eventSource.addEventListener('error', (event: any) => {
         if (!contents) {
@@ -195,7 +221,19 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     });
 
     eventSource.addEventListener('message', async (event: any) => {
+
         if (event.data === '[DONE]') {
+            if (tool_calls) {
+                console.log("tool_calls:", tool_calls);
+
+                tool_calls.forEach( tool_call => {
+                    console.log("emit call function:", tool_call.function.name);
+                    emitter.emit('tool_call', `${tool_call.function.name}|${tool_call.function.arguments}`);
+                })
+                
+    
+            }            
+
             emitter.emit('done');
             return;
         }
@@ -205,7 +243,20 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
             if (chunk.choices && chunk.choices.length > 0) {
                 contents += chunk.choices[0]?.delta?.content || '';
                 emitter.emit('data', contents);
+
+                if (chunk.choices[0]?.delta?.tool_calls ) {
+                    let current_tool_idx = 0;
+                    chunk.choices[0]?.delta?.tool_calls.forEach(tool_call => {
+                        if (tool_calls.length < current_tool_idx+1) {
+                            tool_calls.push(tool_call);
+                        } else {
+                            tool_calls[current_tool_idx].function.arguments += tool_call.function.arguments;
+                        }
+                        current_tool_idx += 1;
+                    });
+                }
             }
+
         } catch (e) {
             console.error(e);
         }

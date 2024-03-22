@@ -246,6 +246,29 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     console.log("user:", loggedUser );    
     console.log(`baseUrl: ${baseUrl}`);    
 
+
+    const tools =[
+        { 
+            'type': 'function',
+            'function': {
+                'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
+                'name': 'graam-tool',
+                'parameters': {
+                    "type": "object",
+                    "properties" : {
+                        "question" : {
+                            'description': "The question to ask about Graam ( aka Wephone ) 's database",
+                            'type': 'string'
+                        }
+                    },
+                    "required": ["question"]
+                }
+            }
+        }
+    ]
+    //req.body.tools = tools ;
+    console.log("req.body.tools=", req.body.tools);
+    
     if (! req.body.user && openAiUser ) {
         if (appendUserId) {
             req.body['user'] = `${openAiUser}-${loggedUser}`;
@@ -282,6 +305,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
         
 
     console.log("Sending message to:", endpoint);
+
+    console.log(req.body);
     const eventSource = new EventSource( endpoint, {
         method: "POST",
         headers: {
@@ -304,7 +329,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             console.log("Event without data:", event) ;
             return ;
         }
-        //console.log("new message:", `data: ${event.data}\n\n`);
+        console.log("new message:", `data: ${event.data}\n\n`);
         res.write(`data: ${event.data}\n\n`);
         res.flush();
 

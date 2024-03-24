@@ -1,7 +1,7 @@
 import { BroadcastChannel } from 'broadcast-channel';
 import EventEmitter from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import { Chat, Message, Parameters, UserSubmittedMessage } from './chat/types';
+import { Chat, Message, Parameters, UserSubmittedMessage, AssistantSubmittedMessage, ToolMessage } from './chat/types';
 import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { YChatDoc } from './chat/y-chat';
@@ -161,11 +161,85 @@ export class ChatManager extends EventEmitter {
         await this.getReply(messages, userSubmittedMessage.requestedParameters);
     }
 
+    public async sendAssistantMessage(message: Message, requestedParameters: Parameters) {
+        
+        const chat = this.doc.getYChat(message.chatID);
+
+        if (!chat) {
+            throw new Error('Chat not found');
+        }
+
+        const assistantMessage: Message = {
+            id: uuidv4(),
+            parentID: message.parentID,
+            chatID: message.chatID,
+            timestamp: Date.now(),
+            role: 'assistant',
+            content: message.content,
+            toolCalls: message.toolCalls,
+            toolMessages: message.toolMessages,
+            done: true,
+        };
+
+        this.doc.addMessage(message);
+
+        const messages: Message[] = this.doc.getMessagesPrecedingMessage(message.chatID, message.id);
+        messages.push(message);
+
+        await this.getReply(messages, requestedParameters);
+    }
+
+    public async appendToolMessage(message: Message, tool_message: ToolMessage) {
+        //this.doc.
+        const chat = this.doc.getYChat(message.chatID);
+        const tool_messages = chat.getToolMessages(message.id);
+        
+        if ( tool_messages !== undefined ) {
+            chat.setToolMessages(message.id, [...tool_messages, tool_message])
+        } else {
+            chat.setToolMessages(message.id, [tool_message])
+        }        
+    }
     public async regenerate(message: Message, requestedParameters: Parameters) {
         const messages = this.doc.getMessagesPrecedingMessage(message.chatID, message.id);
         await this.getReply(messages, requestedParameters);
     }
 
+    private async getReplyWithToolData(message: Message, requestedParameters: Parameters) {
+        const messages = this.doc.getMessagesPrecedingMessage(message.chatID, message.id);
+    
+        const chatID = message.chatID;
+        const parentID = message.id;
+        const chat = this.doc.getYChat(message.chatID);
+
+        if (!chat) {
+            throw new Error('Chat not found');
+        }
+        const lastMessage = messages[messages.length -1 ];
+
+        const messageOld: Message = {
+            id: uuidv4(),
+            parentID,
+            chatID,
+            timestamp: Date.now(),
+            role: 'assistant',
+            model: "midjourney",
+            content: '',
+            images: [],
+            toolCalls: []
+        };
+
+        this.lastReplyID = message.id;
+
+
+        console.log("new ReplyRequest for:", messages) ;
+        const request = new ReplyRequest(this.get(chatID), chat, messages, message.id, requestedParameters, this.options);
+        request.on('done', () => { console.log("request done", message) ; this.activeReplies.delete(message.id)});
+        request.execute();
+        
+        console.log(`set active reply to ${message.id}`);
+        this.activeReplies.set(message.id, request);
+    }    
     private async getReply(messages: Message[], requestedParameters: Parameters) {
         const latestMessage = messages[messages.length - 1];
         const chatID = latestMessage.chatID;
@@ -201,7 +275,8 @@ export class ChatManager extends EventEmitter {
             role: isMidjourney ? "midjourney" : isDalle3 ? "dalle3" : isTarot ? "tarot" : isGH ? "gh" :'assistant',
             model: "midjourney",
             content: '',
-            images: []
+            images: [],
+            toolCalls: []
         };
 
         this.lastReplyID = message.id;
@@ -210,9 +285,10 @@ export class ChatManager extends EventEmitter {
 
         console.log("new ReplyRequest for:", messages) ;
         const request = new ReplyRequest(this.get(chatID), chat, messages, message.id, requestedParameters, this.options);
-        request.on('done', () => this.activeReplies.delete(message.id));
+        request.on('done', () => { console.log("request done", message) ; this.activeReplies.delete(message.id)});
         request.execute();
-
+        
+        console.log(`set active reply to ${message.id}`);
         this.activeReplies.set(message.id, request);
     }
 

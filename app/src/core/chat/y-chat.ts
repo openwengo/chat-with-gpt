@@ -20,7 +20,7 @@ export class YChat {
     private callback: any;
     private pendingContent = new Map<string, string>();
     private pendingImages = new Map<string, string[]>();
-    private pendingToolMessage = new Map<string, ToolMessage>(); // one toolmessage per message
+    private pendingToolMessages = new Map<string, ToolMessage[]>(); // list of toolmessages
     private pendingToolsCalls = new Map<string, ToolCall[]>(); // list of tool calls
     private pendingCallableTools = new Map<string, ToolFunction[]>(); // list of callable functions
     private prefix = 'chat.' + this.id + '.';
@@ -42,7 +42,7 @@ export class YChat {
         this.content?.observeDeep(callback);
         this.images?.observeDeep(callback);
         this.toolCalls?.observeDeep(callback);
-        this.toolMessage?.observeDeep(callback);
+        this.toolMessages?.observeDeep(callback);
         this.callableTools?.observeDeep(callback);
         this.done?.observeDeep(callback);
     }
@@ -75,8 +75,8 @@ export class YChat {
         return this.root.getMap<Y.Array<Y.Text>>(this.prefix + IMAGES_KEY);
     }
 
-    public get toolMessage(): Y.Map<Y.Text> {
-        return this.root.getMap<Y.Text>(this.prefix + TOOLS_MESSAGE_KEY);
+    public get toolMessages(): Y.Map<Y.Array<Y.Text>> {
+        return this.root.getMap<Y.Array<Y.Text>>(this.prefix + TOOLS_MESSAGE_KEY);
     }
 
     public get toolCalls(): Y.Map<Y.Array<Y.Text>> {
@@ -141,28 +141,39 @@ export class YChat {
     }
 
 
-    public setPendingToolMessage(messageID: string, value: ToolMessage) {
-        this.pendingToolMessage.set(messageID, value);
+    public setPendingToolMessages(messageID: string, value: ToolMessage[]) {
+        this.pendingToolMessages.set(messageID, value);
         this.callback?.();
     }
 
-    public setToolMessage(messageID: string, value: ToolMessage) {
-        this.pendingToolMessage.delete(messageID);
-        this.toolMessage.set(messageID, new Y.Text(JSON.stringify(value)));
+    public setToolMessages(messageID: string, value: ToolMessage[]) {
+        this.pendingToolMessages.delete(messageID);
+
+        const toolsArray: Y.Array<Y.Text> = new Y.Array<Y.Text>();
+
+        //this.toolCalls.set(messageID, toolsArray);
+        // For each string function, create a Y.Text and add it to imagesArray
+        value.forEach(tool => {
+            const stringifiedTool: string = JSON.stringify(tool);
+            const yText = new Y.Text(stringifiedTool);
+            toolsArray.push([yText]);
+        });        
+        this.toolMessages.set(messageID, toolsArray);        
     }
 
-    public getToolMessage(messageID: string) {
-
-        if (this.pendingToolMessage.get(messageID)) {
-            return this.pendingToolMessage.get(messageID);
-        }
-        const toolMessageAsStr = this.toolMessage.get(messageID)?.toString() || "";
-
-        if (toolMessageAsStr !== '' ) {
-            return JSON.parse(toolMessageAsStr);
+    public getToolMessages(messageID: string) {
+        if (this.pendingToolMessages.get(messageID)) {
+            return this.pendingToolMessages.get(messageID);
         }
 
-        return undefined;
+        if (( this.toolMessages.get(messageID) === undefined) ||  !(typeof this.toolMessages.get(messageID)?.map === 'function')) {
+            return [];
+        } else {
+            const toolsAsStr = this.toolMessages.get(messageID)?.map(str => str.toString()) || [] ;
+
+            const tools: ToolMessage[] = toolsAsStr.map(str => { const tool: ToolMessage = JSON.parse(str) ; return tool});
+            return tools;
+        }
     }
 
     public setPendingToolsCalls(messageID: string, value: ToolCall[]) {
@@ -175,26 +186,26 @@ export class YChat {
         
         const toolsArray: Y.Array<Y.Text> = new Y.Array<Y.Text>();
 
-        this.toolCalls.set(messageID, toolsArray);
+        //this.toolCalls.set(messageID, toolsArray);
         // For each string function, create a Y.Text and add it to imagesArray
         value.forEach(tool => {
-            const yText = new Y.Text();
-            yText.insert(0, JSON.stringify(tool)); // Insert the string into the Y.Text
+            const stringifiedTool: string = JSON.stringify(tool);
+            const yText = new Y.Text(stringifiedTool);
             toolsArray.push([yText]);
-        });
-        
+        });        
         this.toolCalls.set(messageID, toolsArray);
     }
 
     public getToolsCalls(messageID: string) {
 
-        if (this.pendingToolsCalls) {
+        //console.log("getToolsCalls", messageID);
+
+        if (this.pendingToolsCalls.get(messageID)) {
             return this.pendingToolsCalls.get(messageID);
         }
         const toolsAsStr = this.toolCalls.get(messageID)?.map(str => str.toString()) || [] ;
 
         const tools: ToolCall[] = toolsAsStr.map(str => { const tool: ToolCall = JSON.parse(str) ; return tool});
-
         return tools;
     }
 
@@ -221,7 +232,7 @@ export class YChat {
 
     public getCallableTools(messageID: string) {
 
-        if ( this.pendingCallableTools) {
+        if ( this.pendingCallableTools.get(messageID)) {
             return this.pendingCallableTools.get(messageID) ;
         }
         const toolsAsStr =  this.callableTools.get(messageID)?.map(str => str.toString()) || [] ;
@@ -258,7 +269,7 @@ export class YChat {
             this.messages.clear();
             this.images.clear();
             this.toolCalls.clear();
-            this.toolMessage.clear();
+            this.toolMessages.clear();
             this.callableTools.clear();
             this.content.clear();
             this.done.clear();
@@ -288,8 +299,8 @@ export class YChat {
             if (this.images.size > 0) {
                 this.images.clear();
             }
-            if (this.toolMessage.size > 0) {
-                this.toolMessage.clear();
+            if (this.toolMessages.size > 0) {
+                this.toolMessages.clear();
             }
             if (this.toolCalls.size > 0) {
                 this.toolCalls.clear();
@@ -411,14 +422,23 @@ export class YChatDoc extends EventEmitter {
                 const toolsArray: Y.Array<Y.Text> = new Y.Array<Y.Text>()
                 
                 message.toolCalls.map( toolMessage => { 
-                    const yText = new Y.Text();
-                    yText.insert(0,JSON.stringify(toolMessage));
+                    const yText = new Y.Text(JSON.stringify(toolMessage));
                     toolsArray.push([yText])
                     }
                 );
                 chat.toolCalls.set(message.id, toolsArray);
             }
-            chat.toolMessage.set(message.id, new Y.Text(message.toolMessage ? JSON.stringify(message.toolMessage) : ''));
+            if ( message.toolMessages && message.toolMessages.length > 0) {
+                const toolsArray: Y.Array<Y.Text> = new Y.Array<Y.Text>()
+                
+                message.toolMessages.map( toolMessage => { 
+                    const yText = new Y.Text();
+                    yText.insert(0,JSON.stringify(toolMessage));
+                    toolsArray.push([yText])
+                    }
+                );
+                chat.toolMessages.set(message.id, toolsArray);
+            }
 
             if ( message.callableTools && message.callableTools.length > 0) {
                 const toolsArray: Y.Array<Y.Text> = new Y.Array<Y.Text>()
@@ -453,10 +473,10 @@ export class YChatDoc extends EventEmitter {
                 const content = chat.getMessageContent(m.id);
                 const images = chat.getMessageImages(m.id);
                 const tool_calls = chat.getToolsCalls(m.id);
-                const tool_message = chat.getToolMessage(m.id);
+                const tool_messages = chat.getToolMessages(m.id);
                 const callable_tools = chat.getCallableTools(m.id);
                 const done = chat.done.get(m.id) || false;
-                tree.addMessage(m, content, done, images, tool_calls , tool_message, callable_tools);
+                tree.addMessage(m, content, done, images, tool_calls , tool_messages, callable_tools);
             } catch (e) {
                 console.warn(`failed to load message ${m.id}`, e);
             }

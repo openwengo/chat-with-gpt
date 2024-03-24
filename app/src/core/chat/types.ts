@@ -152,9 +152,11 @@ export interface Message {
     images?: string[];
     callableTools?: ToolFunction[]; // The tools the model can call
     toolCalls?: ToolCall[];         // The model requires to call these tools
-    toolMessage?: ToolMessage;      // response from one called tool
+    toolMessages?: ToolMessage[];   // responses from the called tools
+    doneWithTools?: boolean;        // The model has answered with all the tool messages
     parameters?: Parameters;
     done?: boolean;
+    
 }
 
 export interface UserSubmittedMessage {
@@ -163,6 +165,15 @@ export interface UserSubmittedMessage {
     content: string;
     images?: string[];
     callableTools?: ToolFunction[];
+    requestedParameters: Parameters;
+}
+
+export interface AssistantSubmittedMessage {
+    chatID: string;
+    parentID?: string;
+    content: string;
+    toolCalls: ToolCall[];
+    toolMessages: ToolMessage[];
     requestedParameters: Parameters;
 }
 
@@ -184,7 +195,7 @@ export interface OpenAIMessage {
     images?: string[];
     callable_tools?: ToolFunction[] ; // callable tools
     tool_calls?: ToolCall[];          // tools to invoke
-    tool_message?: ToolMessage;     // response from tools invocation
+    tool_messages?: ToolMessage[];    // responses from tools invocation
 }
 
 export function getOpenAIMessageFromMessage(message: Message): OpenAIMessage {
@@ -195,8 +206,8 @@ export function getOpenAIMessageFromMessage(message: Message): OpenAIMessage {
         images: message.images,
         callable_tools: message.callableTools,
         tool_calls: message.toolCalls,
-        tool_message: message.toolMessage
-     }
+        tool_messages: message.toolMessages
+    }
 
     return base_message;
 }

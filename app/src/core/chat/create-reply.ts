@@ -6,7 +6,7 @@ import { createStreamingTarotCompletion } from "./tarot";
 import { createStreamingGHCompletion } from "./grandhoroscope";
 import { PluginContext } from "../plugins/plugin-context";
 import { pluginRunner } from "../plugins/plugin-runner";
-import { Chat, Message, OpenAIMessage, Parameters, getOpenAIMessageFromMessage } from "./types";
+import { Chat, Message, OpenAIMessage, Parameters, ToolCall, getOpenAIMessageFromMessage } from "./types";
 import { EventEmitterAsyncIterator } from "../utils/event-emitter-async-iterator";
 import { YChat } from "./y-chat";
 import { OptionsManager } from "../options";
@@ -20,6 +20,7 @@ export class ReplyRequest extends EventEmitter {
     private done: boolean = false;
     private content = '';
     private cancelSSE: any;
+    private toolCalls: ToolCall[] = [];
 
     constructor(private chat: Chat,
                 private yChat: YChat,
@@ -174,6 +175,13 @@ export class ReplyRequest extends EventEmitter {
         clearInterval(this.timer);
         this.lastChunkReceivedAt = Date.now();
         this.done = true;
+        
+
+        if (this.toolCalls.length> 0) {
+            console.log(`set tool calls on message ${this.replyID}`, this.toolCalls);
+            this.yChat.setToolsCalls(this.replyID, this.toolCalls);
+            console.log("set tool calls on message ok");
+        }
         this.emit('done');
 
         this.yChat.onMessageDone(this.replyID);
@@ -202,6 +210,11 @@ export class ReplyRequest extends EventEmitter {
         this.content = this.content.trim();
 
         this.yChat.setMessageContent(this.replyID, this.content);
+
+        if (this.toolCalls.length> 0) {
+            this.yChat.setToolsCalls(this.replyID, this.toolCalls);
+        }
+
         this.yChat.onMessageDone(this.replyID);
     }
 
@@ -214,19 +227,23 @@ export class ReplyRequest extends EventEmitter {
     }
 
 
+    // event contains: function_name|args
     public async onToolCall(value: any) {
         if (this.done) {
             return;
         }
-        const [functionName, args ] = value.split('|') ;
+        
+        const toolCall: ToolCall = JSON.parse(value);
+        console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
 
-        console.log(`Call function ${functionName} with args ${args}`);
-        const tool_answer = await backend.current?.callTool({...JSON.parse(args), "agent_type": "audioinsight"});
+        this.toolCalls.push(toolCall);
+        //console.log(`Call function ${functionName} with args ${args}`);
+        //const tool_answer = await backend.current?.callTool({...JSON.parse(args), "agent_type": "audioinsight"});
 
-        this.content = tool_answer || '';
+        //this.content = tool_answer || '';
 
-        this.yChat.setPendingMessageContent(this.replyID, this.content);
-
+        this.yChat.setPendingToolsCalls(this.replyID, this.toolCalls);
+        console.log("pending tools sets to", this.toolCalls);
         return ;
 
         this.lastChunkReceivedAt = Date.now();

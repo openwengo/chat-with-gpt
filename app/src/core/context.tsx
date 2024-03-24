@@ -25,8 +25,9 @@ export interface Context {
     isShare: boolean;
     generating: boolean;
     onNewMessage: (message?: string, images?: string[], tools?: ToolFunction[]) => Promise<string | false>;
+    onNewAssistantMessage: (message: Message) => Promise<boolean>;
     regenerateMessage: (message: Message) => Promise<boolean>;
-    editMessage: (message: Message, content: string) => Promise<boolean>;
+    editMessage: (message: Message, content: string, tools?: ToolFunction[]) => Promise<boolean>;
 }
 
 const AppContext = React.createContext<Context>({} as any);
@@ -147,6 +148,35 @@ export function useCreateAppContext(): Context {
         return id;
     }, [dispatch, id, currentChat.leaf, isShare]);
 
+    const onNewAssistantMessage = useCallback(async (message: Message) => {
+        resetAudioContext();
+
+        if (isShare) {
+            return false;
+        }
+
+        // const openaiApiKey = store.getState().apiKeys.openAIApiKey;
+        const openaiApiKey = chatManager.options.getOption<string>('openai', 'apiKey');
+
+        if (!openaiApiKey && !isProxySupported()) {
+            dispatch(openOpenAIApiKeyPanel());
+            return false;
+        }
+
+        const parameters: Parameters = {
+            model: chatManager.options.getOption<string>('parameters', 'model', id),
+            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
+        };
+
+        await chatManager.sendAssistantMessage(message, {
+            ...parameters,
+            apiKey: openaiApiKey,
+        });
+
+        return true;
+    }, [dispatch, isShare]);
+
     const regenerateMessage = useCallback(async (message: Message) => {
         resetAudioContext();
 
@@ -176,7 +206,7 @@ export function useCreateAppContext(): Context {
         return true;
     }, [dispatch, isShare]);
 
-    const editMessage = useCallback(async (message: Message, content: string) => {
+    const editMessage = useCallback(async (message: Message, content: string, tools?: ToolFunction[]) => {
         resetAudioContext();
         
         if (isShare) {
@@ -205,6 +235,7 @@ export function useCreateAppContext(): Context {
             await chatManager.sendMessage({
                 chatID: id,
                 content: content.trim(),
+                callableTools: tools,
                 requestedParameters: {
                     ...parameters,
                     apiKey: openaiApiKey,
@@ -216,6 +247,7 @@ export function useCreateAppContext(): Context {
             await chatManager.sendMessage({
                 chatID: id,
                 content: content.trim(),
+                callableTools: tools,
                 requestedParameters: {
                     ...parameters,
                     apiKey: openaiApiKey,
@@ -243,6 +275,7 @@ export function useCreateAppContext(): Context {
         isShare,
         generating,
         onNewMessage,
+        onNewAssistantMessage,
         regenerateMessage,
         editMessage,
     }), [authenticated, wasAuthenticated, generating, onNewMessage, regenerateMessage, editMessage, currentChat, id, isHome, isShare, intl]);

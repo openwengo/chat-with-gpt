@@ -129,6 +129,10 @@
 "defaultMessage": "Ou connectez-vous à un compte existant",
 "description": "Étiquette pour un bouton sur la page Créer un compte qui permet à l'utilisateur de se connecter à son compte existant à la place"
 },
+"ZF3+6B": {
+"defaultMessage": "Call Tool",
+"description": "Initiate a call of a tool required by the llm"
+},
 "aR9WsJ": {
 "defaultMessage": "Paramètres de l'interface utilisateur",
 "description": "Titre pour le réglage permettant aux utilisateurs de personnaliser divers éléments de l'interface utilisateur"

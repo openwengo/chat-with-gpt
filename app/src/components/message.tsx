@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { Button, CopyButton, Loader, Textarea } from '@mantine/core';
 
-import { Message } from "../core/chat/types";
+import { Message, ToolFunction, ToolCall, ToolMessage } from "../core/chat/types";
 import { share } from '../core/utils';
 import { TTSButton } from './tts-button';
 import { Markdown } from './markdown';
@@ -10,11 +10,12 @@ import { Dalle3Display } from './dalle3-display';
 import { TarotDisplay } from './tarot-display';
 import { GHDisplay } from './gh-display';
 import { useAppContext } from '../core/context';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useAppSelector } from '../store';
 import { selectSettingsTab } from '../store/settings-ui';
 import { countTokensForMessages } from '../core/tokenizer';
+import { backend } from '../core/backend' ;
 
 // hide for everyone but screen readers
 const SROnly = styled.span`
@@ -225,6 +226,79 @@ function InlineLoader() {
     );
 }
 
+
+const callTool = async (toolCall: ToolCall ) => {
+    console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
+    const tool_answer = await backend.current?.callTool({ ...JSON.parse(toolCall.function.arguments),  "agent_type": "audioinsight"});
+    console.log("tool answer:", tool_answer);
+    if (! tool_answer) {
+        return '';
+    } else {
+        return tool_answer;
+    }
+}
+
+interface ToolCallComponentProps {
+  message: Message;
+  onToolCall: (toolCall: ToolCall) => Promise<string>; // Function to handle the tool call
+  onSubmit: (updatedMessage: Message) => void; // Function to handle the submit action
+}
+
+const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onToolCall, onSubmit }) => {
+    const [localMessage, setLocalMessage] = useState<Message>(message);
+
+    useEffect(() => {
+      setLocalMessage(message); // Update local state when prop changes
+    }, [message]);
+  
+    const handleToolCall = async (toolCall: ToolCall) => {
+        try {
+            const content = await onToolCall(toolCall); // Await the asynchronous call
+            const toolMessage = {
+              content,
+              tool_call_id: toolCall.id,
+            };
+            // Update local state with the new tool message
+            const updatedToolMessages = [...(localMessage.toolMessages || []), toolMessage];
+            const updatedMessage = { ...localMessage, toolMessages: updatedToolMessages };
+            setLocalMessage(updatedMessage);
+          } catch (error) {
+            console.error('Failed to handle tool call:', error);
+          }
+    };
+
+
+    const handleSubmit = () => {
+        onSubmit(localMessage); // Pass the updated local message back to the parent component
+    };
+    
+    // Check for matching tool message
+    const hasMatchingToolMessage = (toolCallId: string): boolean =>
+        localMessage.toolMessages?.some((tm) => tm.tool_call_id === toolCallId) ?? false;
+
+    // Determine if all tool calls have been matched with messages
+    const allToolCallsMatched = localMessage.toolCalls?.every((tc) => hasMatchingToolMessage(tc.id)) ?? false;
+
+    return (
+        <div>
+          {localMessage.toolCalls?.map((toolCall) =>
+            !hasMatchingToolMessage(toolCall.id) ? (
+              <Button key={toolCall.id} onClick={() => handleToolCall(toolCall)}>
+                Call tool for {toolCall.function.name}
+              </Button>
+            ) : null
+          )}
+          {allToolCallsMatched && (
+            <Button color="green" onClick={handleSubmit}>
+              Submit
+            </Button>
+          )}
+        </div>
+      );
+};
+
+
+
 export default function MessageComponent(props: { message: Message, last: boolean, share?: boolean }) {
     const context = useAppContext();
     const [editing, setEditing] = useState(false);
@@ -258,11 +332,31 @@ export default function MessageComponent(props: { message: Message, last: boolea
         }
     }, [intl]);
 
+    const tools : ToolFunction[] =[
+        { 
+            'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
+            'name': 'graam-tool',
+            'parameters': {
+                "type": "object",
+                "properties" : {
+                    "question" : {
+                        'description': "The question to ask about Graam ( aka Wephone ) 's database",
+                        'type': 'string'
+                    }
+                },
+                "required": ["question"]
+            }
+        }
+    ]
+
     const elem = useMemo(() => {
         if (props.message.role === 'system') {
             return null;
-        }        
-            
+        }   
+        
+        if ((props.message.role === 'assistant') &&  props.message.toolCalls && ( props.message.toolCalls.length > 0 )) {
+            console.log(`Message ${props.message.id}, ${props.message.role} has toolCalls:`, props.message.toolCalls, props.message);
+        }
         return (
             <Container className={"message by-" + props.message.role}>
                 <div className="inner">
@@ -319,7 +413,12 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </Button>
                         )}
                     </div>
-                    {!editing && ! ['tarot','midjourney','gh','dalle3'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && ['user'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && ['assistant'].includes(props.message.role) && ( !props.message.toolCalls || props.message.toolCalls.length == 0 ) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && ['assistant'].includes(props.message.role) && props.message.toolCalls && props.message.toolCalls.length > 0 && (
+                        <ToolCallComponent message={props.message} onToolCall={callTool} onSubmit={(message: Message) => context.onNewAssistantMessage(message)}/>
+                        )
+                    }
                     {!editing && props.message.role === 'gh' &&  <GHDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'tarot' &&  <TarotDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
@@ -329,7 +428,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                         <Textarea value={content}
                             onChange={e => setContent(e.currentTarget.value)}
                             autosize={true} />
-                        <Button variant="light" onClick={() => context.editMessage(props.message, content)}>
+                        <Button variant="light" onClick={() => context.editMessage(props.message, content, tools)}>
                             <FormattedMessage defaultMessage="Save changes" description="Label for a button that appears when the user is editing the text of one of their messages, to save the changes" />
                         </Button>
                         <Button variant="subtle" onClick={() => setEditing(false)}>

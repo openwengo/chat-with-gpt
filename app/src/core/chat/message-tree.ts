@@ -86,15 +86,15 @@ export class MessageTree {
          done: boolean | undefined = false,
           images: string[] | undefined = [],
           tool_calls: ToolCall[] | undefined = [],
-          tool_message: ToolMessage | undefined = undefined,
+          tool_messages: ToolMessage[] | undefined = [],
           callable_tools: ToolFunction[] | undefined = [],): void {
         const message = {
             ...inputMessage,
             content: content || inputMessage.content || '',
             images: images?.length ? images : ( inputMessage.images || [] ),
-            tool_calls: tool_calls?.length ? tool_calls : ( inputMessage.toolCalls || [] ),
-            tool_message: tool_message,
-            callable_tools: callable_tools?.length ? callable_tools : ( inputMessage.callableTools || []),
+            toolCalls: tool_calls?.length ? tool_calls : ( inputMessage.toolCalls || [] ),
+            toolMessages: tool_messages?.length ? tool_messages : ( inputMessage.toolMessages || []),
+            callableTool: callable_tools?.length ? callable_tools : ( inputMessage.callableTools || []),
             done: typeof done === 'boolean' ? done : inputMessage.done,
         };
 
@@ -157,7 +157,7 @@ export class MessageTree {
         messageNode.content = message.content;
         messageNode.images = message.images;
         messageNode.toolCalls = message.toolCalls;
-        messageNode.toolMessage = message.toolMessage;
+        messageNode.toolMessages = message.toolMessages;
         messageNode.callableTools = message.callableTools;
         messageNode.timestamp = message.timestamp;
         messageNode.done = message.done;

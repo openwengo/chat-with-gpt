@@ -128,15 +128,17 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
 
     let image_input = false ;
 
-    const formattedMessages = messages.map((message) => {
+    let tools: any = [] ;
+
+    const formattedMessages: any[] = messages.flatMap((message) => {
         
         
         if ( message.role === 'system' ) {
             const contentObjects =  message.content ;
-            return {
+            return [{
                 role: message.role,
                 content: contentObjects
-              };            
+              }];            
         } else if ( message.role === 'user' ) {
             const contentObjects: any =  [{type: "text", text: message.content }];
             if (message.images && message.images.length > 0) {
@@ -147,35 +149,45 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
                 }));
                 contentObjects.push(...imageObjects);
             }      
-            let tools: any = [] ;
+    
             if (message.callable_tools) {
                 tools = message.callable_tools.map((tool) => ({
                     type: "function",
                     function: tool
                 }))
             }
-            return {
+        
+            return [{
                 role: message.role,
-                content: contentObjects,
-                tools: tools.length > 0 ? tools : undefined
-            };
+                content: contentObjects
+            }];
         } else if ( message.role === 'assistant' ) {
-                        
-            return {
-                role: message.role,
-                content: message.content,
-                tool_calls: message.tool_calls
-            }
-        } else if ( message.role === 'tool') {
-            return {
-                role: message.role,
-                content: message.tool_message?.content,
-                tool_call_id: message.tool_message?.tool_call_id
+                   
+            if ((message.tool_messages !== undefined) && (message.tool_calls !== undefined)) {
+
+                const toolMessages = message.tool_messages.map((tool_call) => ({
+                    role: 'tool',
+                    content: tool_call.content,
+                    tool_call_id: tool_call.tool_call_id
+                })) ;
+                const assistantList: any[] = [{
+                    role: message.role,
+                    tool_calls: message.tool_calls
+                }];
+                return [...assistantList, ...toolMessages];
+            } else {
+                return [{
+                    role: message.role,
+                    content: message.content
+                }]
+
             }
         }    
         throw(`Unmanaged message role: ${message.role}`);
+        return [] ;
       });
-  
+
+      
     let payload_object: any = {
         "model": parameters.model,
         "messages": formattedMessages,
@@ -190,7 +202,15 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
         payload_object.model = parameters.model ;
         payload_object = {...payload_object, max_tokens: 3000} ;
     }
-  
+
+    if (tools) {
+        if ( parameters.model === "gpt-4-vision-preview" ) {
+            console.log(`model ${parameters.model} does not support tools. Ignoring`)
+        } else {
+            payload_object.tools = tools;
+        }
+    }
+
     if ( parameters.model.startsWith('openai/') || parameters.model.startsWith('anthropic/')  ) {
         endpoint = getOpenRouterEndpoint(proxied);
     }
@@ -228,7 +248,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
 
                 tool_calls.forEach( tool_call => {
                     console.log("emit call function:", tool_call.function.name);
-                    emitter.emit('tool_call', `${tool_call.function.name}|${tool_call.function.arguments}`);
+                    emitter.emit('tool_call', JSON.stringify(tool_call));
                 })
                 
     

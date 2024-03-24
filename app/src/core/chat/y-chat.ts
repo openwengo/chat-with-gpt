@@ -15,6 +15,7 @@ const TOOLS_MESSAGE_KEY = 'messages:tools_message';
 const TOOLS_CALL_KEY = 'messages:tools_calls';
 const TOOLS_CALLABLE_KEY = 'messages:tools_callable';
 const DONE_KEY = 'messages:done';
+const DONE_WITH_TOOLS_KEY = 'messages:done_tools';
 
 export class YChat {
     private callback: any;
@@ -45,6 +46,7 @@ export class YChat {
         this.toolMessages?.observeDeep(callback);
         this.callableTools?.observeDeep(callback);
         this.done?.observeDeep(callback);
+        this.doneWithTools?.observeDeep(callback);
     }
 
     public get deleted(): boolean {
@@ -91,6 +93,10 @@ export class YChat {
         return this.root.getMap<boolean>(this.prefix + DONE_KEY);
     }
 
+    public get doneWithTools(): Y.Map<boolean> {
+        return this.root.getMap<boolean>(this.prefix + DONE_WITH_TOOLS_KEY);
+    }
+    
     public get title() {
         return (this.metadata.get('title') as string) || (this.importedMetadata.get('title') as string) || null;
     }
@@ -245,6 +251,10 @@ export class YChat {
         this.done.set(messageID, true);
     }
 
+    public onMessageDoneWithTools(messageID: string) {
+        this.doneWithTools.set(messageID, true);
+    }
+
     public getOption(pluginID: string, optionID: string): any {
         const key = pluginID + "." + optionID;
         return this.pluginOptions?.get(key) || null;
@@ -272,6 +282,7 @@ export class YChat {
             this.callableTools.clear();
             this.content.clear();
             this.done.clear();
+            this.doneWithTools.clear();
         } else {
             this.purgeDeletedValues();
         }
@@ -309,6 +320,9 @@ export class YChat {
             }
             if (this.done.size > 0) {
                 this.done.clear();
+            }
+            if (this.doneWithTools.size > 0) {
+                this.doneWithTools.clear();
             }
         }
     }
@@ -490,6 +504,12 @@ export class YChatDoc extends EventEmitter {
             if (message.done) {
                 chat.done.set(message.id, message.done);
             }
+
+            if (message.doneWithTools) {
+                console.log("persists done with tools for message", message);
+                chat.doneWithTools.set(message.id, message.doneWithTools);
+            }
+
         });
     }
 
@@ -511,7 +531,8 @@ export class YChatDoc extends EventEmitter {
                 const tool_messages = chat.getToolMessages(m.id);
                 const callable_tools = chat.getCallableTools(m.id);
                 const done = chat.done.get(m.id) || false;
-                tree.addMessage(m, content, done, images, tool_calls , tool_messages, callable_tools);
+                const doneWithTools = chat.doneWithTools.get(m.id) || false;
+                tree.addMessage(m, content, done, images, tool_calls , tool_messages, callable_tools, doneWithTools);
             } catch (e) {
                 console.warn(`failed to load message ${m.id}`, e);
             }

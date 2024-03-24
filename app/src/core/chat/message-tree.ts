@@ -87,7 +87,8 @@ export class MessageTree {
           images: string[] | undefined = [],
           tool_calls: ToolCall[] | undefined = [],
           tool_messages: ToolMessage[] | undefined = [],
-          callable_tools: ToolFunction[] | undefined = [],): void {
+          callable_tools: ToolFunction[] | undefined = [],
+          doneWithTools: boolean | undefined = false,): void {
         const message = {
             ...inputMessage,
             content: content || inputMessage.content || '',
@@ -96,6 +97,7 @@ export class MessageTree {
             toolMessages: tool_messages?.length ? tool_messages : ( inputMessage.toolMessages || []),
             callableTool: callable_tools?.length ? callable_tools : ( inputMessage.callableTools || []),
             done: typeof done === 'boolean' ? done : inputMessage.done,
+            doneWithTools: typeof doneWithTools === 'boolean' ? doneWithTools : inputMessage.doneWithTools,
         };
 
         if (this.messageNodes.get(message.id)?.content) {
@@ -161,6 +163,7 @@ export class MessageTree {
         messageNode.callableTools = message.callableTools;
         messageNode.timestamp = message.timestamp;
         messageNode.done = message.done;
+        messageNode.doneWithTools = message.doneWithTools;
     }
 
     /**

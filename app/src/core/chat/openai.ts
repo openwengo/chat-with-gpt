@@ -163,7 +163,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
             }];
         } else if ( message.role === 'assistant' ) {
                    
-            if ((message.tool_messages !== undefined) && (message.tool_calls !== undefined)) {
+            if ((message.tool_messages !== undefined) && (message.tool_messages.length > 0) && (message.tool_calls !== undefined)) {
 
                 const toolMessages = message.tool_messages.map((tool_call) => ({
                     role: 'tool',
@@ -265,14 +265,13 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
                 emitter.emit('data', contents);
 
                 if (chunk.choices[0]?.delta?.tool_calls ) {
-                    let current_tool_idx = 0;
+                    //console.log("Tool calls returned by OpenAI", chunk.choices[0]?.delta?.tool_calls);
                     chunk.choices[0]?.delta?.tool_calls.forEach(tool_call => {
-                        if (tool_calls.length < current_tool_idx+1) {
+                        if (tool_calls.length < tool_call.index + 1) {
                             tool_calls.push(tool_call);
                         } else {
-                            tool_calls[current_tool_idx].function.arguments += tool_call.function.arguments;
+                            tool_calls[tool_call.index].function.arguments += tool_call.function.arguments;
                         }
-                        current_tool_idx += 1;
                     });
                 }
             }

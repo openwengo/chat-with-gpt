@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Button, CopyButton, Loader, Textarea } from '@mantine/core';
+import { Button, CopyButton, Loader, Textarea, Text } from '@mantine/core';
 
 import { Message, ToolFunction, ToolCall, ToolMessage } from "../core/chat/types";
 import { share } from '../core/utils';
@@ -10,7 +10,7 @@ import { Dalle3Display } from './dalle3-display';
 import { TarotDisplay } from './tarot-display';
 import { GHDisplay } from './gh-display';
 import { useAppContext } from '../core/context';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useAppSelector } from '../store';
 import { selectSettingsTab } from '../store/settings-ui';
@@ -227,44 +227,107 @@ function InlineLoader() {
 }
 
 
-const callTool = async (toolCall: ToolCall ) => {
-    console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
-    const tool_answer = await backend.current?.callTool({ ...JSON.parse(toolCall.function.arguments),  "agent_type": "audioinsight"});
-    console.log("tool answer:", tool_answer);
-    if (! tool_answer) {
-        return '';
-    } else {
-        return tool_answer;
-    }
-}
 
 interface ToolCallComponentProps {
   message: Message;
-  onToolCall: (toolCall: ToolCall) => Promise<string>; // Function to handle the tool call
+  //onToolCall: (toolCall: ToolCall, processCallBack: (event: string, data:any ) => void) => Promise<string>; // Function to handle the tool call
   onSubmit: (updatedMessage: Message) => void; // Function to handle the submit action
 }
 
-const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onToolCall, onSubmit }) => {
+const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit }) => {
     const [localMessage, setLocalMessage] = useState<Message>(message);
-
+    // Statuses are now stored in an object indexed by tool call ID
+    const [statuses, setStatuses] = useState<{ [toolCallId: string]: string }>({});
+    const [processing, setProcessing] = useState<{ [toolCallId: string]: boolean }>({});
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // State to track submission status
+    const scheduledCallsRef = useRef<{ [toolCallId: string]: boolean }>({});
+        
     useEffect(() => {
       setLocalMessage(message); // Update local state when prop changes
     }, [message]);
   
+    // Automatically trigger tool calls that are not processed or have no matching message
+    useEffect(() => {
+        // Function to check if a tool call should be automatically triggered
+        const shouldTriggerCall = (toolCallId: string) => 
+          !hasMatchingToolMessage(toolCallId) && 
+          !processing[toolCallId] && 
+          !scheduledCallsRef.current[toolCallId];
+    
+        message.toolCalls?.forEach((toolCall) => {
+          if (shouldTriggerCall(toolCall.id)) {
+            scheduledCallsRef.current[toolCall.id] = true; // Mark as scheduled
+            setTimeout(() => {
+              handleToolCall(toolCall)
+                .finally(() => {
+                  scheduledCallsRef.current[toolCall.id] = false; // Reset after call
+                });
+            }, 2000); // Trigger after a delay of 1 second
+          }
+        });
+        // Only re-trigger this effect when `message` changes. `processing` changes are handled internally.
+      }, [message]);
+    
+    useEffect(() => {
+        // Check if all tool calls have been completed successfully and if the message is not marked as done
+        const allToolCallsCompleted = message.toolCalls?.every((tc) => hasMatchingToolMessage(tc.id)) ?? false;
+        if (allToolCallsCompleted && !message.doneWithTools && !isSubmitting) {
+          setIsSubmitting(true); // Prevent further submissions
+          setTimeout(() => {
+            handleSubmit(); // Trigger submit action automatically
+          }, 1000); // You can adjust the delay here as needed
+        }
+      }, [localMessage.toolMessages, message.toolCalls, message.doneWithTools]); // Depend on changes in tool messages and doneWithTools flag
+
+      
     const handleToolCall = async (toolCall: ToolCall) => {
+        // Mark this tool call as processing
+        setProcessing((prev) => ({ ...prev, [toolCall.id]: true }));
+
+        const processCallBack = (event: string, data: any) => {
+            // Update the status for this specific tool call
+            setStatuses((prevStatuses) => ({
+              ...prevStatuses,
+              [toolCall.id]: `Event: ${event}`,
+            }));
+          };        
+
+        const callTool = async (toolCall: ToolCall ) => {
+            console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
+            const tool_answer = await backend.current?.callTool({ ...JSON.parse(toolCall.function.arguments),  "agent_type": "audioinsight"}, processCallBack);
+            console.log("tool answer:", tool_answer);
+            if (! tool_answer) {
+                return 'An error occured during function processing';
+            } else {
+                return tool_answer;
+            }
+        }
+        
         try {
-            const content = await onToolCall(toolCall); // Await the asynchronous call
+            const content = await callTool(toolCall); // Await the asynchronous call
             const toolMessage = {
               content,
               tool_call_id: toolCall.id,
             };
             // Update local state with the new tool message
-            const updatedToolMessages = [...(localMessage.toolMessages || []), toolMessage];
-            const updatedMessage = { ...localMessage, toolMessages: updatedToolMessages };
-            setLocalMessage(updatedMessage);
+            setLocalMessage((prevMessage) => {
+                const updatedToolMessages = [...(prevMessage.toolMessages || []), toolMessage];
+                return  { ...prevMessage, toolMessages: updatedToolMessages };
+            })
+            // Optionally clear status for this tool call
+            setStatuses((prevStatuses) => ({
+                ...prevStatuses,
+                [toolCall.id]: 'Completed',
+            }));            
           } catch (error) {
             console.error('Failed to handle tool call:', error);
+            setStatuses((prevStatuses) => ({
+                ...prevStatuses,
+                [toolCall.id]: 'Error during tool call',
+              }));
           }
+          // Once processing is complete or fails, mark it as not processing
+          setProcessing((prev) => ({ ...prev, [toolCall.id]: false }));
     };
 
 
@@ -283,13 +346,20 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onToolCa
         <div>
           {localMessage.toolCalls?.map((toolCall) =>
             !hasMatchingToolMessage(toolCall.id) ? (
-              <Button key={toolCall.id} onClick={() => handleToolCall(toolCall)}>
+            <div key={toolCall.id}>
+              <Button onClick={() => handleToolCall(toolCall)}  disabled={processing[toolCall.id]}>
                 Call tool for {toolCall.function.name}
               </Button>
-            ) : null
+              {statuses[toolCall.id] && (
+               <Text color="dimmed" size="sm" style={{ marginTop: '10px' }}>
+                {statuses[toolCall.id]}
+               </Text>
+               )
+            }
+            </div>) : null
           )}
           {allToolCallsMatched && (
-            <Button color="green" onClick={handleSubmit}>
+            <Button color="green" onClick={handleSubmit} disabled={isSubmitting || message.doneWithTools}>
               Submit
             </Button>
           )}
@@ -334,7 +404,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
 
     const tools : ToolFunction[] =[
         { 
-            'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
+            'description': 'This tool manages all interactions with Graam ( aka Wephone ) which is a Callcenter application. You can ask it for any information about Graam\'s database',
             'name': 'graam-tool',
             'parameters': {
                 "type": "object",
@@ -354,9 +424,6 @@ export default function MessageComponent(props: { message: Message, last: boolea
             return null;
         }   
         
-        if ((props.message.role === 'assistant') &&  props.message.toolCalls && ( props.message.toolCalls.length > 0 )) {
-            console.log(`Message ${props.message.id}, ${props.message.role} has toolCalls:`, props.message.toolCalls, props.message);
-        }
         return (
             <Container className={"message by-" + props.message.role}>
                 <div className="inner">
@@ -416,7 +483,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                     {!editing && ['user'].includes(props.message.role) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && ['assistant'].includes(props.message.role) && ( !props.message.toolCalls || props.message.toolCalls.length == 0 ) &&  <Markdown content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && ['assistant'].includes(props.message.role) && props.message.toolCalls && props.message.toolCalls.length > 0 && (
-                        <ToolCallComponent message={props.message} onToolCall={callTool} onSubmit={(message: Message) => context.onNewAssistantMessage(message)}/>
+                        <ToolCallComponent message={props.message} onSubmit={(message: Message) => context.onNewAssistantMessage({...message, doneWithTools:true})}/>
                         )
                     }
                     {!editing && props.message.role === 'gh' &&  <GHDisplay content={props.message.content} className={"content content-" + props.message.id} />}

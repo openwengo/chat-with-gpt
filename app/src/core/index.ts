@@ -169,18 +169,6 @@ export class ChatManager extends EventEmitter {
             throw new Error('Chat not found');
         }
 
-        const assistantMessage: Message = {
-            id: uuidv4(),
-            parentID: message.parentID,
-            chatID: message.chatID,
-            timestamp: Date.now(),
-            role: 'assistant',
-            content: message.content,
-            toolCalls: message.toolCalls,
-            toolMessages: message.toolMessages,
-            done: true,
-        };
-
         this.doc.addMessage(message);
 
         const messages: Message[] = this.doc.getMessagesPrecedingMessage(message.chatID, message.id);

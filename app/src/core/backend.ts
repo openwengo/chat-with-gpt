@@ -286,7 +286,7 @@ export class Backend extends EventEmitter {
         return response.json();
     }
 
-    async callTool(data: object) {
+    async callTool(data: object, processCallBack: (event: string, data:any ) => void) {
         //this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
         const response = await fetch(endpoint + '/proxies/tools/wengo', {
           method: 'POST',
@@ -306,30 +306,30 @@ export class Backend extends EventEmitter {
       
         let buffer = '';
       
+        let final_answer = 'The request did not process successfully';
         while (true) {
           const { done, value } = await reader.read();
       
-          console.log("wengo tool:", done, decoder.decode(value));
+          const decodedValue = decoder.decode(value);
+          console.log("wengo tool:", done, decodedValue);
           if (done) {
             break;
           }
       
-          buffer += decoder.decode(value);
-      
-          const lines = buffer.split('\n');
-      
-          for (let i = 0; i < lines.length - 1; i++) {
-            const line = lines[i].trim();
-      
-            if (line) {
-              const { event, data } = JSON.parse(line);
+          buffer += decodedValue;
+          
+          try {
+              const { event, data } = JSON.parse(decodedValue);              
               this.processToolEvent(event, data);
-            }
+              processCallBack(event, data);
+              if (event === 'on_chain_end') {
+                final_answer = JSON.stringify(data) ;
+              }
+          } catch (e)  {
+                console.log("Error occured:", e);
           }
-      
-          buffer = lines[lines.length - 1];
         }
-        return buffer ;
+        return final_answer ;
       }
 
       processToolEvent(event: string, data: any) {

@@ -198,8 +198,6 @@ export class YChat {
 
     public getToolsCalls(messageID: string) {
 
-        //console.log("getToolsCalls", messageID);
-
         if (this.pendingToolsCalls.get(messageID)) {
             return this.pendingToolsCalls.get(messageID);
         }
@@ -265,6 +263,7 @@ export class YChat {
     public delete() {
         if (!this.deleted) {
             this.metadata.clear();
+            //this.metadata['deleted'] = true;
             this.pluginOptions.clear();
             this.messages.clear();
             this.images.clear();
@@ -375,14 +374,50 @@ export class YChatDoc extends EventEmitter {
 
     public delete(id: string) {
         this.getYChat(id)?.delete();
+        // TODO ? remove chat from this.root.getMap('chatIDs'); ?
     }
 
     public has(id: string) {
+        if (this.chatIDMap.has(id) && YChat.from(this.root, id).deleted) {
+            console.log(`chatidmap ${id} is deleted`);
+        }
         return this.chatIDMap.has(id) && !YChat.from(this.root, id).deleted;
     }
 
     public getChatIDs() {
         return Array.from(this.chatIDMap.keys());
+        /*
+        const allChats = Array.from(this.chatIDMap.keys());
+        let nonDeletedChats = 0;
+        let deletedChats = 0;
+        let undefinedChats = 0
+        let nb_meta_deleted = 0;
+        let nb_meta_title = 0;
+        for(const id of allChats) {
+            const meta = YChat.from(this.root,id).metadata ;
+            let title_found = false;
+            let deleted_found = false;
+            for (const key of Array.from(meta.keys())) {
+                if (key === 'deleted') {
+                    deleted_found = true;
+                    nb_meta_deleted += 1;
+                } else if ( key === 'title') {
+                    title_found = true;
+                    nb_meta_title += 1;
+                }
+            }
+                    
+            if (YChat.from(this.root, id).deleted === undefined) {
+                undefinedChats += 1;
+            } else if (YChat.from(this.root, id).deleted === true) {
+                deletedChats += 1;
+            } else if (YChat.from(this.root, id).deleted === false) {
+                nonDeletedChats += 1;
+            }
+        }
+        console.log(`getChatIDs: ${nonDeletedChats} vs ${deletedChats} vs ${undefinedChats} vs ${nb_meta_deleted} vs ${nb_meta_title}`);
+        return Array.from(this.chatIDMap.keys());
+        */
     }
 
     public getAllYChats() {

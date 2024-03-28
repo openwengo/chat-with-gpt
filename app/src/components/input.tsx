@@ -1,12 +1,13 @@
 import styled from '@emotion/styled';
-import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem, Radio, Tooltip, Box } from '@mantine/core';
+import { Button, ActionIcon, Textarea, Loader, Popover, AutocompleteItem, Switch, Radio, Tooltip, Box } from '@mantine/core';
 import { getHotkeyHandler, useHotkeys, useMediaQuery } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../core/context';
 import { useAppDispatch, useAppSelector } from '../store';
-import { selectMessage, setMessage, selectImageUrls, addImageUrl, removeImageUrl, clearImageList } from '../store/message';
+import { selectMessage, setMessage, selectImageUrls, addImageUrl, removeImageUrl, clearImageList} from '../store/message';
+import { setTools, enableTool, disableTool, selectTools, selectDisabledTools, selectEnabledToolsList } from '../store/tools';
 import { selectSettingsTab, openOpenAIApiKeyPanel } from '../store/settings-ui';
 import { speechRecognition, supportsSpeechRecognition } from '../core/speech-recognition-types'
 import { useWhisper } from '@chengsokdara/use-whisper';
@@ -75,6 +76,7 @@ const Container = styled.div`
     }
 `;
 
+
 export declare type OnSubmit = (name?: string) => Promise<boolean>;
 
 export interface MessageInputProps {
@@ -84,6 +86,10 @@ export interface MessageInputProps {
 export default function MessageInput(props: MessageInputProps) {
     const message = useAppSelector(selectMessage);
     const imageUrls = useAppSelector(selectImageUrls);
+    const disabledTools = useAppSelector(selectDisabledTools);
+    const enabledTools = useAppSelector(selectEnabledToolsList);
+    const enabledToolsList = useAppSelector(selectEnabledToolsList);
+
     const [recording, setRecording] = useState(false);
     const [speechError, setSpeechError] = useState<string | null>(null);
     const hasVerticalSpace = useMediaQuery('(min-height: 1000px)');
@@ -123,6 +129,7 @@ export default function MessageInput(props: MessageInputProps) {
 
     const [showMicrophoneButton] = useOption<boolean>('speech-recognition', 'show-microphone');
     const [submitOnEnter] = useOption<boolean>('input', 'submit-on-enter');
+    const [showTools] = useOption<boolean>('parameters', 'showTools', context.id || undefined);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
 
@@ -144,29 +151,12 @@ export default function MessageInput(props: MessageInputProps) {
 
     const pathname = useLocation().pathname;
 
-    const tools : ToolFunction[] =[
-        { 
-            'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
-            'name': 'graam-tool',
-            'parameters': {
-                "type": "object",
-                "properties" : {
-                    "question" : {
-                        'description': "The question to ask about Graam ( aka Wephone ) 's database",
-                        'type': 'string'
-                    }
-                },
-                "required": ["question"]
-            }
-        }
-    ]
-
     const onSubmit = useCallback(async () => {
         setSpeechError(null);
 
-        console.log("onSubmit!", tools);
+        console.log("onSubmit!", enabledTools);
         
-        const id = await context.onNewMessage(message, imageUrls, tools);
+        const id = await context.onNewMessage(message, imageUrls, showTools ? enabledToolsList : []);
 
         if (id) {
             if (!window.location.pathname.includes(id)) {
@@ -442,6 +432,47 @@ export default function MessageInput(props: MessageInputProps) {
         position: 'relative'
     };
 
+    useEffect(() => {
+        const fetchTools = async () => {
+            try {
+                const toolsList: ToolFunction[] = await backend.current?.getTools(); // Assuming getTools returns the tools list
+                dispatch(setTools(toolsList)); // Dispatch tools list to the store
+            } catch (error) {
+                console.error('Failed to fetch tools:', error);
+            }
+        };
+    
+        fetchTools();
+    }, [dispatch]);
+
+    const ToolsManager: React.FC = () => {
+        
+        const tools = useAppSelector(selectTools);
+        const disabledTools = useAppSelector(selectDisabledTools);
+
+
+        const handleToggle = (toolName: string, isEnabled: boolean) => {
+            if (isEnabled) {
+                dispatch(enableTool(toolName)); // Remove from disabledTools
+            } else {
+                dispatch(disableTool(toolName)); // Add to disabledTools
+            }
+        };
+
+        return (
+            <div>
+                {tools.map((tool) => (
+                    <div key={tool.name}>                        
+                        <Switch
+                            checked={!disabledTools.includes(tool.name)}
+                            onChange={(event) => handleToggle(tool.name, event.currentTarget.checked)}
+                            label={tool.name}
+                        />
+                    </div>
+                ))}
+            </div>
+        );
+    };
     const renderDropdown = () => {
         if (!showDropdown || !suggestions.length) return null ;
         return (
@@ -543,20 +574,32 @@ export default function MessageInput(props: MessageInputProps) {
         );
       };    
 
-    return <Container>
-        <div className="inner" style={innerStyle}>    
-        <div style={{
-                opacity: '0.8',
-                paddingRight: '0.5rem',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                width: '100%',
-            }}>
+    const ToolsAndUpload = styled.div`
+        opacity: '0.8',
+        paddingRight: '0.5rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    `
+
+
+    const AboveInput = useMemo(() => {
+        console.log("showTools=", showTools);
+        return (
+        <ToolsAndUpload>
+            { showTools ? <ToolsManager /> : <div></div> }
+            <div>
                 <FileUpload onFileSelected={handleFileCb} />
                 <ImageList imageUrls={imageUrls}/>
             </div>
-    
+        </ToolsAndUpload>
+        );
+    }, [showTools, dispatch]);
+
+    return <Container>
+        <div className="inner" style={innerStyle}>    
+        {AboveInput}
               <Textarea disabled={props.disabled || disabled}
                 id="message-input"
                 autosize

@@ -10,7 +10,7 @@ export function useOption<T=any>(groupID: string, optionID: string, chatID?: str
 
     const timer = useRef<any>();
 
-    const onUpdate = useCallback((updatedGroupID: string) => {
+    const onUpdate = useCallback((updatedGroupID: string) => {        
         if (groupID === updatedGroupID) {
             setValue(context.chat.options.getValidatedOption(groupID, optionID, chatID));
             setVersion(v => v + 1);

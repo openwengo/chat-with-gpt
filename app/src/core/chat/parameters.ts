@@ -4,7 +4,7 @@ import { Parameters } from "./types";
 export const defaultParameters: Parameters = {
     temperature: 0.5,
     model: defaultModel,
-    wengoplusmode: false
+    wengoplusmode: false,
 };
 
 export function loadParameters(id: string | null | undefined = null): Parameters {

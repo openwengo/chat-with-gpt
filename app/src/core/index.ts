@@ -86,7 +86,7 @@ export class ChatManager extends EventEmitter {
         this.search = new Search(this);
 
         this.options = new OptionsManager(this.doc, pluginMetadata);
-        this.options.on('update', (...args) => this.emit('plugin-options-update', ...args));
+        this.options.on('update', (...args) => {this.emit('plugin-options-update', ...args)});
 
         // connect new doc to persistance, scoped to the current username
         this.provider = new IndexeddbPersistence('chats:' + username, this.doc.root);

@@ -1,14 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '.';
+import { ToolFunction } from '../core/chat/types' ;
 
 interface MessageState {
     message: string;
     imageUrls: string[];
+    enabledTools: string[];
 }
 
 const initialState: MessageState = {
     message: '',
     imageUrls: [],
+    enabledTools: []
 };
 
 export const messageSlice = createSlice({
@@ -29,12 +32,21 @@ export const messageSlice = createSlice({
         clearImageList: (state) => {
             state.imageUrls = [];
         },
+        enableTool: (state, action: PayloadAction<string>) => {
+            if (!state.enabledTools.includes(action.payload)) {
+                state.enabledTools.push(action.payload);
+            }
+        },
+        disableTool: (state, action: PayloadAction<string>) => {
+            state.enabledTools = state.enabledTools.filter(toolName => toolName !== action.payload);
+        },        
     },
 });
 
-export const { setMessage, addImageUrl, removeImageUrl, clearImageList } = messageSlice.actions;
+export const { setMessage, addImageUrl, removeImageUrl, clearImageList, enableTool, disableTool } = messageSlice.actions;
 
 export const selectMessage = (state: RootState) => state.message.message;
 export const selectImageUrls = (state: RootState) => state.message.imageUrls;
+export const selectEnabledTools = (state: RootState) => state.message.enabledTools;
 
 export default messageSlice.reducer;

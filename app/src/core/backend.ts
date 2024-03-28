@@ -286,6 +286,18 @@ export class Backend extends EventEmitter {
         return response.json();
     }
 
+
+    async getTools() {
+        const response = await fetch(endpoint + '/tools' );
+        if (response.status === 429) {
+            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+        }
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return response.json();
+    }
+
     async callTool(data: object, processCallBack: (event: string, data:any ) => void) {
         //this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
         const response = await fetch(endpoint + '/proxies/tools/wengo', {

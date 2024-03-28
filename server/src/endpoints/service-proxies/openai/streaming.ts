@@ -302,7 +302,10 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     } 
 
     delete req.body.wengoplusmode;
-        
+    
+    if ( req.body.tools && req.body.tools.length  === 0 ) {
+        delete req.body.tools ;
+    }
 
     console.log("Sending message to:", endpoint);
 
@@ -329,7 +332,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             console.log("Event without data:", event) ;
             return ;
         }
-        console.log("new message:", `data: ${event.data}\n\n`);
+        //console.log("new message:", `data: ${event.data}\n\n`);
         res.write(`data: ${event.data}\n\n`);
         res.flush();
 

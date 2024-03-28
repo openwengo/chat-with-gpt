@@ -76,6 +76,9 @@
 "KKa5Br": {
 "defaultMessage": "Donnez à ChatGPT une voix humaine réaliste en connectant votre compte ElevenLabs (prévisualisez les voix disponibles ci-dessous). <a>Cliquez ici pour vous inscrire.</a>"
 },
+"KbUcBc": {
+    "defaultMessage": "Votre clef d'API ElevenLabs"
+  },
 "L5s+z7": {
 "defaultMessage": "L'utilisation de la clé API OpenAI est facturée à un tarif à l'usage, séparé de votre abonnement ChatGPT."
 },
@@ -122,6 +125,9 @@
 "VL24Xt": {
 "defaultMessage": "Rechercher dans vos chats"
 },
+"VjROY0": {
+    "defaultMessage": "Votre clef d'api est gérée par le serveur"
+  },
 "Xzm66E": {
 "defaultMessage": "Connectez votre compte OpenAI pour commencer"
 },

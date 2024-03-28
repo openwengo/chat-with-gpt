@@ -87,26 +87,8 @@ export interface Parameters {
     ghParameters?: GHParameters;
     dalle3?: boolean;
     dalle3Parameters?: Dalle3Parameters;
+    showTools?: boolean;
 }
-const tools =[
-    { 
-        'type': 'function',
-        'function': {
-            'description': 'This tool manages all interactions with Graam ( aka Wephone ). You can ask it for any information about Graam\'s database',
-            'name': 'graam-tool',
-            'parameters': {
-                "type": "object",
-                "properties" : {
-                    "question" : {
-                        'description': "The question to ask about Graam ( aka Wephone ) 's database",
-                        'type': 'string'
-                    }
-                },
-                "required": ["question"]
-            }
-        }
-    }
-]
 
 export interface ToolParameter {
     description: string;

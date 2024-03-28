@@ -73,7 +73,7 @@ export default function UserOptionsTab(props: any) {
 
     return (
         <SettingsTab name="user">
-            <SettingsOption heading="Import and Export">
+            <SettingsOption heading="Import and Export" key="1">
                 <div>
                     <Button variant="light" onClick={handleExport} style={{
                         marginRight: '1rem',

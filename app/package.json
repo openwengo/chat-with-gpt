@@ -42,6 +42,7 @@
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^3.0.1",
     "remark-math": "^5.1.1",
+    "reselect": "^5.1.0",
     "sentence-splitter": "^4.4.1",
     "slugify": "^1.6.5",
     "sort-by": "^0.0.2",

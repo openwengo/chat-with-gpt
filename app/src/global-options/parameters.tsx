@@ -88,6 +88,23 @@ export const parameterOptions: OptionGroup = {
                 step: 0.1,
                 description: context.intl.formatMessage({ defaultMessage: "The temperature parameter controls the randomness of the AI's responses. Lower values will make the AI more predictable, while higher values will make it more creative." }),
             })
-        }
+        },
+        {
+            id: 'showTools',
+            defaultValue: false,
+            resettable: true,
+            scope: "chat",
+            displayOnSettingsScreen: "chat",
+            displayAsSeparateSection: true,
+            displayInQuickSettings: {
+                name: "View tool config",
+                displayByDefault: true,
+                label: (value) => value ? "Hide tool selection" : "View tool selection",
+            },
+            renderProps: {
+                type: "checkbox",
+                label: "View tools",
+            },
+        },   
     ]
 };

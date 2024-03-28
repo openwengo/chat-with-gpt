@@ -15,6 +15,7 @@ import KnexTextsDatabaseAdapter from './tarotdatabase/knex';
 import GetShareRequestHandler from './endpoints/get-share';
 import HealthRequestHandler from './endpoints/health';
 import DeleteChatRequestHandler from './endpoints/delete-chat';
+import ToolsDatabaseRequestHandler from './endpoints/tools';
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech';
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
@@ -140,12 +141,14 @@ export default class ChatServer {
 
         this.app.post('/chatapi/presignedUrl', (req, res) => new PresignedRequestHandler(this, req, res));
         
+        this.app.get('/chatapi/tools', (req, res) => new ToolsDatabaseRequestHandler(this, req, res)) ;
+
+        this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
+
         if (config.services?.openai?.apiKey) {
             this.app.post('/chatapi/proxies/openai/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
         }
         
-        this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
-
         if (config.services?.openrouter?.apiKey) {
             this.app.post('/chatapi/proxies/openrouter/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res));
         }

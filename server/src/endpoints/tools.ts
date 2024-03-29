@@ -35,7 +35,27 @@ const tools : ToolFunction[] =[
             },
             "required": ["question"]
         }
-    }
+    },
+    { 
+        'description': 'This tool gives the astrological aspects for a given date and place. If not city is specified it will for paris.',
+        'name': 'astrological-aspects',
+        'parameters': {
+            "type": "object",
+            "properties" : {
+                "date" : {
+                    'description': "The date for the aspects formatted as YYYY-MM-DD",
+                    'type': 'string'
+                },
+                "city" : {
+                    'description': "The city used for time zone. Must be one of: paris,london,new_york,berlin,rome,lisbon,istanbul",
+                    'type': 'string'
+                },
+
+            },
+            "required": ["date"]
+        }
+    },
+
 ]
 
 export default class ToolsDatabaseRequestHandler extends RequestHandler {

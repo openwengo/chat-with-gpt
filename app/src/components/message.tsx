@@ -294,7 +294,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
 
         const callTool = async (toolCall: ToolCall ) => {
             console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
-            const tool_answer = await backend.current?.callTool({ ...JSON.parse(toolCall.function.arguments),  "agent_type": "audioinsight"}, processCallBack);
+            const tool_answer = await backend.current?.callTool({ ...toolCall.function,  "agent_type": "audioinsight"}, processCallBack);
             console.log("tool answer:", tool_answer);
             if (! tool_answer) {
                 return 'An error occured during function processing';

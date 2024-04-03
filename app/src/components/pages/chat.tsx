@@ -1,7 +1,7 @@
 import React, { Suspense, useCallback } from 'react';
 import styled from '@emotion/styled';
 import slugify from 'slugify';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader } from '@mantine/core';
 
@@ -41,6 +41,11 @@ export default function ChatPage(props: any) {
 
     const [autoScrollWhenOpeningChat] = useOption('auto-scroll', 'auto-scroll-when-opening-chat')
     const [autoScrollWhileGenerating] = useOption('auto-scroll', 'auto-scroll-while-generating');
+    // State to track if auto-scroll should be disabled
+    const [disableAutoScroll, setDisableAutoScroll] = useState(false);
+    // Ref to store the last scroll position
+    const lastScrollTop = useRef(0);
+
 
     useEffect(() => {
         if (props.share || !context.currentChat.chatLoadedAt) {
@@ -66,18 +71,52 @@ export default function ChatPage(props: any) {
     }, [context.currentChat?.chatLoadedAt, context.currentChat?.messagesToDisplay.length, props.share, autoScrollWhenOpeningChat]);
 
     const autoScroll = useCallback(() => {
-        if (context.generating && autoScrollWhileGenerating && ( !props.share ) ) {
+
+    
+        if (context.generating && autoScrollWhileGenerating && ( !props.share ) && !disableAutoScroll ) {
             const container = document.querySelector('#messages') as HTMLElement;
             container?.scrollTo({ top: 999999, behavior: 'smooth' });
             container?.parentElement?.scrollTo({ top: 999999, behavior: 'smooth' });
         }
-    }, [context.generating, autoScrollWhileGenerating]);
+    }, [context.generating, disableAutoScroll, autoScrollWhileGenerating]);
+    
     useEffect(() => {
+        const container = document.querySelector('#messages') as HTMLElement;
+        
+        if (!context.generating) {
+            setDisableAutoScroll(false);
+        }
+
+        // Handler to set state on user scroll
+        const handleUserScroll = () => {
+
+           // Determine the scroll direction
+           const currentScrollTop = container.scrollTop;
+           if (currentScrollTop < lastScrollTop.current) {
+               // Scrolling up, disable auto-scroll
+               console.log("scroll up detected, disable auto scroll",currentScrollTop, lastScrollTop.current)
+               setDisableAutoScroll(true);
+           }
+           // Update the last scroll position
+           lastScrollTop.current = currentScrollTop;
+        };
+
+        if (!context.generating) {
+            console.log("not generating, re-enable auto scroll") ;
+            setDisableAutoScroll(false);
+        }
+
+
+        console.log("set scroll event listener");
+        // Add event listener for scroll events
+        container.addEventListener('scroll', handleUserScroll);
+
         const timer = setInterval(() => autoScroll(), 1000);
         return () => {
             clearInterval(timer);
+            container.removeEventListener('scroll', handleUserScroll);
         };
-    }, [autoScroll]);
+    }, [autoScroll,context.generating]);
 
     const messagesToDisplay = context.currentChat.messagesToDisplay;
 

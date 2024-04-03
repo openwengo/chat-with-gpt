@@ -48,6 +48,10 @@ export const parameterOptions: OptionGroup = {
                         label: "Claude v3 sonnet",
                         value: "anthropic/claude-3-sonnet:beta",
                     },
+                    {
+                        label: "Claude v3 haiku",
+                        value: "anthropic/claude-3-haiku:beta",
+                    },
                 ],
             }),
         },

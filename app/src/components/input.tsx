@@ -86,8 +86,6 @@ export interface MessageInputProps {
 export default function MessageInput(props: MessageInputProps) {
     const message = useAppSelector(selectMessage);
     const imageUrls = useAppSelector(selectImageUrls);
-    const disabledTools = useAppSelector(selectDisabledTools);
-    const enabledTools = useAppSelector(selectEnabledToolsList);
     const enabledToolsList = useAppSelector(selectEnabledToolsList);
 
     const [recording, setRecording] = useState(false);
@@ -154,7 +152,7 @@ export default function MessageInput(props: MessageInputProps) {
     const onSubmit = useCallback(async () => {
         setSpeechError(null);
 
-        console.log("onSubmit!", enabledTools);
+        console.log("onSubmit!", enabledToolsList);
         
         const id = await context.onNewMessage(message, imageUrls, showTools ? enabledToolsList : []);
 
@@ -448,7 +446,6 @@ export default function MessageInput(props: MessageInputProps) {
     const ToolsManager: React.FC = () => {
         
         const tools = useAppSelector(selectTools);
-        const disabledTools = useAppSelector(selectDisabledTools);
 
 
         const handleToggle = (toolName: string, isEnabled: boolean) => {
@@ -464,7 +461,7 @@ export default function MessageInput(props: MessageInputProps) {
                 {tools.map((tool) => (
                     <div key={tool.name}>                        
                         <Switch
-                            checked={!disabledTools.includes(tool.name)}
+                            checked={enabledToolsList.some( it => it.name === tool.name)}
                             onChange={(event) => handleToggle(tool.name, event.currentTarget.checked)}
                             label={tool.name}
                         />
@@ -575,27 +572,29 @@ export default function MessageInput(props: MessageInputProps) {
       };    
 
     const ToolsAndUpload = styled.div`
-        opacity: '0.8',
-        paddingRight: '0.5rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
+      opacity: 0.8;
+      padding-right: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    `
+    const RightAlignedUploads = styled.div`
+      display: flex;
+      align-items: center;
     `
 
-
     const AboveInput = useMemo(() => {
-        console.log("showTools=", showTools);
         return (
         <ToolsAndUpload>
             { showTools ? <ToolsManager /> : <div></div> }
-            <div>
-                <FileUpload onFileSelected={handleFileCb} />
+            <RightAlignedUploads>
                 <ImageList imageUrls={imageUrls}/>
-            </div>
+                <FileUpload onFileSelected={handleFileCb} />
+            </RightAlignedUploads>
         </ToolsAndUpload>
         );
-    }, [showTools, dispatch]);
+    }, [showTools, enabledToolsList, imageUrls,dispatch]);
 
     return <Container>
         <div className="inner" style={innerStyle}>    

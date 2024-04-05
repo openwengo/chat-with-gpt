@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Button, CopyButton, Loader, Textarea, Text } from '@mantine/core';
-
+import { selectEnabledToolsList } from '../store/tools';
 import { Message, ToolFunction, ToolCall, ToolMessage } from "../core/chat/types";
 import { share } from '../core/utils';
 import { TTSButton } from './tts-button';
@@ -14,6 +14,7 @@ import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useAppSelector } from '../store';
 import { selectSettingsTab } from '../store/settings-ui';
+import { useOption } from '../core/options/use-option';
 import { countTokensForMessages } from '../core/tokenizer';
 import { backend } from '../core/backend' ;
 
@@ -262,7 +263,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
                 .finally(() => {
                   scheduledCallsRef.current[toolCall.id] = false; // Reset after call
                 });
-            }, 2000); // Trigger after a delay of 1 second
+            }, 1000); // Trigger after a delay of 1 second
           }
         });
         // Only re-trigger this effect when `message` changes. `processing` changes are handled internally.
@@ -275,7 +276,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
           setIsSubmitting(true); // Prevent further submissions
           setTimeout(() => {
             handleSubmit(); // Trigger submit action automatically
-          }, 1000); // You can adjust the delay here as needed
+          }, 500); // You can adjust the delay here as needed
         }
       }, [localMessage.toolMessages, message.toolCalls, message.doneWithTools]); // Depend on changes in tool messages and doneWithTools flag
 
@@ -374,6 +375,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
     const [editing, setEditing] = useState(false);
     const [content, setContent] = useState('');
     const intl = useIntl();
+    const enabledToolsList = useAppSelector(selectEnabledToolsList);
+    const [showTools] = useOption<boolean>('parameters', 'showTools', context.id || undefined);
 
     const tab = useAppSelector(selectSettingsTab);    
     const getRoleName = useCallback((role: string, share = false) => {
@@ -401,23 +404,6 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 return role;
         }
     }, [intl]);
-
-    const tools : ToolFunction[] =[
-        { 
-            'description': 'This tool manages all interactions with Graam ( aka Wephone ) which is a Callcenter application. You can ask it for any information about Graam\'s database',
-            'name': 'graam-tool',
-            'parameters': {
-                "type": "object",
-                "properties" : {
-                    "question" : {
-                        'description': "The question to ask about Graam ( aka Wephone ) 's database",
-                        'type': 'string'
-                    }
-                },
-                "required": ["question"]
-            }
-        }
-    ]
 
     const elem = useMemo(() => {
         if (props.message.role === 'system') {
@@ -495,7 +481,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                         <Textarea value={content}
                             onChange={e => setContent(e.currentTarget.value)}
                             autosize={true} />
-                        <Button variant="light" onClick={() => context.editMessage(props.message, content, tools)}>
+                        <Button variant="light" onClick={() => context.editMessage(props.message, content, showTools ? enabledToolsList : [])}>
                             <FormattedMessage defaultMessage="Save changes" description="Label for a button that appears when the user is editing the text of one of their messages, to save the changes" />
                         </Button>
                         <Button variant="subtle" onClick={() => setEditing(false)}>

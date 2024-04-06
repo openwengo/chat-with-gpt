@@ -81,7 +81,7 @@ export async function callAstroTool(req: express.Request, res: express.Response)
       Connection: 'keep-alive',
   });
 
-  const astro_payload =  { ...JSON.parse(req.body.arguments)}
+  const astro_payload =  { ...JSON.parse(req.body.arguments), format: 'full_text'}
   console.log("Calling lambda with payload:", astro_payload);
   
   const lambdaClient = new LambdaClient({

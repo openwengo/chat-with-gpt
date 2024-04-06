@@ -37,7 +37,7 @@ const tools : ToolFunction[] =[
         }
     },
     { 
-        'description': 'This tool gives the astrological aspects for a given date and place. If not city is specified it will for paris.',
+        'description': 'This tool gives the astrological aspects for a given date and place. If no city is specified it will for paris. You can get only one day at a time, if you need a longer period you must call the tool for all the dates in the period.',
         'name': 'astrological-aspects',
         'parameters': {
             "type": "object",

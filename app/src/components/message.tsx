@@ -349,7 +349,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
             !hasMatchingToolMessage(toolCall.id) ? (
             <div key={toolCall.id}>
               <Button onClick={() => handleToolCall(toolCall)}  disabled={processing[toolCall.id]}>
-                Call tool for {toolCall.function.name}
+                Call tool for {toolCall.function.name} : ({toolCall.function.arguments})
               </Button>
               {statuses[toolCall.id] && (
                <Text color="dimmed" size="sm" style={{ marginTop: '10px' }}>
@@ -357,6 +357,12 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
                </Text>
                )
             }
+            </div>) : null
+          )}
+          {localMessage.toolCalls?.map((toolCall) =>
+            hasMatchingToolMessage(toolCall.id) ? (
+            <div key={toolCall.id}>
+            <Text size="sm" style={{ marginTop: '10px' }}>{toolCall.function.name} : ({toolCall.function.arguments})</Text>
             </div>) : null
           )}
           {allToolCallsMatched && (

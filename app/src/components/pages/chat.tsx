@@ -94,7 +94,6 @@ export default function ChatPage(props: any) {
            const currentScrollTop = container.scrollTop;
            if (currentScrollTop < lastScrollTop.current) {
                // Scrolling up, disable auto-scroll
-               console.log("scroll up detected, disable auto scroll",currentScrollTop, lastScrollTop.current)
                setDisableAutoScroll(true);
            }
            // Update the last scroll position
@@ -102,12 +101,9 @@ export default function ChatPage(props: any) {
         };
 
         if (!context.generating) {
-            console.log("not generating, re-enable auto scroll") ;
             setDisableAutoScroll(false);
         }
 
-
-        console.log("set scroll event listener");
         // Add event listener for scroll events
         container.addEventListener('scroll', handleUserScroll);
 

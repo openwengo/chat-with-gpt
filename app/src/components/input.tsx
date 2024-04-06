@@ -100,14 +100,6 @@ export default function MessageInput(props: MessageInputProps) {
     const [showTarotInput, setShowTarotInput] = useState(false);    
     const [showGHInput, setShowGHInput] = useState(false);    
 
-    // useEffect(() => {
-    //     if (showDropdown) {
-    //         //const position = getCursorPosition(textareaRef.current);
-    //         //setCursorPosition(position);
-    //         console.log("showDropdown:", textareaRef);
-    //     }
-    // }, [showDropdown]);
-
     const {
         transcribing,
         transcript,
@@ -132,7 +124,6 @@ export default function MessageInput(props: MessageInputProps) {
     const onChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
 
         const value = e.target.value;
-        //console.log("input onChange:", value);
 
         if ( false && value.startsWith('/')) {
             const matchingCommands = slashCommands

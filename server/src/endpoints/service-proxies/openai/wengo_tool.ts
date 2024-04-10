@@ -15,8 +15,7 @@ function sendChunkResponse(res: express.Response, message: string) {
 
 import fetch from 'node-fetch';
 
-export async function callWephoneTool(req: express.Request, res: express.Response) {
-    const url = 'https://wephone-tool.k8sprod.aws.mybestpro/stream';
+export async function callWephoneTool(req: express.Request, res: express.Response, url: string) {    
 
     res.set({
         'Content-Type': 'text/event-stream',

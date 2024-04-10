@@ -23,13 +23,27 @@ export interface ToolFunction {
 
 const tools : ToolFunction[] =[
     { 
-        'description': 'This tool manages all interactions with Graam ( aka Wephone ) which is a Callcenter application. You can ask it for any information about Graam\'s database',
+        'description': 'This tool manages all interactions with Graam ( aka Wephone ) for Wengo / Mybestpro which is a Callcenter application. You can ask it for any information about Graam\'s database',
         'name': 'graam-tool',
         'parameters': {
             "type": "object",
             "properties" : {
                 "question" : {
-                    'description': "The question to ask about Graam ( aka Wephone ) 's database",
+                    'description': "The question to ask about Graam ( aka Wephone ) 's Wengo or Mybestpro database",
+                    'type': 'string'
+                }
+            },
+            "required": ["question"]
+        }
+    },
+    { 
+        'description': 'This tool manages all interactions with Graam ( aka Wephone ) for HabitatPresto aka HP which is a Callcenter application. You can ask it for any information about Graam\'s database',
+        'name': 'graam-tool-hp',
+        'parameters': {
+            "type": "object",
+            "properties" : {
+                "question" : {
+                    'description': "The question to ask about Graam ( aka Wephone ) 's HabitatPresto aka HP database",
                     'type': 'string'
                 }
             },

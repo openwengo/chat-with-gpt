@@ -28,8 +28,11 @@ export default class OpenAIProxyRequestHandler extends RequestHandler {
 export class WengoToolRequestHandler extends RequestHandler {
     async handler(req: express.Request, res: express.Response) {
         if (req.body.name === 'graam-tool') {
-            await callWephoneTool(req, res);
+            await callWephoneTool(req, res, 'https://wephone-tool.k8sprod.aws.mybestpro/stream');
         }
+        if (req.body.name === 'graam-tool-hp') {
+            await callWephoneTool(req, res, 'https://wephone-tool-hp.k8sprod.aws.mybestpro/stream');
+        }        
         if (req.body.name === 'astrological-aspects') {
             await callAstroTool(req, res);
         }        

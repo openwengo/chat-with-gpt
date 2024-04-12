@@ -89,6 +89,10 @@ export default function MessageInput(props: MessageInputProps) {
     const enabledToolsList = useAppSelector(selectEnabledToolsList);
 
     const [recording, setRecording] = useState(false);
+    const recordingRef = useRef(recording);
+    const [speechInitialMessage, setSpeechInitialMessage] = useState("");
+    const speechInitialMessageRef = useRef(speechInitialMessage);
+
     const [speechError, setSpeechError] = useState<string | null>(null);
     const hasVerticalSpace = useMediaQuery('(min-height: 1000px)');
     const [useOpenAIWhisper] = useOption<boolean>('speech-recognition', 'use-whisper');
@@ -141,8 +145,9 @@ export default function MessageInput(props: MessageInputProps) {
     const pathname = useLocation().pathname;
 
     const onSubmit = useCallback(async () => {
-        setSpeechError(null);
-
+        setSpeechError(null); 
+        console.log("reset speech initial message");
+        setSpeechInitialMessage("");
         console.log("onSubmit!", enabledToolsList);
         
         const id = await context.onNewMessage(message, imageUrls, showTools ? enabledToolsList : []);
@@ -154,7 +159,7 @@ export default function MessageInput(props: MessageInputProps) {
             dispatch(setMessage(''));
             dispatch(clearImageList());
         }
-    }, [context, message, imageUrls, dispatch, navigate]);
+    }, [context, message, imageUrls, speechInitialMessage, dispatch, navigate]);
 
     const onSpeechError = useCallback((e: any) => {
         console.error('speech recognition error', e);
@@ -215,20 +220,43 @@ export default function MessageInput(props: MessageInputProps) {
                     setInitialMessage(message);
                     await startRecording();
                 } else if (speechRecognition) {
-                    const initialMessage = message;
-
+                    //const initialMessage = message;
+                    console.log("init speech recognition with initial message:", message);
+                    setSpeechInitialMessage(message);
                     speechRecognition.continuous = true;
                     speechRecognition.interimResults = true;
 
                     speechRecognition.onresult = (event) => {
-                        let transcript = '';
-                        for (let i = 0; i < event.results.length; i++) {
-                            if (event.results[i].isFinal && event.results[i][0].confidence) {
-                                transcript += event.results[i][0].transcript;
+                        let transcript = '';    
+                        if ( event.resultIndex < event.results.length) {
+                            for (let i = event.resultIndex; i < event.results.length; i++) {
+                                if (event.results[i].isFinal && event.results[i][0].confidence) {
+                                    transcript += event.results[i][0].transcript;
+                                }
                             }
+                            if ( transcript !== '') {
+                                const current_message = speechInitialMessageRef.current + ' ' + transcript;
+                                dispatch(setMessage(current_message));
+                                setSpeechInitialMessage(current_message);
+                            }
+                        } else {
+                            console.log("no changes!");
                         }
-                        dispatch(setMessage(initialMessage + ' ' + transcript));
                     };
+
+                    speechRecognition.onaudioend= () => {
+                        console.log("speechRecognition audioend");
+                    }
+
+                    speechRecognition.onend = () => {
+                        console.log(`speechRecognition end:  recording: ${recordingRef.current}, initMessage: ${speechInitialMessageRef.current}`);
+                        if (recordingRef.current && speechRecognition) {
+                            speechRecognition.start();
+                        }                        
+                    }
+                    speechRecognition.onstart = () => {
+                        console.log("speechRecognition start");
+                    }                    
 
                     speechRecognition.start();
                 } else {
@@ -239,6 +267,7 @@ export default function MessageInput(props: MessageInputProps) {
                     await stopRecording();
                     setTimeout(() => setRecording(false), 500);
                 } else if (speechRecognition) {
+                    console.log("stop recording!");
                     speechRecognition.stop();
                     setRecording(false);
                 } else {
@@ -248,7 +277,7 @@ export default function MessageInput(props: MessageInputProps) {
         } catch (e) {
             onSpeechError(e);
         }
-    }, [recording, message, dispatch, onSpeechError, setInitialMessage, openAIApiKey]);
+    }, [recording, message, speechInitialMessage, dispatch, onSpeechError, setInitialMessage, setSpeechInitialMessage, onSubmit, openAIApiKey]);
 
     useEffect(() => {
         if (useOpenAIWhisper || !supportsSpeechRecognition) {
@@ -257,6 +286,14 @@ export default function MessageInput(props: MessageInputProps) {
             }
         }
     }, [initialMessage, transcript, recording, transcribing, useOpenAIWhisper, dispatch]);
+
+    useEffect(() => {
+        recordingRef.current = recording;
+    }, [recording]);
+
+    useEffect(() => {
+        speechInitialMessageRef.current = speechInitialMessage;
+    }, [speechInitialMessage]);
 
     useHotkeys([
         ['n', () => document.querySelector<HTMLTextAreaElement>('#message-input')?.focus()]

@@ -115,8 +115,6 @@ export class Dalle3Plugin extends Plugin<Dalle3PluginOptions> {
             }
         } else {
 
-            console.log("Not a dalle3 command, filter out:", messages);
-            // remove midjourney messages from history
             let newMessages: OpenAIMessage[] = [] ;
 
             newMessages = messages.filter( m => (

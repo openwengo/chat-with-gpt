@@ -81,8 +81,6 @@ export class TarotPlugin extends Plugin<TarotPluginOptions> {
             }
         } else {
 
-            console.log("Not a tarot command, filter out:", messages);
-            // remove midjourney messages from history
             let newMessages: OpenAIMessage[] = [] ;
 
             newMessages = messages.filter( m => (

@@ -241,20 +241,12 @@ export class ChatManager extends EventEmitter {
 
         const isMidjourney = midjourneyPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
-        console.log("getReply isMidjourney:", isMidjourney) ;
-
         const isDalle3 = dalle3Prefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
-        console.log("getReply isDalle3:", isDalle3) ;
-
         const isTarot = tarotPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
-        console.log("getReply isTarot:", isTarot) ;
-
         const isGH = ghPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
-        console.log("getReply isGH:", isGH) ;
-
         const message: Message = {
             id: uuidv4(),
             parentID,

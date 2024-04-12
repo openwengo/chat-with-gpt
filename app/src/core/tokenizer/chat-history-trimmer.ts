@@ -134,7 +134,14 @@ export class ChatHistoryTrimmer {
             if (i === firstUserMessageIndex && this.options.preserveFirstUserMessage) {
                 continue;
             }
-            output[i] = tokenizer.truncateMessage(output[i], truncateLength);
+            if (output[i].content) {
+                output[i] = tokenizer.truncateMessage(output[i], truncateLength);
+            } else {
+                output[i] = {
+                    role: output[i].role,
+                    content: '',
+                }
+            }
         }
         return output.filter(m => m.content.length > 0);
     }

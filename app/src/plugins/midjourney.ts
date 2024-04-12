@@ -74,8 +74,6 @@ export class MidjourneyPlugin extends Plugin<MidjourneyPluginOptions> {
             }
         } else {
 
-            console.log("Not a midjourney command, filter out:", messages);
-            // remove midjourney messages from history
             let newMessages: OpenAIMessage[] = [] ;
 
             newMessages = messages.filter( m => (

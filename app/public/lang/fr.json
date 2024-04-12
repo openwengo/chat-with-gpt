@@ -218,6 +218,9 @@
 "ss6kle": {
 "defaultMessage": "Réinitialiser par défaut"
 },
+"tXpbDe": {
+"defaultMessage": "Délai de silence en millisecondes pour envoyer la question"
+},  
 "tZdXp/": {
 "defaultMessage": "Le paramètre de température contrôle l'aléatoire des réponses de l'IA. Des valeurs plus basses rendront l'IA plus prévisible, tandis que des valeurs plus élevées la rendront plus créative."
 },

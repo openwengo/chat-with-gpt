@@ -6,7 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../core/context';
 import { useAppDispatch, useAppSelector } from '../store';
-import { selectMessage, setMessage, selectImageUrls, addImageUrl, removeImageUrl, clearImageList} from '../store/message';
+import { selectMessage, setMessage, selectImageUrls, addImageUrl, removeImageUrl, clearImageList, selectAutoSubmit, setAutoSubmit, resetAutoSubmit} from '../store/message';
 import { setTools, enableTool, disableTool, selectTools, selectDisabledTools, selectEnabledToolsList } from '../store/tools';
 import { selectSettingsTab, openOpenAIApiKeyPanel } from '../store/settings-ui';
 import { speechRecognition, supportsSpeechRecognition } from '../core/speech-recognition-types'
@@ -85,6 +85,7 @@ export interface MessageInputProps {
 
 export default function MessageInput(props: MessageInputProps) {
     const message = useAppSelector(selectMessage);
+
     const imageUrls = useAppSelector(selectImageUrls);
     const enabledToolsList = useAppSelector(selectEnabledToolsList);
 
@@ -92,10 +93,14 @@ export default function MessageInput(props: MessageInputProps) {
     const recordingRef = useRef(recording);
     const [speechInitialMessage, setSpeechInitialMessage] = useState("");
     const speechInitialMessageRef = useRef(speechInitialMessage);
+    const autoSubmit = useAppSelector(selectAutoSubmit);    
+    let silenceTimer: ReturnType<typeof setTimeout>;
 
     const [speechError, setSpeechError] = useState<string | null>(null);
     const hasVerticalSpace = useMediaQuery('(min-height: 1000px)');
     const [useOpenAIWhisper] = useOption<boolean>('speech-recognition', 'use-whisper');
+    const [useFreeHands] = useOption<boolean>('speech-recognition', 'free-hands');
+    const [freeHandsDelay] = useOption<number>('speech-recognition', 'free-hands-delay');
     const [openAIApiKey] = useOption<string>('openai', 'apiKey');
 
     const [initialMessage, setInitialMessage] = useState('');
@@ -148,7 +153,7 @@ export default function MessageInput(props: MessageInputProps) {
         setSpeechError(null); 
         console.log("reset speech initial message");
         setSpeechInitialMessage("");
-        console.log("onSubmit!", enabledToolsList);
+        console.log("onSubmit!", enabledToolsList, "message:", message);
         
         const id = await context.onNewMessage(message, imageUrls, showTools ? enabledToolsList : []);
 
@@ -159,7 +164,7 @@ export default function MessageInput(props: MessageInputProps) {
             dispatch(setMessage(''));
             dispatch(clearImageList());
         }
-    }, [context, message, imageUrls, speechInitialMessage, dispatch, navigate]);
+    }, [context, message, imageUrls, speechInitialMessage, autoSubmit, dispatch, navigate]);
 
     const onSpeechError = useCallback((e: any) => {
         console.error('speech recognition error', e);
@@ -178,6 +183,7 @@ export default function MessageInput(props: MessageInputProps) {
     }, [stopRecording]);
 
     const onHideSpeechError = useCallback(() => setSpeechError(null), []);
+
 
     const onSpeechStart = useCallback(async () => {
         let granted = false;
@@ -228,6 +234,9 @@ export default function MessageInput(props: MessageInputProps) {
 
                     speechRecognition.onresult = (event) => {
                         let transcript = '';    
+                        if (useFreeHands) {  
+                            dispatch(resetAutoSubmit());
+                        }
                         if ( event.resultIndex < event.results.length) {
                             for (let i = event.resultIndex; i < event.results.length; i++) {
                                 if (event.results[i].isFinal && event.results[i][0].confidence) {
@@ -238,14 +247,15 @@ export default function MessageInput(props: MessageInputProps) {
                                 const current_message = speechInitialMessageRef.current + ' ' + transcript;
                                 dispatch(setMessage(current_message));
                                 setSpeechInitialMessage(current_message);
+                                if (useFreeHands) {  
+                                    dispatch(setAutoSubmit());
+                                }
+                                
                             }
-                        } else {
-                            console.log("no changes!");
                         }
                     };
 
                     speechRecognition.onaudioend= () => {
-                        console.log("speechRecognition audioend");
                     }
 
                     speechRecognition.onend = () => {
@@ -277,7 +287,12 @@ export default function MessageInput(props: MessageInputProps) {
         } catch (e) {
             onSpeechError(e);
         }
-    }, [recording, message, speechInitialMessage, dispatch, onSpeechError, setInitialMessage, setSpeechInitialMessage, onSubmit, openAIApiKey]);
+    }, [recording, message, autoSubmit, speechInitialMessage, dispatch, onSpeechError, setInitialMessage, setSpeechInitialMessage, onSubmit, openAIApiKey]);
+
+    const onAutoSubmit = useCallback(() => {
+        console.log(`onAutoSubmit! message:${message} autoSubmit:${autoSubmit}`);
+        onSubmit();
+    }, [message, autoSubmit, onSubmit, onSpeechStart, dispatch])
 
     useEffect(() => {
         if (useOpenAIWhisper || !supportsSpeechRecognition) {
@@ -294,6 +309,19 @@ export default function MessageInput(props: MessageInputProps) {
     useEffect(() => {
         speechInitialMessageRef.current = speechInitialMessage;
     }, [speechInitialMessage]);
+
+    useEffect(() => {
+        if (!autoSubmit) {
+            clearTimeout(silenceTimer);
+        } else {
+            silenceTimer = setTimeout(()=> {
+                console.log("free hands autosubmit!", freeHandsDelay) ;
+                onSubmit();
+
+            }, freeHandsDelay);
+        };
+        return () => clearTimeout(silenceTimer);
+    }, [autoSubmit]);
 
     useHotkeys([
         ['n', () => document.querySelector<HTMLTextAreaElement>('#message-input')?.focus()]

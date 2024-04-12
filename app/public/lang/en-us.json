@@ -197,6 +197,9 @@
   "ss6kle": {
     "defaultMessage": "Reset to default"
   },
+  "tXpbDe": {
+    "defaultMessage": "Delay in millisecond of silence after which the recorded text is submitted"
+  },
   "tZdXp/": {
     "defaultMessage": "The temperature parameter controls the randomness of the AI's responses. Lower values will make the AI more predictable, while higher values will make it more creative."
   },

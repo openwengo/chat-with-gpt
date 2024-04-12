@@ -4,8 +4,7 @@ import { PluginDescription } from "../core/plugins/plugin-description";
 import { OpenAIMessage, Parameters } from "../core/chat/types";
 
 export const defaultSystemPrompt = `
-You are ChatGPT, a large language model trained by OpenAI.
-Knowledge cutoff: 2023-04
+You are a helpful assistant
 Current date and time: {{ datetime }}
 `.trim();
 

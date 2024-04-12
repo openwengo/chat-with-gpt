@@ -50,9 +50,13 @@ export class ChatHistoryTrimmer {
         const firstUserMessage = this.messages.find(m => m.role === 'user');
         const last = this.messages[this.messages.length - 1];
 
-        this.output = [
-            tokenizer.truncateMessage(systemPrompt!, 100),
-        ];
+        if (systemPrompt && systemPrompt.content) {
+            this.output = [
+                tokenizer.truncateMessage(systemPrompt!, 100),
+            ];
+        } else {
+            this.output = [];
+        }
 
         if (firstUserMessage === last) {
             this.output.push(tokenizer.truncateMessage(firstUserMessage, this.options.maxTokens - 100));

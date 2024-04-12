@@ -6,7 +6,7 @@ import { backend } from "../backend";
 
 //export const defaultModel = 'gpt-3.5-turbo';
 //export const defaultModel = 'gpt-4';
-export const defaultModel = 'gpt-4-turbo-preview';
+export const defaultModel = 'gpt-4-turbo';
 
 export function isProxySupported() {
     return !!backend.current?.services?.includes('openai');
@@ -92,8 +92,8 @@ export async function createChatCompletion(messages: OpenAIMessage[], parameters
     }
 
     if (image_input) {
-        console.log("image input detected! Force gpt-4-vision-preview");
-        parameters.model = "gpt-4-vision-preview"
+        console.log("image input detected! Force gpt-4-turbo");
+        parameters.model = "gpt-4-turbo"
     }
     
     const response = await fetch(endpoint + '/v1/chat/completions', {
@@ -170,9 +170,15 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
                     content: tool_call.content,
                     tool_call_id: tool_call.tool_call_id
                 })) ;
+
+                const tool_calls: any[] = message.tool_calls.map((tool_call) => ({
+                    id: tool_call.id,
+                    type: tool_call.type,
+                    function: tool_call.function
+                }))
                 const assistantList: any[] = [{
                     role: message.role,
-                    tool_calls: message.tool_calls
+                    tool_calls
                 }];
                 return [...assistantList, ...toolMessages];
             } else {
@@ -197,8 +203,8 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     }
 
     if (image_input) {
-        console.log("image input detected! Force gpt-4-vision-preview");
-        parameters.model = "gpt-4-vision-preview" ;
+        console.log("image input detected! Force gpt-4-turbo");
+        parameters.model = "gpt-4-turbo" ;
         payload_object.model = parameters.model ;
         payload_object = {...payload_object, max_tokens: 3000} ;
     }

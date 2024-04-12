@@ -22,11 +22,7 @@ export const parameterOptions: OptionGroup = {
                 options: [
                     {
                         label: "GPT-4 Turbo",
-                        value: "gpt-4-turbo-preview",
-                    },
-                    {
-                        label: "GPT 3.5 1106",
-                        value: "gpt-3.5-turbo-1106",
+                        value: "gpt-4-turbo",
                     },
                     {
                         label: "GPT 4",

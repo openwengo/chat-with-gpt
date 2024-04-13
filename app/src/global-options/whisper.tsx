@@ -31,7 +31,12 @@ export const whisperOptions: OptionGroup = {
             id: 'free-hands',
             defaultValue: false,
             displayOnSettingsScreen: "speech",
-            displayAsSeparateSection: false,
+            displayAsSeparateSection: true,
+            displayInQuickSettings: {
+                name: "FreeHands",
+                displayByDefault: true,
+                label: (value) => value,
+            },            
             renderProps: {
                 type: "checkbox",
                 label: "Auto submit recorded prompt",
@@ -39,7 +44,7 @@ export const whisperOptions: OptionGroup = {
         },
         {
             id: 'free-hands-delay',
-            defaultValue: 3000,
+            defaultValue: 2000,
             displayOnSettingsScreen: "speech",
             displayAsSeparateSection: false,
             renderProps: (value, options, context) => ({

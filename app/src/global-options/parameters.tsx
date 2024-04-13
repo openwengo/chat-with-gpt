@@ -60,7 +60,7 @@ export const parameterOptions: OptionGroup = {
             displayAsSeparateSection: true,
             displayInQuickSettings: {
                 name: "Enable access to internet and other tools",
-                displayByDefault: true,
+                displayByDefault: false,
                 label: (value) => value ? "Disable wengoplus" : "Enable wengoplus",
             },
             renderProps: {

@@ -33,7 +33,7 @@ export class SystemPromptPlugin extends Plugin<SystemPromptPluginOptions> {
                     },
                     displayInQuickSettings: {
                         name: "System Prompt",
-                        displayByDefault: true,
+                        displayByDefault: false,
                         label: "Customize system prompt",
                     },
                 },

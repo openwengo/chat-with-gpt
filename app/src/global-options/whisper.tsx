@@ -37,10 +37,10 @@ export const whisperOptions: OptionGroup = {
                 displayByDefault: true,
                 label: (value) => value,
             },            
-            renderProps: {
+            renderProps: (value, options, context) => ({
                 type: "checkbox",
-                label: "Auto submit recorded prompt",
-            },
+                label: context.intl.formatMessage({ defaultMessage: "Auto submit recorded prompt" }),
+            }),
         },
         {
             id: 'free-hands-delay',

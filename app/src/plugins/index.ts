@@ -1,6 +1,7 @@
 import Plugin from "../core/plugins";
 
 import { SystemPromptPlugin } from "./system-prompt";
+import { ExtendedSystemPromptPlugin } from "./system-prompt-extend" ;
 import { TitlePlugin } from "./titles";
 import { ContextTrimmerPlugin } from "./trimmer";
 import { MidjourneyPlugin } from "./midjourney" ;
@@ -17,7 +18,8 @@ export const registeredPlugins: Array<typeof Plugin<any>> = [
     TarotPlugin,
     GHPlugin,
     SystemPromptPlugin,
-    TitlePlugin,
+    ExtendedSystemPromptPlugin,    
+    TitlePlugin,    
     WebSpeechPlugin,
     ElevenLabsPlugin,
 ];

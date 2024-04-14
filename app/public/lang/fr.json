@@ -118,10 +118,16 @@
 "T8gKkC": {
 "defaultMessage": "Supprimer ce chat"
 },
+"TRz7q1": {
+"defaultMessage": "Instructions supplémentaires ajoutées au prompt système"
+},  
 "Tgo3vj": {
 "defaultMessage": "Modifier",
 "description": "Étiquette pour le bouton que l'utilisateur peut cliquer pour modifier le texte de l'un de ses messages"
 },
+"ZTa11N": {
+"defaultMessage": "Mains-libres: soumet automatiquement la question"
+},  
 "VL24Xt": {
 "defaultMessage": "Rechercher dans vos chats"
 },

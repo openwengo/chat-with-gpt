@@ -46,7 +46,7 @@ export class SystemPromptPlugin extends Plugin<SystemPromptPluginOptions> {
             {
                 role: 'system',
                 content: (this.options?.systemPrompt || defaultSystemPrompt)
-                    .replace('{{ datetime }}', new Date().toLocaleString()),
+                    .replace('{{ datetime }}', Date().toString()),
             },
             ...messages,
         ];

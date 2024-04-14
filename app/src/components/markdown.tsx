@@ -90,11 +90,11 @@ export function Markdown(props: MarkdownProps) {
                                     try {
                                         const cleanCode = code.replace(/\/\/.*$/gm, '');
                                         const config = JSON.parse(cleanCode);
-                                        console.log("config=", config);
+                                        //console.log("config=", config);
                                         return <RadarChartComponent {...config} />;
                                     } catch (error: any) {
-                                        console.log("failed to parse:", code);
-                                        return <div>Error parsing chart configuration: {error.message}</div>;
+                                        //console.log("failed to parse:", code);
+                                        return <div>Chart rendering in progress..</div>;
                                     }
                                 default:
                                     return (

@@ -99,6 +99,9 @@
   "T8gKkC": {
     "defaultMessage": "Delete this chat"
   },
+  "TRz7q1": {
+    "defaultMessage": "Extra instructions appended after the system prompt."
+  },
   "Tgo3vj": {
     "defaultMessage": "Edit",
     "description": "Label for the button the user can click to edit the text of one of their messages"
@@ -119,6 +122,9 @@
   "Y0tGn6": {
     "defaultMessage": "Or sign in to an existing account",
     "description": "Label for a button on the Create Account page that lets the user sign into their existing account instead"
+  },
+  "ZTa11N": {
+    "defaultMessage": "Auto submit recorded prompt"
   },
   "bIacvz": {
     "defaultMessage": "Chat with GPT - Unofficial ChatGPT app",

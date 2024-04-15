@@ -10,6 +10,9 @@ import rehypeKatex from 'rehype-katex'
 import { Button, CopyButton } from '@mantine/core';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { Chart } from 'chart.js';
+import ChartRenderer from './chartrenderer';
+
 
 const Code = styled.div`
     padding: 0;
@@ -96,6 +99,17 @@ export function Markdown(props: MarkdownProps) {
                                         //console.log("failed to parse:", code);
                                         return <div>Chart rendering in progress..</div>;
                                     }
+                                case "chartrender":
+                                    try {
+                                        const cleanCode = code.replace(/\/\/.*$/gm, '');
+                                        const config = JSON.parse(cleanCode);
+                                        console.log("config=", config);
+                                        return <ChartRenderer {...config} />;
+                                        //return <div> todo</div>;
+                                    } catch (error: any) {
+                                        console.log("failed to parse:", code, error);
+                                        return <div>Chart rendering in progress..</div>;
+                                    }                                    
                                 default:
                                     return (
                                         <>

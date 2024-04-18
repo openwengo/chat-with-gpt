@@ -16,15 +16,16 @@ import GetShareRequestHandler from './endpoints/get-share';
 import HealthRequestHandler from './endpoints/health';
 import DeleteChatRequestHandler from './endpoints/delete-chat';
 import ToolsDatabaseRequestHandler from './endpoints/tools';
+import { FetchedTools, fetchTools } from './tools' ;
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech';
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
 import Dalle3RequestHandler from './endpoints/service-proxies/dall-e3/';
 import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
-import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope' ;
+import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope/' ;
 import PresignedRequestHandler from './endpoints/presignedurl' ;
 
-import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai';
+import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai/';
 import SessionRequestHandler from './endpoints/session';
 import ShareRequestHandler from './endpoints/share';
 import ObjectStore from './object-store/index';
@@ -55,6 +56,7 @@ export default class ChatServer {
     objectStore: ObjectStore = process.env.S3_BUCKET ? new S3ObjectStore() : new SQLiteObjectStore();
     database: Database = new KnexDatabaseAdapter();
     tarotdatabase: TextsDatabase = new KnexTextsDatabaseAdapter();
+    fetchedTools: FetchedTools = { tools: [], toolsDefinitions:{}} ;
 
     constructor() {
         this.app = express();
@@ -85,6 +87,15 @@ export default class ChatServer {
         // Initialize database before auth
         await this.database.initialize();
         await this.tarotdatabase.initialize();
+        
+        // Initialize tools
+        if ( config.tools ) {
+            try {
+                this.fetchedTools = await fetchTools();
+            } catch(e) {
+                console.log("Failed to prefetch tools with error:", e);
+            }
+        }
 
         this.app.use(express.urlencoded({ extended: false }));
         

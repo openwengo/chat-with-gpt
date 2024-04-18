@@ -11,6 +11,20 @@ import type { Knex } from 'knex';
  * You may provide a `config.yaml` file in the `data` directory to override the default values.
  * (Or you can set the `CHATWITHGPT_CONFIG_FILENAME` environment variable to point to a different file.)
  */
+
+export interface ToolUrlSource {
+    name: string;
+    type: "url";
+    url: string;
+}
+
+export interface ToolLambdaSource {
+    type: "lambda";
+    name: string;
+    function_name: string;
+    region: string;
+}
+
 export interface Config {
     services?: {
         openai?: {
@@ -56,6 +70,12 @@ export interface Config {
             loginRequired?: boolean;
         }
     };
+
+    /* Tools configuration */
+    tools?: {
+        sources: Array<ToolUrlSource | ToolLambdaSource>;
+    }
+    
 
     /*
     Optional configuration for enabling Transport Layer Security (TLS) in the server.

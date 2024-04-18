@@ -242,7 +242,8 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
     const [processing, setProcessing] = useState<{ [toolCallId: string]: boolean }>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // State to track submission status
     const scheduledCallsRef = useRef<{ [toolCallId: string]: boolean }>({});
-        
+    const [debugTool] = useOption<boolean>('parameters', 'showToolsDebug');
+
     useEffect(() => {
       setLocalMessage(message); // Update local state when prop changes
     }, [message]);
@@ -295,7 +296,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
 
         const callTool = async (toolCall: ToolCall ) => {
             console.log(`Call function ${toolCall.function.name} with args ${toolCall.function.arguments}`);
-            const tool_answer = await backend.current?.callTool({ ...toolCall.function,  "agent_type": "audioinsight"}, processCallBack);
+            const tool_answer = await backend.current?.callTool({ ...toolCall.function}, processCallBack);
             console.log("tool answer:", tool_answer);
             if (! tool_answer) {
                 return 'An error occured during function processing';
@@ -360,7 +361,7 @@ const ToolCallComponent: React.FC<ToolCallComponentProps> = ({ message, onSubmit
             </div>) : null
           )}
           {localMessage.toolCalls?.map((toolCall) =>
-            hasMatchingToolMessage(toolCall.id) ? (
+            hasMatchingToolMessage(toolCall.id) ? debugTool && (
             <div key={toolCall.id}>
             <Text size="sm" style={{ marginTop: '10px' }}>{toolCall.function.name} : ({toolCall.function.arguments})</Text>
             </div>) : null
@@ -383,6 +384,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
     const intl = useIntl();
     const enabledToolsList = useAppSelector(selectEnabledToolsList);
     const [showTools] = useOption<boolean>('parameters', 'showTools', context.id || undefined);
+    const [showTokens] = useOption<boolean>('parameters', 'showTokens');
 
     const tab = useAppSelector(selectSettingsTab);    
     const getRoleName = useCallback((role: string, share = false) => {
@@ -501,7 +503,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                     <img key={index} src={image_url} alt={`Uploaded ${index}`} style={{ width: '100px', height: 'auto', margin: '2px' }} />
                     </div>
                 ))}</div>}
-                { ['system','assistant','user'].includes(props.message.role)  && <TokenCount>tokens: {countTokensForMessages([props.message])} </TokenCount> }
+                { ['system','assistant','user'].includes(props.message.role)  && showTokens &&  <TokenCount>tokens: {countTokensForMessages([props.message])} </TokenCount> }
                 {props.last && <EndOfChatMarker />}
             </Container>
         )

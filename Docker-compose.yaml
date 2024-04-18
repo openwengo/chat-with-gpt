@@ -54,7 +54,25 @@ services:
       - "traefik.http.routers.dev-srv.rule=Host(`localhost`) && PathPrefix(`/chatapi`)"
       - "traefik.http.routers.dev-srv.entrypoints=web"
       - "traefik.http.services.dev-srv.loadbalancer.server.port=3001"
-
+  cube_api:
+    restart: always
+    image: cubejs/cube:latest
+    ports:
+      - 4000:4000
+    environment:
+      - CUBEJS_DB_TYPE=postgres
+      - CUBEJS_DB_HOST=pg-wephoneanalyze.service.wengo.priv
+      - CUBEJS_DB_USER=gptwephonewengoprod
+      - CUBEJS_DB_PASS=GptW3ph0neProd!
+      - CUBEJS_DB_SCHEMA=gptwephonewengoprod
+      - CUBEJS_DB_NAME=pgwengo
+      - CUBEJS_DB_MAX_POOL=3
+      - CUBEJS_CACHE_AND_QUEUE_DRIVER=memory
+      - CUBEJS_API_SECRET=secret
+      - CUBESTORE_LOG_LEVEL=info
+      - CUBEJS_DEV_MODE=true
+    volumes:
+      - .:/cube/conf
 networks:
   app_network:
     driver: bridge

@@ -4,7 +4,7 @@ import { QueryRenderer } from '@cubejs-client/react';
 import { Spin } from 'antd';
 //import 'antd/dist/antd.css';
 import React from 'react';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { categoriesLine, Bar, Pie } from 'react-chartjs-2';
 import { useDeepCompareMemo } from 'use-deep-compare';
 import { Row, Col, Statistic, Table } from 'antd';
 

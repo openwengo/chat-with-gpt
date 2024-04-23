@@ -60,7 +60,7 @@ services:
     ports:
       - 4000:4000
     env_file:
-      - path: ./.env.cube
+      - ./.env.cube
     volumes:
       - .:/cube/conf
 networks:

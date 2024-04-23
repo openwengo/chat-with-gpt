@@ -13,7 +13,8 @@ Youcan use options.scales.r.suggestedMin and options.scales.r.suggestedMax to co
 `.trim();
 
 export interface SystemPromptExtendedluginOptions {
-    systemPrompt: string;
+    enableExtendedSystemPrompt: boolean;
+    extendedSystemPrompt: string;
 }
 
 export class ExtendedSystemPromptPlugin extends Plugin<SystemPromptExtendedluginOptions> {
@@ -22,6 +23,18 @@ export class ExtendedSystemPromptPlugin extends Plugin<SystemPromptExtendedlugin
             id: "extended-system-prompt",
             name: "Extended System Prompt",
             options: [
+                {
+                    id: "enableExtendedSystemPrompt",
+                    defaultValue: false,
+                    displayOnSettingsScreen: "chat",
+                    resettable: true,
+                    scope: "chat",
+                    displayAsSeparateSection: true,
+                    renderProps: {
+                        type: "checkbox",
+                        label: "enable extended systemprompt",
+                    },
+                },
                 {
                     id: "extendedSystemPrompt",
                     defaultValue: '' + chartJsPrompt,
@@ -49,9 +62,14 @@ export class ExtendedSystemPromptPlugin extends Plugin<SystemPromptExtendedlugin
 
         const modifiedMessages = messages.map(message => {
             if (message.role === 'system') {
+                let newPrompt: string = message.content;
+                if ( this.options?.enableExtendedSystemPrompt ) {
+                    newPrompt += "\n" + chartJsPrompt ;
+                }  
+                console.log("extended system prompt:", newPrompt)
                 return {
                     ...message,
-                    content: message.content + "\n" + chartJsPrompt
+                    content: newPrompt 
                 };
             }
             return message;

@@ -2,7 +2,7 @@
 import { EventSource } from "launchdarkly-eventsource";
 import express from 'express';
 import { v4 as uuidv4 } from  'uuid' ;
-import { config } from '../../../config';
+import { config } from '../../../config.js';
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
 
@@ -23,7 +23,7 @@ export async function callWephoneTool(req: express.Request, res: express.Respons
         Connection: 'keep-alive',
     });
 
-    const graam_payload =  { ...JSON.parse(req.body.arguments), agent_type: req.body.agent_type}
+    const graam_payload =  { ...JSON.parse(req.body.arguments), agent_type: "audioinsight"}
     console.log("Calling function with url:", url, graam_payload);
     
 

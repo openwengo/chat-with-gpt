@@ -27,15 +27,25 @@ export default class OpenAIProxyRequestHandler extends RequestHandler {
 
 export class WengoToolRequestHandler extends RequestHandler {
     async handler(req: express.Request, res: express.Response) {
-        if (req.body.name === 'graam-tool') {
-            await callWephoneTool(req, res, 'https://wephone-tool.k8sprod.aws.mybestpro/stream');
+
+        const toolDefinition = this.context.fetchedTools.toolsDefinitions[req.body.name] ;
+        if (toolDefinition) {
+            if (toolDefinition.type === 'url') {
+                await callWephoneTool(req, res, toolDefinition.url);
+            }
+
+            if (toolDefinition.type === 'lambda') {
+                if (req.body.name === 'astrological-aspects') {
+                    await callAstroTool(req, res);
+                } else {
+                    console.log("can't call lambda:", req.body.name);
+                    res.end();
+                }        
+            }
+        } else {
+            console.log("no tool definition found for:", req.body.name);
+            res.end();
         }
-        if (req.body.name === 'graam-tool-hp') {
-            await callWephoneTool(req, res, 'https://wephone-tool-hp.k8sprod.aws.mybestpro/stream');
-        }        
-        if (req.body.name === 'astrological-aspects') {
-            await callAstroTool(req, res);
-        }        
     }
 
     public isProtected() {

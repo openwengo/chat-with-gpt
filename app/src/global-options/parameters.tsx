@@ -90,6 +90,18 @@ export const parameterOptions: OptionGroup = {
             })
         },
         {
+            id: 'showTokens',
+            defaultValue: false,
+            resettable: true,
+            scope: "chat",
+            displayOnSettingsScreen: "chat",
+            displayAsSeparateSection: true,
+            renderProps: {
+                type: "checkbox",
+                label: "View tokens",
+            },
+        },   
+        {
             id: 'showTools',
             defaultValue: false,
             resettable: true,
@@ -106,5 +118,18 @@ export const parameterOptions: OptionGroup = {
                 label: "View tools",
             },
         },   
+        {
+            id: 'showToolsDebug',
+            defaultValue: false,
+            resettable: true,
+            scope: "chat",
+            displayOnSettingsScreen: "chat",
+            displayAsSeparateSection: true,
+            renderProps: {
+                type: "checkbox",
+                label: "Tools debugging",
+            },
+        },   
+
     ]
 };

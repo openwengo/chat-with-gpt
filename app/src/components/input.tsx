@@ -109,6 +109,8 @@ export default function MessageInput(props: MessageInputProps) {
     const [showTarotInput, setShowTarotInput] = useState(false);    
     const [showGHInput, setShowGHInput] = useState(false);    
 
+    const [showTokens] = useOption<boolean>('parameters', 'showTokens');
+    
     const {
         transcribing,
         transcript,
@@ -666,7 +668,8 @@ export default function MessageInput(props: MessageInputProps) {
                 rightSection={rightSection}
                 rightSectionWidth={context.generating ? 100 : 55}
                 onKeyDown={hotkeyHandler} /> 
-            <TokenCount>tokens: {countTokensForText(message)}</TokenCount><QuickSettings key={tab} />
+            { showTokens && <TokenCount>tokens: {countTokensForText(message)}</TokenCount>}
+            <QuickSettings key={tab} />
         </div>
     </Container>;
 }

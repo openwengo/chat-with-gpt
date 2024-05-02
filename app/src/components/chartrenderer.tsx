@@ -21,9 +21,10 @@ interface ChartProps {
 }
 
 const cubejsApi = cubejs(
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MTMxMDkyMzUsImV4cCI6MTcxMzE5NTYzNX0.GZ1gb4OYkeI0W4xs_hv3zPuWwxOW8eXlA3zrTvAyZ7s',
-    { apiUrl: 'http://localhost:4000/cubejs-api/v1' }
-  );
+  'xx',
+  { apiUrl: '/chatapi/proxies/cubejs/v1/cubejs' }
+);
+
 
 const commonOptions = {
   maintainAspectRatio: false,

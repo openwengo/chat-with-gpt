@@ -69,6 +69,13 @@ export interface Config {
             apiKey?: string;
             loginRequired?: boolean;
         }
+
+        cubejs?: {
+            apiKey?: string;
+            apiUrl?: string;
+            loginRequired?: boolean;
+        
+        }
     };
 
     /* Tools configuration */

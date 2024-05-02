@@ -54,9 +54,13 @@ services:
       - "traefik.http.routers.dev-srv.rule=Host(`localhost`) && PathPrefix(`/chatapi`)"
       - "traefik.http.routers.dev-srv.entrypoints=web"
       - "traefik.http.services.dev-srv.loadbalancer.server.port=3001"
-  cube_api:
+    depends_on:
+      - cube-api
+  cube-api:
     restart: always
     image: cubejs/cube:latest
+    networks:
+      - app_network
     ports:
       - 4000:4000
     env_file:

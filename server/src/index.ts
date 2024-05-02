@@ -26,6 +26,7 @@ import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope/' 
 import PresignedRequestHandler from './endpoints/presignedurl' ;
 
 import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai/';
+import CubeJSProxyRequestHandler from './endpoints/service-proxies/cubejs';
 import SessionRequestHandler from './endpoints/session';
 import ShareRequestHandler from './endpoints/share';
 import ObjectStore from './object-store/index';
@@ -175,9 +176,15 @@ export default class ChatServer {
         }
 
         if (config.services?.openai?.apiKey) {
+            console.log("Create dalle3 route");
             this.app.post('/chatapi/proxies/dalle3/v1/dalle3', (req, res) => new Dalle3RequestHandler(this, req, res));
         }
 
+        if (config.services?.cubejs?.apiKey) {
+            console.log("create cubejs proxy routes");
+            this.app.get('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
+            this.app.post('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
+        }
         if (config.services?.tarot?.apiKey) {
             console.log("Create tarot routes");
             this.app.post('/chatapi/proxies/tarot/v1/tarot/completions', (req, res) => new TarotProxyRequestHandler(this, req, res));

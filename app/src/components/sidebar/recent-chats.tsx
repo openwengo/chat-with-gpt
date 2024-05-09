@@ -8,6 +8,44 @@ import { toggleSidebar } from '../../store/sidebar';
 import { ActionIcon, Button, Loader, Menu, TextInput, Textarea } from '@mantine/core';
 import { useModals } from '@mantine/modals';
 import { backend } from '../../core/backend';
+import { format, isWithinInterval, subDays, startOfMonth, endOfMonth } from 'date-fns';
+
+// Calculate the timestamp for 30 days ago once
+const thirtyDaysAgo = subDays(new Date(), 30).getTime();
+const sevenDaysAgo = subDays(new Date(), 7).getTime();
+const oneDayAgo = subDays(new Date(), 1).getTime();
+
+// Function to check if a timestamp is within the last 30 days
+const isLast30Days = (timestamp: number) => {
+  return timestamp >= thirtyDaysAgo;
+};
+const isLast7Days = (timestamp: number) => {
+    return timestamp >= sevenDaysAgo;
+  };
+
+const isLastDay = (timestamp: number) => {
+return timestamp >= oneDayAgo;
+};
+
+// Function to group chats by month using timestamp
+const groupChatsByMonth = (chats: any[]) => {
+  return chats.reduce((groups, chat) => {
+    const month = format(new Date(chat.updated), 'MMMM yyyy');
+    if (!groups[month]) {
+      groups[month] = [];
+    }
+    groups[month].push(chat);
+    return groups;
+  }, {} as Record<string, any[]>);
+};
+
+const DateSeparator = styled.div`
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+`;
 
 const Container = styled.div`
     margin: calc(1.618rem - 1rem);
@@ -186,6 +224,14 @@ export default function RecentChats(props: any) {
 
     const currentChatID = context.currentChat.chat?.id;
     const recentChats = context.chat.searchChats('');
+    // Filter chats for the last 30 days using the optimized check
+    const lastDayChats = recentChats.filter(chat => isLastDay(chat.updated));
+    const last7DaysChats = recentChats.filter(chat => ( !isLastDay(chat.updated) && isLast7Days(chat.updated)));
+    const last30DaysChats = recentChats.filter(chat => ( !isLast7Days(chat.updated) && isLast30Days(chat.updated)));
+
+    // Filter older chats and group by month
+    const olderChats = recentChats.filter(chat => !isLast30Days(chat.updated));
+    const chatsByMonth = groupChatsByMonth(olderChats);
 
     const onClick = useCallback((e: React.MouseEvent) => {
         if (e.currentTarget.closest('button')) {
@@ -212,11 +258,38 @@ export default function RecentChats(props: any) {
 
     return (
         <Container>
-            {recentChats.length > 0 && <ChatList>
-                {recentChats.map(c => (
-                    <ChatListItem key={c.chatID} chat={c} onClick={onClick} selected={c.chatID === currentChatID} />
-                ))}
-            </ChatList>}
+            {recentChats.length > 0 && <>
+                <DateSeparator><FormattedMessage defaultMessage={"Today"}/></DateSeparator>
+                <ChatList>
+                    {lastDayChats.map(c => (
+                        <ChatListItem key={c.chatID} chat={c} onClick={onClick} selected={c.chatID === currentChatID} />
+                    ))}
+                </ChatList>
+                <DateSeparator><FormattedMessage defaultMessage={"Last 7 days"}/></DateSeparator>
+                <ChatList>
+                    {last7DaysChats.map(c => (
+                        <ChatListItem key={c.chatID} chat={c} onClick={onClick} selected={c.chatID === currentChatID} />
+                    ))}
+                </ChatList>
+                <DateSeparator><FormattedMessage defaultMessage={"Last 30 days"}/></DateSeparator>
+                <ChatList>
+                    {last30DaysChats.map(c => (
+                        <ChatListItem key={c.chatID} chat={c} onClick={onClick} selected={c.chatID === currentChatID} />
+                    ))}
+                </ChatList>
+                { Object.keys(chatsByMonth).map(month => (
+                    <div key={month}>
+                        <DateSeparator>{month}:</DateSeparator>
+                        <ChatList>
+                        {chatsByMonth[month].map(c => (
+                            <ChatListItem key={c.chatID} chat={c} onClick={onClick} selected={c.chatID === currentChatID} />
+                        ))}
+                        </ChatList>
+                    </div>
+                    ))
+                }
+            </>
+            }
             {recentChats.length === 0 && !synced && <Empty>
                 <Loader size="sm" variant="dots" />
             </Empty>}

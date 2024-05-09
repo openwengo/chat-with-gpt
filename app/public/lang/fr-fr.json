@@ -16,6 +16,9 @@
     "0vL5u1": {
     "defaultMessage": "Créer un compte"
     },
+    "mL4Q28": {
+        "defaultMessage": "Voix custom"
+    },
     "1j61Mn": {
     "defaultMessage": "Ou créer un compte",
     "description": "Étiquette pour un bouton sur la page de connexion qui permet à l'utilisateur de créer un compte à la place"
@@ -73,6 +76,9 @@
 "KKa5Br": {
 "defaultMessage": "Donnez à ChatGPT une voix humaine réaliste en connectant votre compte ElevenLabs (prévisualisez les voix disponibles ci-dessous). <a>Cliquez ici pour vous inscrire.</a>"
 },
+"KbUcBc": {
+    "defaultMessage": "Votre clef d'API ElevenLabs"
+  },
 "L5s+z7": {
 "defaultMessage": "L'utilisation de la clé API OpenAI est facturée à un tarif à l'usage, séparé de votre abonnement ChatGPT."
 },
@@ -98,6 +104,9 @@
 "Q97T+z": {
 "defaultMessage": "Collez votre clé API ici"
 },
+"Rfvi9/": {
+"defaultMessage": "30 derniers jours"
+},  
 "S9BFby": {
 "defaultMessage": "Lire",
 "description": "Étiquette pour le bouton qui démarre la lecture de la synthèse vocale"
@@ -112,13 +121,22 @@
 "T8gKkC": {
 "defaultMessage": "Supprimer ce chat"
 },
+"TRz7q1": {
+"defaultMessage": "Instructions supplémentaires ajoutées au prompt système"
+},  
 "Tgo3vj": {
 "defaultMessage": "Modifier",
 "description": "Étiquette pour le bouton que l'utilisateur peut cliquer pour modifier le texte de l'un de ses messages"
 },
+"ZTa11N": {
+"defaultMessage": "Mains-libres: soumet automatiquement la question"
+},  
 "VL24Xt": {
 "defaultMessage": "Rechercher dans vos chats"
 },
+"VjROY0": {
+    "defaultMessage": "Votre clef d'api est gérée par le serveur"
+  },
 "Xzm66E": {
 "defaultMessage": "Connectez votre compte OpenAI pour commencer"
 },
@@ -127,8 +145,8 @@
 "description": "Étiquette pour un bouton sur la page Créer un compte qui permet à l'utilisateur de se connecter à son compte existant à la place"
 },
 "ZF3+6B": {
-  "defaultMessage": "Call Tool",
-  "description": "Initiate a call of a tool required by the llm"
+"defaultMessage": "Call Tool",
+"description": "Initiate a call of a tool required by the llm"
 },
 "aR9WsJ": {
 "defaultMessage": "Paramètres de l'interface utilisateur",
@@ -159,6 +177,12 @@
 "defaultMessage": "Enregistrer et fermer",
 "description": "Étiquette pour le bouton qui ferme l'écran des paramètres, en sauvegardant les modifications éventuelles"
 },
+"irFBKn": {
+  "defaultMessage": "7 derniers jours"
+},
+"jU4MQH": {
+  "defaultMessage": "Rennomer ce tchat"
+},
 "jtu3jt": {
 "defaultMessage": "Vous pouvez trouver votre clé API en cliquant sur votre avatar ou vos initiales dans le coin supérieur droit du site web ElevenLabs, puis en cliquant sur Profil. Votre clé API est stockée uniquement sur cet appareil et n'est jamais transmise à quiconque, sauf à ElevenLabs."
 },
@@ -179,20 +203,28 @@
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'IA (par opposition à l'utilisateur)"
 },
 "role-dalle3": {
-  "defaultMessage": "Dalle3",
-  "description": "Étiquette qui est affichée au-dessus des messages écrits par Dalle3"
+    "defaultMessage": "Dalle3",
+    "description": "Étiquette qui est affichée au-dessus des messages écrits par Dalle3"
 },
 "role-gh": {
     "defaultMessage": "GH",
-    "description": "Label that is shown above messages written by the Grand Horoscope"
+    "description": "Étiquette qui est affichée au-dessus des messages écrits par Grand Horoscope"
   },
 "role-system": {
 "defaultMessage": "Système",
 "description": "Étiquette qui est affichée au-dessus des messages insérés automatiquement dans la conversation par le système (par opposition à l'utilisateur ou à l'IA)"
 },
+"role-tarot": {
+"defaultMessage": "Tarot Adviser",
+"description": "Étiquette qui est affichée au-dessus des messages écrits par Tarot"
+},
 "role-user": {
 "defaultMessage": "Vous",
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'utilisateur (par opposition à l'IA) dans les sessions de chat de l'utilisateur (à la première personne)."
+},
+"role-midjourney": {
+    "defaultMessage": "Midjourney",
+    "description": "Etiquette qui est affichée au-dessus des messages érits par Midjourney"
 },
 "role-user-formal": {
 "defaultMessage": "Utilisateur",
@@ -201,6 +233,9 @@
 "ss6kle": {
 "defaultMessage": "Réinitialiser par défaut"
 },
+"tXpbDe": {
+"defaultMessage": "Délai de silence en millisecondes pour envoyer la question"
+},  
 "tZdXp/": {
 "defaultMessage": "Le paramètre de température contrôle l'aléatoire des réponses de l'IA. Des valeurs plus basses rendront l'IA plus prévisible, tandis que des valeurs plus élevées la rendront plus créative."
 },
@@ -229,5 +264,8 @@
 "zFt1cV": {
 "defaultMessage": "Trouvez votre clé API ici.",
 "description": "Étiquette pour le lien qui emmène l'utilisateur à la page du site web OpenAI où il peut trouver sa clé API."
-}
+},
+"zWgbGg": {
+"defaultMessage": "Aujourd'hui"
+}  
 }

@@ -89,6 +89,9 @@
   "Q97T+z": {
     "defaultMessage": "Paste your API key here"
   },
+  "Rfvi9/": {
+    "defaultMessage": "Last 30 days"
+  },
   "S9BFby": {
     "defaultMessage": "Play",
     "description": "Label for the button that starts text-to-speech playback"
@@ -150,6 +153,9 @@
   "iqbKb2": {
     "defaultMessage": "Save and Close",
     "description": "Label for the button that closes the Settings screen, saving any changes"
+  },
+  "irFBKn": {
+    "defaultMessage": "Last 7 days"
   },
   "jU4MQH": {
     "defaultMessage": "Rename this chat"
@@ -223,5 +229,8 @@
   "zFt1cV": {
     "defaultMessage": "Find your API key here.",
     "description": "Label for the link that takes the user to the page on the OpenAI website where they can find their API key."
+  },
+  "zWgbGg": {
+    "defaultMessage": "Today"
   }
 }

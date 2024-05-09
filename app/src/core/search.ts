@@ -46,7 +46,7 @@ export class Search {
             return results;
         }
 
-        let searchResults = this.index.search(query, { fuzzy: 2 });
+        let searchResults = this.index.search(query);  //, { fuzzy: 2 }
 
         let output = this.processSearchResults(searchResults);
 
@@ -84,6 +84,8 @@ export class Search {
                 chatID,
                 title: chat.title,
                 description,
+                created: chat.created,
+                updated: chat.updated
             });
         }
         return output;

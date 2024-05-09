@@ -92,6 +92,7 @@ export class ChatManager extends EventEmitter {
         this.provider = new IndexeddbPersistence('chats:' + username, this.doc.root);
         this.provider.whenSynced.then(() => {
             this.doc.getChatIDs().map(id => this.emit(id));
+            this.doc.getChatIDs().map(id => this.changedIDs.add(id));
             this.emit('update');
             this.doc.emit('ready');
             this.options.reloadOptions();

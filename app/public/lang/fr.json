@@ -104,6 +104,9 @@
 "Q97T+z": {
 "defaultMessage": "Collez votre clé API ici"
 },
+"Rfvi9/": {
+"defaultMessage": "30 derniers jours"
+},  
 "S9BFby": {
 "defaultMessage": "Lire",
 "description": "Étiquette pour le bouton qui démarre la lecture de la synthèse vocale"
@@ -173,6 +176,12 @@
 "iqbKb2": {
 "defaultMessage": "Enregistrer et fermer",
 "description": "Étiquette pour le bouton qui ferme l'écran des paramètres, en sauvegardant les modifications éventuelles"
+},
+"irFBKn": {
+  "defaultMessage": "7 derniers jours"
+},
+"jU4MQH": {
+  "defaultMessage": "Rennomer ce tchat"
 },
 "jtu3jt": {
 "defaultMessage": "Vous pouvez trouver votre clé API en cliquant sur votre avatar ou vos initiales dans le coin supérieur droit du site web ElevenLabs, puis en cliquant sur Profil. Votre clé API est stockée uniquement sur cet appareil et n'est jamais transmise à quiconque, sauf à ElevenLabs."
@@ -255,5 +264,8 @@
 "zFt1cV": {
 "defaultMessage": "Trouvez votre clé API ici.",
 "description": "Étiquette pour le lien qui emmène l'utilisateur à la page du site web OpenAI où il peut trouver sa clé API."
-}
+},
+"zWgbGg": {
+"defaultMessage": "Aujourd'hui"
+}  
 }

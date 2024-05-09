@@ -23,6 +23,7 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.4.2",
     "csv": "^6.3.6",
+    "date-fns": "^3.6.0",
     "expiry-set": "^1.0.0",
     "idb-keyval": "^6.2.1",
     "jshashes": "^1.0.8",

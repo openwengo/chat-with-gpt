@@ -6,7 +6,7 @@ import { backend } from "../backend";
 
 //export const defaultModel = 'gpt-3.5-turbo';
 //export const defaultModel = 'gpt-4';
-export const defaultModel = 'gpt-4-turbo';
+export const defaultModel = 'gpt-4o';
 
 export function isProxySupported() {
     return !!backend.current?.services?.includes('openai');
@@ -92,8 +92,8 @@ export async function createChatCompletion(messages: OpenAIMessage[], parameters
     }
 
     if (image_input) {
-        console.log("image input detected! Force gpt-4-turbo");
-        parameters.model = "gpt-4-turbo"
+        console.log("image input detected! Force gpt-4o");
+        parameters.model = "gpt-4o"
     }
     
     const response = await fetch(endpoint + '/v1/chat/completions', {
@@ -298,6 +298,8 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
 export const maxTokensByModel = {
     "chatgpt-3.5-turbo-16k": 16383,
     "gpt-4": 8191,
+    "gpt-4-turbo": 100000,
+    "gpt-4o": 100000,
     "openai/gpt-4-32k": 32767,
     "anthropic/claude-2": 100000,
     "anthropic/claude-instant-v1": 100000

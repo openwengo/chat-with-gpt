@@ -5,14 +5,13 @@ import RadarChartComponent from './chartjs';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math'
-import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { Button, CopyButton } from '@mantine/core';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Chart } from 'chart.js';
 import ChartRenderer from './chartrenderer';
-
+import 'katex/dist/katex.min.css'; // Import the KaTeX CSS for styling
 
 const Code = styled.div`
     padding: 0;
@@ -60,6 +59,33 @@ export interface MarkdownProps {
     className?: string;
 }
 
+function preprocessMarkdown(content: string): string {
+    const codeBlockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
+    let match;
+    let lastIndex = 0;
+    let result = '';
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+        const [codeBlock] = match;
+        const startIndex = match.index;
+
+        // Process the content outside the code block
+        const outsideCodeBlock = content.slice(lastIndex, startIndex)
+            .replace(/\\\((.*?)\\\)/g, '$$$$ $1 $$$$')
+            .replace(/\\\[(.*?)\\\]/gs, '$$$$ $1 $$$$');
+
+        result += outsideCodeBlock + codeBlock;
+        lastIndex = codeBlockRegex.lastIndex;
+    }
+
+    // Process the remaining content outside the last code block
+    result += content.slice(lastIndex)
+        .replace(/\\\((.*?)\\\)/g, '$$$$ $1 $$$$')
+        .replace(/\\\[(.*?)\\\]/gs, '$$$$ $1 $$$$');
+
+    return result;
+}
+
 export function Markdown(props: MarkdownProps) {
     const intl = useIntl();
 
@@ -71,12 +97,18 @@ export function Markdown(props: MarkdownProps) {
         }
 
         return classes;
-    }, [props.className])
+    }, [props.className]);
+
+    const remarkMathOptions = {
+        singleDollarTextMath: false,
+    };
+
+    const processedContent: string = preprocessMarkdown(props.content);
 
     const elem = useMemo(() => (
         <div className={classes.join(' ')}>
             <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
+                remarkPlugins={[[remarkMath, remarkMathOptions], remarkGfm]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
                     ol({ start, children }) {
@@ -85,7 +117,7 @@ export function Markdown(props: MarkdownProps) {
                         </ol>;
                     },
                     code({ node, inline, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '')
+                        const match = /language-(\w+)/.exec(className || '');
                         const code = String(children);
                         if (!inline && match) {
                             switch (match[1]) {
@@ -93,10 +125,8 @@ export function Markdown(props: MarkdownProps) {
                                     try {
                                         const cleanCode = code.replace(/\/\/.*$/gm, '');
                                         const config = JSON.parse(cleanCode);
-                                        //console.log("config=", config);
                                         return <RadarChartComponent {...config} />;
                                     } catch (error: any) {
-                                        //console.log("failed to parse:", code);
                                         return <div>Chart rendering in progress..</div>;
                                     }
                                 case "chartrender":
@@ -105,53 +135,52 @@ export function Markdown(props: MarkdownProps) {
                                         const config = JSON.parse(cleanCode);
                                         console.log("config=", config);
                                         return <ChartRenderer {...config} />;
-                                        //return <div> todo</div>;
                                     } catch (error: any) {
                                         console.log("failed to parse:", code, error);
                                         return <div>Chart rendering in progress..</div>;
-                                    }                                    
+                                    }
                                 default:
                                     return (
                                         <>
-                                        <Code>
-                                            <Header>
-                                                {code.startsWith('<svg') && code.includes('</svg>') && (
-                                                    <Button variant="subtle" size="sm" compact onClick={() => {
-                                                        const blob = new Blob([code], { type: 'image/svg+xml' });
-                                                        const url = URL.createObjectURL(blob);
-                                                        const a = document.createElement('a');
-                                                        a.href = url;
-                                                        a.download = 'image.svg';
-                                                        a.click();
-                                                    }}>
-                                                        <i className="fa fa-download" />
-                                                        <span><FormattedMessage defaultMessage="Download SVG" /></span>
-                                                    </Button>
-                                                )}
-                                                <CopyButton value={code}>
-                                                    {({ copy, copied }) => (
-                                                        <Button variant="subtle" size="sm" compact onClick={copy}>
-                                                            <i className="fa fa-clipboard" />
-                                                            <span>
-                                                                {copied ? <FormattedMessage defaultMessage="Copied" description="Label for copy-to-clipboard button after a successful copy" />
-                                                                    : <FormattedMessage defaultMessage="Copy" description="Label for copy-to-clipboard button" />}
-                                                            </span>
+                                            <Code>
+                                                <Header>
+                                                    {code.startsWith('<svg') && code.includes('</svg>') && (
+                                                        <Button variant="subtle" size="sm" compact onClick={() => {
+                                                            const blob = new Blob([code], { type: 'image/svg+xml' });
+                                                            const url = URL.createObjectURL(blob);
+                                                            const a = document.createElement('a');
+                                                            a.href = url;
+                                                            a.download = 'image.svg';
+                                                            a.click();
+                                                        }}>
+                                                            <i className="fa fa-download" />
+                                                            <span><FormattedMessage defaultMessage="Download SVG" /></span>
                                                         </Button>
                                                     )}
-                                                </CopyButton>
-                                            </Header>
-                                            <SyntaxHighlighter
-                                                children={code}
-                                                style={vscDarkPlus as any}
-                                                language={match?.[1] || 'text'}
-                                                PreTag="div"
-                                                {...props} />
-                                        </Code>
-                                        { code.startsWith('<svg') && code.includes('</svg>') && (
-                                            <ImagePreview>
-                                                <img src={`data:image/svg+xml;base64,${btoa(code)}`} />
-                                            </ImagePreview>
-                                        ) }
+                                                    <CopyButton value={code}>
+                                                        {({ copy, copied }) => (
+                                                            <Button variant="subtle" size="sm" compact onClick={copy}>
+                                                                <i className="fa fa-clipboard" />
+                                                                <span>
+                                                                    {copied ? <FormattedMessage defaultMessage="Copied" description="Label for copy-to-clipboard button after a successful copy" />
+                                                                        : <FormattedMessage defaultMessage="Copy" description="Label for copy-to-clipboard button" />}
+                                                                </span>
+                                                            </Button>
+                                                        )}
+                                                    </CopyButton>
+                                                </Header>
+                                                <SyntaxHighlighter
+                                                    children={code}
+                                                    style={vscDarkPlus as any}
+                                                    language={match?.[1] || 'text'}
+                                                    PreTag="div"
+                                                    {...props} />
+                                            </Code>
+                                            {code.startsWith('<svg') && code.includes('</svg>') && (
+                                                <ImagePreview>
+                                                    <img src={`data:image/svg+xml;base64,${btoa(code)}`} />
+                                                </ImagePreview>
+                                            )}
                                         </>
                                     );
                             }
@@ -162,9 +191,9 @@ export function Markdown(props: MarkdownProps) {
                             </code>
                         );
                     }
-                }}>{props.content}</ReactMarkdown>
+                }}>{processedContent}</ReactMarkdown>
         </div>
-    ), [props.content, classes, intl]);
+    ), [processedContent, classes, intl]);
 
     return elem;
 }

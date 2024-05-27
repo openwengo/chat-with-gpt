@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import ChatServer from '../../../index';
 import { LoadingHandler, Midjourney } from 'midjourney'; 
 import express from 'express';
 import { config } from '../../../config';
+import fetch from 'node-fetch';
 
 // Function to handle Server-Sent Events
 const sendSSE = (req: Request, res: Response, data: any) => {
@@ -31,7 +33,7 @@ function parseCommand(command: string): CommandParams {
 // Using the Midjourney client
 // let  midjourneyClient: Midjourney | null = null;
 
-export async function streamingHandler(req: express.Request, res: express.Response) {
+export async function streamingHandler(req: express.Request, res: express.Response, context: ChatServer) {
     res.set({
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -83,7 +85,8 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     if ( req.body.midjourneyMethod == '/imagine') {
         const prompt: string = lastMessage.content.replace(new RegExp("^" + "/imagine"), "")
-        
+        const { nanoid } = await import('nanoid'); // esm
+
         try {
             const msg = await midjourneyClient.Imagine(
                 prompt, 
@@ -93,6 +96,23 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                     sendSSE(req, res, { uri, progress });
                 }
             );
+            if (msg && msg.uri && msg.progress === "done") {
+                if (msg.uri ) {
+                    const loggedUser = (req as any).session?.passport?.user?.id;
+                    const id = nanoid();
+                    const new_image_url = 'images/' + id + '.png';
+                    console.log(`update ${msg.uri} to ${new_image_url}`);
+                    const response = await fetch(msg.uri);
+                    const buffer = await response.buffer();
+                    await context.database.createImage(loggedUser, id);
+                    await context.objectStore.putBinary(
+                        new_image_url,
+                         buffer,
+                        'image/png'
+                        )
+                    msg.uri= ( config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "" ) + new_image_url;
+                }
+            }            
             sendSSE(req, res, msg);
             console.log("Imagine response:", msg) ;
             res.write(`data: [DONE]\n\n`);
@@ -117,6 +137,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
         console.log("Midjourney custom params:", params);
 
+        const { nanoid } = await import('nanoid'); // esm
 
         try {
             const msg = await midjourneyClient.Custom({
@@ -130,6 +151,23 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                     sendSSE(req, res, { uri, progress });
                 }},
             );
+            if (msg && msg.uri && msg.progress === "done") {
+                if (msg.uri ) {
+                    const loggedUser = (req as any).session?.passport?.user?.id;
+                    const id = nanoid();
+                    const new_image_url = 'images/' + id + '.png';
+                    console.log(`update ${msg.uri} to ${new_image_url}`);
+                    const response = await fetch(msg.uri);
+                    const buffer = await response.buffer();
+                    await context.database.createImage(loggedUser, id);
+                    await context.objectStore.putBinary(
+                        new_image_url,
+                         buffer,
+                        'image/png'
+                        )
+                    msg.uri= ( config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "" ) + new_image_url;
+                }
+            }               
             sendSSE(req, res, msg);
             console.log("Custom response:", msg) ;
             res.write(`data: [DONE]\n\n`);

@@ -10,7 +10,11 @@ export const salaiToken = config.services?.midjourney?.salaiToken || process.env
 export default class MidjourneyProxyRequestHandler extends RequestHandler {
     async handler(req: express.Request, res: express.Response) {
         if (req.body?.stream) {
-            await streamingHandler(req, res);
+            if (! this.context) {
+                console.log("this.context is null!", this.context);
+                return;
+            }
+            await streamingHandler(req, res, this.context );
         }
     }
 

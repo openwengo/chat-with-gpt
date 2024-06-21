@@ -41,12 +41,16 @@ export const parameterOptions: OptionGroup = {
                         value: "openai/gpt-4-32k",
                     },
                     {
-                        label: "Claude v3 opus",
-                        value: "anthropic/claude-3-opus:beta",
+                        label: "Claude v3.5 sonnet",
+                        value: "anthropic/claude-3.5-sonnet",
                     },
                     {
-                        label: "Claude v3 sonnet",
-                        value: "anthropic/claude-3-sonnet:beta",
+                        label: "Gemini Pro 1.5",
+                        value: "google/gemini-pro-1.5",
+                    },
+                    {
+                        label: "Claude v3 opus",
+                        value: "anthropic/claude-3-opus:beta",
                     },
                     {
                         label: "Claude v3 haiku",

@@ -110,7 +110,8 @@ export default function MessageInput(props: MessageInputProps) {
     const [showGHInput, setShowGHInput] = useState(false);    
 
     const [showTokens] = useOption<boolean>('parameters', 'showTokens');
-    
+    const [isUploading, setIsUploading] = useState(false);
+
     const {
         transcribing,
         transcript,
@@ -356,20 +357,27 @@ export default function MessageInput(props: MessageInputProps) {
                 console.log(`upload file: ${file.name} is not a supported image type: ${file.type}`)
                 return ;
             }
-            // get sha1 of the file
-            const sha1 = await computeSHA1(file) ;
-            // Request pre-signed URL from the backend
-            const response = await backend.current?.getPresignedUploadUrl(file, sha1);
-            console.log("getPresignedUpload=>", response);
-            const url = response.upload_url;
-            const public_url: string = response.public_image_url ;
-            // Upload the file directly to S3 using the pre-signed URL
-            
-            const uploadResponse = await backend.current?.put(url, file.type, file);
-      
-            dispatch(addImageUrl(public_url));
+            try {
+                setIsUploading(true);
+                // get sha1 of the file
+                const sha1 = await computeSHA1(file) ;
+                // Request pre-signed URL from the backend
+                const response = await backend.current?.getPresignedUploadUrl(file, sha1);
+                console.log("getPresignedUpload=>", response);
+                const url = response.upload_url;
+                const public_url: string = response.public_image_url ;
+                // Upload the file directly to S3 using the pre-signed URL
+                
+                const uploadResponse = await backend.current?.put(url, file.type, file);
+        
+                dispatch(addImageUrl(public_url));
+                console.log('File uploaded successfully', uploadResponse);
+            } catch (e) {
+                console.log('Error uploading file',e);
+            } finally {
+                setIsUploading(false);
+            }
   
-            console.log('File uploaded successfully', uploadResponse);
           } catch (error) {
             console.error('Error uploading file:', error);
           }
@@ -642,17 +650,42 @@ export default function MessageInput(props: MessageInputProps) {
       align-items: center;
     `
 
+    const handlePaste = useCallback(async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        const items = event.clipboardData.items;
+        
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            if (isUploading) {
+                event.preventDefault();
+                return;
+            }            
+            console.log("Received paste with:", items);
+            
+            const file = items[i].getAsFile();
+            if (file) {
+              try {
+                event.preventDefault(); // Prevent the image from being pasted into the textarea
+                await handleFileCb(file);                
+              }catch (e) {
+                console.error(e);
+              } 
+            }
+          }
+        }
+      }, [handleFileCb]);
+
     const AboveInput = useMemo(() => {
         return (
         <ToolsAndUpload>
             { showTools ? <ToolsManager /> : <div></div> }
             <RightAlignedUploads>
                 <ImageList imageUrls={imageUrls}/>
+                { isUploading ? <div>Uploading image..</div> : null }
                 <FileUpload onFileSelected={handleFileCb} />
             </RightAlignedUploads>
         </ToolsAndUpload>
         );
-    }, [showTools, enabledToolsList, imageUrls,dispatch]);
+    }, [showTools, enabledToolsList, imageUrls,dispatch, isUploading]);
 
     return <Container>
         <div className="inner" style={innerStyle}>    
@@ -665,6 +698,7 @@ export default function MessageInput(props: MessageInputProps) {
                 placeholder={intl.formatMessage({ defaultMessage: "Enter a message here..." })}
                 value={message}
                 onChange={onChange}
+                onPaste={handlePaste}
                 rightSection={rightSection}
                 rightSectionWidth={context.generating ? 100 : 55}
                 onKeyDown={hotkeyHandler} /> 

@@ -8,6 +8,20 @@ import { backend } from "../backend";
 //export const defaultModel = 'gpt-4';
 export const defaultModel = 'gpt-4o';
 
+
+export const multiModalModels = {
+    'gpt-4o' : ['images'],
+    'gpt-4-turbo' : ['images'],
+    'anthropic/claude-3-haiku' : ['images'],
+    'anthropic/claude-3-haiku:beta' : ['images'],   
+    'anthropic/claude-3-sonnet' : ['images'],
+    'anthropic/claude-3-sonnet:beta' : ['images'],
+    'anthropic/claude-3-opus' : ['images'],
+    'anthropic/claude-3-opus:beta' : ['images'],
+    'anthropic/claude-3.5-sonnet' : ['images'],
+    'anthropic/claude-3.5-sonnet:beta' : ['images'],
+}
+
 export function isProxySupported() {
     return !!backend.current?.services?.includes('openai');
 }
@@ -92,8 +106,11 @@ export async function createChatCompletion(messages: OpenAIMessage[], parameters
     }
 
     if (image_input) {
-        console.log("image input detected! Force gpt-4o");
-        parameters.model = "gpt-4o"
+        console.log(`image input detected! ${parameters.model}`);
+        if (multiModalModels[parameters.model] === undefined) {
+            console.log("Model is not multimodal. Force gpt-4o");
+            parameters.model = "gpt-4o";
+        }        
     }
     
     const response = await fetch(endpoint + '/v1/chat/completions', {
@@ -203,8 +220,14 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
     }
 
     if (image_input) {
-        console.log("image input detected! Force gpt-4-turbo");
-        parameters.model = "gpt-4-turbo" ;
+        //console.log("image input detected! Force gpt-4-turbo");
+        //parameters.model = "gpt-4-turbo" ;
+        console.log(`image input detected! ${parameters.model}`);
+        if (multiModalModels[parameters.model] === undefined) {
+            console.log("Model is not multimodal. Force gpt-4o");
+            parameters.model = "gpt-4o";
+        }        
+            
         payload_object.model = parameters.model ;
         payload_object = {...payload_object, max_tokens: 3000} ;
     }
@@ -294,6 +317,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
         cancel: () => eventSource.close(),
     };
 }
+
 
 export const maxTokensByModel = {
     "chatgpt-3.5-turbo-16k": 16383,

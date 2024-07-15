@@ -77,8 +77,7 @@ export interface Parameters {
     temperature: number;
     apiKey?: string;
     initialSystemPrompt?: string;
-    model: string;
-    wengoplusmode?: boolean;
+    model: string;    
     midjourney?: boolean;
     midjourneyParameters?: MidjourneyParameters;
     tarot?: boolean;

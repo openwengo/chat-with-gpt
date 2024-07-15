@@ -239,8 +239,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
     const messages = req.body.messages;
     const promptTokens = countTokensForMessages(messages);
 
-    const loggedUser = (req as any).session?.passport?.user?.id;
-    console.log("wengoplusmode:", req.body.wengoplusmode);
+    const loggedUser = (req as any).session?.passport?.user?.id;    
     console.log("temperature:", req.body.temperature);
     console.log("model:", req.body.model);    
     console.log("user:", loggedUser );    
@@ -285,23 +284,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
 
     const endpoint = req.path.startsWith('/chatapi/proxies/openrouter/') ? `${openrouterBaseUrl}/chat/completions` : `${baseUrl}/chat/completions` ;
     const endpointApiKey = req.path.startsWith('/chatapi/proxies/openrouter/') ? openrouterApiKey : apiKey ;
-
-    if ( req.body.wengoplusmode ) {
-        const preprocessedMessage = await chainPreprocess(lastMessage.content, res, req.body);
-
-        if (preprocessedMessage !== '') {
-            sendChunkResponse(res, preprocessedMessage);        
-            messages[messages.length -1 ].content = `${lastMessage.content}\n${preprocessedMessage}` ;
-            //console.log("New message:", messages[messages.length -1 ].content );
-        }
-        sendChunkResponse(res, `Chain has completed`);
-        res.write(`data: [DONE]\n\n`);
-        res.flush();
-        res.end();
-        return;
-    } 
-
-    delete req.body.wengoplusmode;
     
     if ( req.body.tools && req.body.tools.length  === 0 ) {
         delete req.body.tools ;

@@ -7,7 +7,7 @@ export const parameterOptions: OptionGroup = {
         {
             id: "model",
             defaultValue: defaultModel,
-            resettable: false,
+            resettable: true,
             scope: "user",
             displayOnSettingsScreen: "chat",
             displayAsSeparateSection: true,
@@ -59,23 +59,6 @@ export const parameterOptions: OptionGroup = {
                 ],
             }),
         },
-        {
-            id: 'wengoplus-mode',
-            defaultValue: false,
-            resettable: true,
-            scope: "chat",
-            displayOnSettingsScreen: "chat",
-            displayAsSeparateSection: true,
-            displayInQuickSettings: {
-                name: "Enable access to internet and other tools",
-                displayByDefault: false,
-                label: (value) => value ? "Disable wengoplus" : "Enable wengoplus",
-            },
-            renderProps: {
-                type: "checkbox",
-                label: "Enable access to internet and other tools",
-            },
-        },        
         {
             id: "temperature",
             defaultValue: 0.2,

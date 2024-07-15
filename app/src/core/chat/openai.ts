@@ -215,8 +215,7 @@ export async function createStreamingChatCompletion(messages: OpenAIMessage[], p
         "model": parameters.model,
         "messages": formattedMessages,
         "temperature": parameters.temperature,
-        "stream": true,
-        "wengoplusmode": parameters.wengoplusmode
+        "stream": true
     }
 
     if (image_input) {

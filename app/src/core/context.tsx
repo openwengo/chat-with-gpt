@@ -100,8 +100,7 @@ export function useCreateAppContext(): Context {
 
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
-            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
-            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id)
+            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
         };
 
         if (id === nextID) {
@@ -165,8 +164,7 @@ export function useCreateAppContext(): Context {
 
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
-            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
-            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
+            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
         };
 
         await chatManager.sendAssistantMessage(message, {
@@ -194,8 +192,7 @@ export function useCreateAppContext(): Context {
 
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
-            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
-            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
+            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
         };
 
         await chatManager.regenerate(message, {
@@ -227,8 +224,7 @@ export function useCreateAppContext(): Context {
 
         const parameters: Parameters = {
             model: chatManager.options.getOption<string>('parameters', 'model', id),
-            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
-            wengoplusmode: chatManager.options.getOption<boolean>('parameters', 'wengoplus-mode', id),
+            temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
         };
 
         if (id && chatManager.has(id)) {

@@ -142,6 +142,43 @@ export async function fetchTools(): Promise<FetchedTools> {
         region: "eu-west-3",
         function_name: "lambda_astrodata"
     }
+    tools.push({ 
+        'description': 'This tool gives the natal charl informations: Planets positions, house cusps, aspect. for a given position and date and time of birth',
+        'name': 'natalchart',
+        'parameters': {
+            "type": "object",
+            "properties" : {
+                "latitude" : {
+                    'description': "The natal chart latitude in degrees as a float",
+                    'type': 'number'
+                },
+                "longitude" : {
+                    'description': "The natal chart longitude in degrees as a float",
+                    'type': 'number'
+                },
+                "birthdate" : {
+                    'description': "The natal chart date of birth as YYYY-MM-DD",
+                    'type': 'string'
+                },
+                "birthtime" : {
+                    'description': "The natal chart birth time as HH:MM",
+                    'type': 'string'
+                },
+                "mode" : {
+                    'description': "must be set to natalchart for the natalchart, or risingsign if only the rising sign is required",
+                    'type': 'string'
+                }
+
+            },
+            "required": ["latitude", "longitude", "birthdate", "birthtime", "mode"]
+        }
+    })
+    toolsDefinitions['natalchart'] = {
+        name: "natalchart",
+        type: "lambda",
+        region: "eu-west-3",
+        function_name: "lambda_astrodata"
+    }
     console.log("Fetched tools Definitions:", toolsDefinitions);
     return { tools, toolsDefinitions};
 

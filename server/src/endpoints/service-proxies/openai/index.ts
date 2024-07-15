@@ -37,6 +37,8 @@ export class WengoToolRequestHandler extends RequestHandler {
             if (toolDefinition.type === 'lambda') {
                 if (req.body.name === 'astrological-aspects') {
                     await callAstroTool(req, res);
+                } else if (req.body.name === 'natalchart') {
+                    await callAstroTool(req, res);
                 } else {
                     console.log("can't call lambda:", req.body.name);
                     res.end();

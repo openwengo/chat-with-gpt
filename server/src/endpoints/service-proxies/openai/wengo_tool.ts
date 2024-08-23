@@ -15,7 +15,13 @@ function sendChunkResponse(res: express.Response, message: string) {
 
 import fetch from 'node-fetch';
 
-export async function callWephoneTool(req: express.Request, res: express.Response, url: string) {    
+export async function callWephoneTool(
+  req: express.Request,
+  res: express.Response,
+  url: string,
+  headers: { [key: string]: string } = {},
+  method: "GET" | "POST" = "POST"
+  ) {    
 
     res.set({
         'Content-Type': 'text/event-stream',
@@ -23,20 +29,34 @@ export async function callWephoneTool(req: express.Request, res: express.Respons
         Connection: 'keep-alive',
     });
 
-    const graam_payload =  { ...JSON.parse(req.body.arguments), agent_type: "audioinsight"}
-    console.log("Calling function with url:", url, graam_payload);
+    const graam_payload =  { ...JSON.parse(req.body.arguments)} //, agent_type: "audioinsight"}  
     
-
+    let finalUrl = url;
+    let fetchOptions: RequestInit = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+        }
+    };
+    if (method === "GET") {
+      const queryString = new URLSearchParams(graam_payload as Record<string, string>).toString();
+      finalUrl = `${url}?${queryString}`;
+    } else {
+      fetchOptions.body = JSON.stringify(graam_payload);
+    }
+    console.log("Calling function with url:", finalUrl, fetchOptions.body, fetchOptions.headers,  fetchOptions.method);
     const response = await fetch(url, {
-        method: 'POST',
+        method: method,
         headers: {
           'Content-Type': 'application/json',
+          ...headers
         },
-        body: JSON.stringify(graam_payload),
+        body: method != "GET" ? JSON.stringify(graam_payload) : undefined,
       });
 
     if (!response.ok || !response.body) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status} ${response.body}`);
     }
 
     

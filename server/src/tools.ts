@@ -101,7 +101,9 @@ export async function fetchTools(): Promise<FetchedTools> {
                             toolsDefinitions[data.openapispec.name] = {
                                 name: data.openapispec.name,
                                 type: "url",
-                                url: new URL( data.tool_url, urlSource.url).href
+                                url: new URL( data.tool_url, urlSource.url).href,
+                                headers: source.headers,
+                                method: source.method ? source.method : "POST"
                             }
                         }
 

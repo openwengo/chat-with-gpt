@@ -31,7 +31,7 @@ export class WengoToolRequestHandler extends RequestHandler {
         const toolDefinition = this.context.fetchedTools.toolsDefinitions[req.body.name] ;
         if (toolDefinition) {
             if (toolDefinition.type === 'url') {
-                await callWephoneTool(req, res, toolDefinition.url);
+                await callWephoneTool(req, res, toolDefinition.url, toolDefinition.headers, toolDefinition.method);
             }
 
             if (toolDefinition.type === 'lambda') {

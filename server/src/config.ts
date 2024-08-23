@@ -16,6 +16,8 @@ export interface ToolUrlSource {
     name: string;
     type: "url";
     url: string;
+    headers?: { [key: string]: string };
+    method?: "GET" | "POST" ;
 }
 
 export interface ToolLambdaSource {

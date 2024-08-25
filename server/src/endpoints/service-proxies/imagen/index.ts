@@ -117,7 +117,8 @@ export default class ImagenProxyRequestHandler extends RequestHandler {
                 parameters: {
                     sampleCount: imagenConfig?.sampleCount || 2, // Default to 2 images
                     ...(negativePrompt && { negativePrompt: negativePrompt }),                    
-                    aspectRatio: validatedAspectRatio
+                    aspectRatio: validatedAspectRatio,
+                    includeRaiReason: true
                 }
             };        
             if (imagenConfig?.personGeneration) {
@@ -159,31 +160,31 @@ export default class ImagenProxyRequestHandler extends RequestHandler {
                 }
     
                 const responseData: ImagenApiResponse = await apiResponse.json();
+                if (responseData.predictions) {
+                    for(const imageResult of responseData.predictions) {
 
-
-                for(const imageResult of responseData.predictions) {
-
-                    if (imageResult.bytesBase64Encoded) {
-                        const id = nanoid();
-                        const newImageUrl = 'images/' + id + '.png';
-                        console.log(`save image to ${newImageUrl}`);
-                        const buffer = Buffer.from(imageResult.bytesBase64Encoded, 'base64');
-    
-                        await this.context.database.createImage(loggedUser, id);
-    
-                        // Upload to S3
-                        await  this.context.objectStore.putBinary(
-                            newImageUrl,
-                            buffer,
-                            'image/png'
-                        );
-    
-                        imageResult.imageUrl = (config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "") + newImageUrl;
-                        delete imageResult.bytesBase64Encoded;
-                    }
-                }                        
+                        if (imageResult.bytesBase64Encoded) {
+                            const id = nanoid();
+                            const newImageUrl = 'images/' + id + '.png';
+                            console.log(`save image to ${newImageUrl}`);
+                            const buffer = Buffer.from(imageResult.bytesBase64Encoded, 'base64');
+        
+                            await this.context.database.createImage(loggedUser, id);
+        
+                            // Upload to S3
+                            await  this.context.objectStore.putBinary(
+                                newImageUrl,
+                                buffer,
+                                'image/png'
+                            );
+        
+                            imageResult.imageUrl = (config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "") + newImageUrl;
+                            delete imageResult.bytesBase64Encoded;
+                        }
+                    }    
+                }                    
                 sendSSE(req, res, { 'response': responseData });
-                console.log(`${responseData.predictions.length} images generated`);
+                console.log(`${responseData.predictions?.length} images generated`);
                 res.write(`data: [DONE]\n\n`);
                 res.flush();
                 res.end();

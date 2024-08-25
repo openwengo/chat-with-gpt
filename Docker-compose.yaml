@@ -48,7 +48,7 @@ services:
       - HOME=/home/oschiavo      
       - S3_BUCKET=wengo-chatwithgpt
       - DEFAULT_S3_REGION=eu-west-3
-      - GOOGLE_APPLICATION_CREDENTIALS=/home/oschiavo/Devel/chat-with-gpt/clientLibraryConfig-openaigptwengo.json      
+      - GOOGLE_APPLICATION_CREDENTIALS=/home/oschiavo/Devel/chat-with-gpt/clientLibraryConfig-openaigptwengo.json
     entrypoint: ["sh", "-c", "while (true); do sleep 3600 ; done "]
     labels:
       - "traefik.enable=true"

@@ -15,6 +15,7 @@ import { pluginRunner } from "./plugins/plugin-runner";
 import { createBasicPluginContext } from './plugins/plugin-context';
 import { midjourneyPrefixes } from '../plugins/midjourney';
 import { dalle3Prefixes } from '../plugins/dalle3';
+import { imagenPrefixes } from '../plugins/imagen';
 import { tarotPrefixes } from '../plugins/tarot';
 import { ghPrefixes } from '../plugins/grandhoroscope';
 
@@ -244,6 +245,8 @@ export class ChatManager extends EventEmitter {
         
         const isDalle3 = dalle3Prefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
+        const isImagen = imagenPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
+
         const isTarot = tarotPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
         
         const isGH = ghPrefixes.some(prefix => lastMessage.content.startsWith(prefix)) ;
@@ -253,7 +256,7 @@ export class ChatManager extends EventEmitter {
             parentID,
             chatID,
             timestamp: Date.now(),
-            role: isMidjourney ? "midjourney" : isDalle3 ? "dalle3" : isTarot ? "tarot" : isGH ? "gh" :'assistant',
+            role: isMidjourney ? "midjourney" : isDalle3 ? "dalle3" : isImagen ? "imagen" : isTarot ? "tarot" : isGH ? "gh" :'assistant',
             model: "midjourney",
             content: '',
             images: [],

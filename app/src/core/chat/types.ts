@@ -86,6 +86,8 @@ export interface Parameters {
     ghParameters?: GHParameters;
     dalle3?: boolean;
     dalle3Parameters?: Dalle3Parameters;
+    imagen?: boolean;
+    imagenParameters?: ImagenRequestInstance;
     showTools?: boolean;
 }
 
@@ -215,4 +217,42 @@ export function deserializeChat(serialized: string) {
     const chat = JSON.parse(serialized);
     chat.messages = new MessageTree(chat.messages);
     return chat as Chat;
+}
+
+export interface ImagenRequestParameters {
+    sampleCount: number;
+    personGeneration?: "dont_allow" | "allow_adult" | "allow_all";
+    safetySetting?: "block_most" | "block_some" | "block_few" | "block_fewest";
+    addWatermark?: boolean;
+}
+
+export interface ImagenRequestInstance {
+    prompt: string;
+    negativePrompt?: string;
+    aspectRatio: string;
+}
+
+export interface ImagenApiRequestBody {
+    instances: ImagenRequestInstance[];
+    parameters: ImagenRequestParameters;
+}
+
+export interface ImagenModelResult {
+    bytesBase64Encoded?: string;
+    imageUrl?: string;
+    mimeType?: string;
+    raiFilteredReason?: string;
+    safetyAttributes?: {
+        categories?: string[];
+        scores?: number[];
+    };
+}
+
+export interface ImagenApiResponse {
+    predictions: ImagenModelResult[];
+}
+
+export interface ImagenMessage {
+    response?: ImagenApiResponse;
+    error?: string;
 }

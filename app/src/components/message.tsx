@@ -7,6 +7,7 @@ import { TTSButton } from './tts-button';
 import { Markdown } from './markdown';
 import { MidjourneyDisplay } from './midjourney-display';
 import { Dalle3Display } from './dalle3-display';
+import { ImagenDisplay } from './imagen-display';
 import { TarotDisplay } from './tarot-display';
 import { GHDisplay } from './gh-display';
 import { useAppContext } from '../core/context';
@@ -406,6 +407,8 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
             case 'dalle3':
                 return intl.formatMessage({ id: 'role-dalle3', defaultMessage: 'Dalle3', description: "Label that is shown above messages written by Dalle3" });        
+            case 'imagen':
+                return intl.formatMessage({ id: 'role-imagen', defaultMessage: 'Imagen', description: "Label that is shown above messages written by Imagen" });
             case 'system':
                 return intl.formatMessage({ id: 'role-system', defaultMessage: 'System', description: "Label that is shown above messages inserted into the conversation automatically by the system (as opposed to either the user or AI)" });
             default:
@@ -428,7 +431,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                             </strong>
                             {(props.message.role !== 'system' ) && props.last && !props.message.done && <InlineLoader />}
                         </span>
-                        { ( props.message.role !== 'midjourney' && props.message.role !== 'dalle3' )? <><TTSButton id={props.message.id}
+                        { ( props.message.role !== 'midjourney' && props.message.role !== 'dalle3' && props.message.role !== 'imagen')? <><TTSButton id={props.message.id}
                             selector={'.content-' + props.message.id}
                             complete={!!props.message.done}
                             autoplay={props.last && context.chat.lastReplyID === props.message.id} />
@@ -484,6 +487,7 @@ export default function MessageComponent(props: { message: Message, last: boolea
                     {!editing && props.message.role === 'tarot' &&  <TarotDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'dalle3' &&  <Dalle3Display content={props.message.content} className={"content content-" + props.message.id} />}
+                    {!editing && props.message.role === 'imagen' &&  <ImagenDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     
                     {editing && (<Editor>
                         <Textarea value={content}

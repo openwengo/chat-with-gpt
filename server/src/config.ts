@@ -66,7 +66,15 @@ export interface Config {
             apiKey?: string; // this isa copy of salaiToken
             loginRequired?: boolean;            
         }
-
+        imagen?:  {
+            generateEndpoint: string;
+            editEndpoint?: string;
+            personGeneration?: "dont_allow" | "allow_adult" | "allow_all";
+            safetySetting?: "block_most" | "block_some" | "block_few" | "block_fewest" ;
+            addWatermark?: boolean;
+            sampleCount?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 ;
+            projectId: string;       
+        }
         tarot?: {
             apiKey?: string;
             loginRequired?: boolean;

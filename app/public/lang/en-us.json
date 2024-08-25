@@ -186,6 +186,10 @@
     "defaultMessage": "GH",
     "description": "Label that is shown above messages written by the Grand Horoscope"
   },
+  "role-imagen": {
+    "defaultMessage": "Imagen",
+    "description": "Label that is shown above messages written by Imagen"
+  },
   "role-midjourney": {
     "defaultMessage": "Midjourney",
     "description": "Label that is shown above messages written by Midjourney"

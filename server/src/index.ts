@@ -21,6 +21,7 @@ import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/eleven
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices';
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
 import Dalle3RequestHandler from './endpoints/service-proxies/dall-e3/';
+import ImagenProxyRequestHandler from './endpoints/service-proxies/imagen';
 import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
 import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope/' ;
 import PresignedRequestHandler from './endpoints/presignedurl' ;
@@ -178,6 +179,11 @@ export default class ChatServer {
         if (config.services?.openai?.apiKey) {
             console.log("Create dalle3 route");
             this.app.post('/chatapi/proxies/dalle3/v1/dalle3', (req, res) => new Dalle3RequestHandler(this, req, res));
+        }
+
+        if (config.services?.imagen?.generateEndpoint) {
+            console.log("Create imagen route");
+            this.app.post('/chatapi/proxies/imagen/v1/imagen', (req, res) => new ImagenProxyRequestHandler(this, req, res));
         }
 
         if (config.services?.cubejs?.apiKey) {

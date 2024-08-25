@@ -2,6 +2,7 @@ import EventEmitter from "events";
 import { createChatCompletion, createStreamingChatCompletion } from "./openai";
 import { createStreamingMidjourneyCompletion } from "./midjourney";
 import { createStreamingDalleCompletion } from "./dalle3";
+import { createStreamingImagenCompletion } from "./imagen";
 import { createStreamingTarotCompletion } from "./tarot";
 import { createStreamingGHCompletion } from "./grandhoroscope";
 import { PluginContext } from "../plugins/plugin-context";
@@ -97,6 +98,11 @@ export class ReplyRequest extends EventEmitter {
                     ...this.mutatedParameters,
                     apiKey: this.requestedParameters.apiKey,
                 }));    
+            } else if (this.mutatedParameters.imagen ) {
+                ({ emitter, cancel } = await createStreamingImagenCompletion(this.mutatedMessages, {
+                    ...this.mutatedParameters,
+                    apiKey: this.requestedParameters.apiKey,
+                }));    
             } else if ( this.mutatedParameters.tarot) {
                 ({ emitter, cancel } = await createStreamingTarotCompletion(this.mutatedMessages, {
                     ...this.mutatedParameters,
@@ -158,7 +164,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.imagen ? 'imagen' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, false);
 
@@ -245,21 +251,6 @@ export class ReplyRequest extends EventEmitter {
         this.yChat.setPendingToolsCalls(this.replyID, this.toolCalls);
         console.log("pending tools sets to", this.toolCalls);
         return ;
-
-        this.lastChunkReceivedAt = Date.now();
-
-        this.content = value;
-
-        await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
-            const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
-                content: this.content,
-            }, this.mutatedMessages, this.mutatedParameters, false);
-
-            this.content = output.content;
-        });
-
-        this.yChat.setPendingMessageContent(this.replyID, this.content);
     }
     // private setMessageContent(content: string) {
     //     const text = this.yChat.content.get(this.replyID);

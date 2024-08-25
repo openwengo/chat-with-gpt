@@ -51,8 +51,17 @@ const slashCommands: SlashCommand[] = [
         name: "/dalle3",
         parameters: [
             {
-                name: 'Dall3',
+                name: 'Dalle3',
                 description: 'Creation image Dalle3'
+            }
+        ]
+    },
+    {
+        name: "/imagen",
+        parameters: [
+            {
+                name: 'Imagen',
+                description: 'Creation image Imagen'
             }
         ]
     }

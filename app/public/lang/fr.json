@@ -222,6 +222,10 @@
 "defaultMessage": "Vous",
 "description": "Étiquette qui est affichée au-dessus des messages écrits par l'utilisateur (par opposition à l'IA) dans les sessions de chat de l'utilisateur (à la première personne)."
 },
+"role-imagen": {
+  "defaultMessage": "Imagen",
+  "description": "Etiquette qui est affichée au-dessus des messages érits par Imagen"
+},
 "role-midjourney": {
     "defaultMessage": "Midjourney",
     "description": "Etiquette qui est affichée au-dessus des messages érits par Midjourney"

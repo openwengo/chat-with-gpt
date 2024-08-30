@@ -69,6 +69,9 @@ export default class KnexDatabaseAdapter extends Database {
             table.text('id').primary();
             table.text('user_id');
             table.dateTime('created_at');
+            table.text('prompt').nullable();
+            table.text('engine').nullable();
+            table.text('engineref').nullable();
         });
 
 
@@ -139,15 +142,34 @@ export default class KnexDatabaseAdapter extends Database {
         return true;
     }
 
-    public async createImage(userID: string | null, id: string): Promise<boolean> {
+    public async createImage(userID: string | null, id: string,prompt?: string | null, engine?: string | null, engineref?: string | null ): Promise<boolean> {        
         await this.knex(tableNames.images)
             .insert({
                 id,
                 user_id: userID,
                 created_at: new Date(),
+                prompt: prompt || null,
+                engine: engine || null,
+                engineref: engineref || null
             });
 
         return true;
+    }
+
+    public async getImagePromptByRef(engine?: string|null, engineref?: string | null): Promise<string | null> {
+        const result = await this.knex(tableNames.images)
+        .where({
+            engine: engine,
+            engineref: engineref
+        }).whereNotNull('prompt')
+        .orderBy('created_at', 'asc')
+        .first(); // Assuming you want to get the first matching record
+    
+        if (! result ) {
+            return null;
+        } else {
+            return result['prompt'];
+        }
     }
 
     public async setTitle(userID: string, chatID: string, title: string): Promise<void> {

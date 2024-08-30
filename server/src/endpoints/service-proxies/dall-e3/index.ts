@@ -86,7 +86,7 @@ export default class DalleProxyRequestHandler extends RequestHandler {
                         console.log(`update ${image.url} to ${new_image_url}`);
                         const response = await fetch(image.url);
                         const buffer = await response.buffer();
-                        await this.context.database.createImage(loggedUser, id);
+                        await this.context.database.createImage(loggedUser, id, req.body.prompt, 'dalle3');
                         await this.context.objectStore.putBinary(
                             new_image_url,
                              buffer,

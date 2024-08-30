@@ -169,7 +169,7 @@ export default class ImagenProxyRequestHandler extends RequestHandler {
                             console.log(`save image to ${newImageUrl}`);
                             const buffer = Buffer.from(imageResult.bytesBase64Encoded, 'base64');
         
-                            await this.context.database.createImage(loggedUser, id);
+                            await this.context.database.createImage(loggedUser, id, prompt, 'imagen');
         
                             // Upload to S3
                             await  this.context.objectStore.putBinary(

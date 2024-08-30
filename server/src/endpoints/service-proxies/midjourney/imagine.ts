@@ -104,7 +104,7 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                     console.log(`update ${msg.uri} to ${new_image_url}`);
                     const response = await fetch(msg.uri);
                     const buffer = await response.buffer();
-                    await context.database.createImage(loggedUser, id);
+                    await context.database.createImage( loggedUser, id, prompt, 'mj', msg.id);
                     await context.objectStore.putBinary(
                         new_image_url,
                          buffer,
@@ -159,7 +159,11 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                     console.log(`update ${msg.uri} to ${new_image_url}`);
                     const response = await fetch(msg.uri);
                     const buffer = await response.buffer();
-                    await context.database.createImage(loggedUser, id);
+
+                    const initialPrompt = await context.database.getImagePromptByRef('mj', params['id']);
+                    console.log(`found initial prompt for job ${params['id']}: ${initialPrompt}`, initialPrompt)
+                    await context.database.createImage(loggedUser, id, `${initialPrompt}\n${params['custom']}]}`, 'mj', msg.id);
+                    
                     await context.objectStore.putBinary(
                         new_image_url,
                          buffer,

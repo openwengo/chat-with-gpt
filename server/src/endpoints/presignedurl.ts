@@ -37,7 +37,7 @@ export default class PresignedRequestHandler extends RequestHandler {
         console.log(`upload url will be to ${new_image_url}`);
 
         try {
-            await this.context.database.createImage(loggedUser, 'upload_' + id);
+            await this.context.database.createImage(loggedUser, 'upload_' + id, null);
         } catch (e) {
             console.log("failed to create entry for image in database:", e);
         }

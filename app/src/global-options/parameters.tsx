@@ -29,6 +29,14 @@ export const parameterOptions: OptionGroup = {
                         value: "gpt-4o-mini",
                     },
                     {
+                        label: "GPT-4 O1 preview",
+                        value: "o1-preview",
+                    },
+                    {
+                        label: "GPT-4 O1-mini",
+                        value: "o1-mini",
+                    },
+                    {
                         label: "GPT 4 (32k)",
                         value: "openai/gpt-4-32k",
                     },

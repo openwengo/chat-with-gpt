@@ -6,10 +6,12 @@ import { backend } from "../backend";
 
 //export const defaultModel = 'gpt-3.5-turbo';
 //export const defaultModel = 'gpt-4';
-export const defaultModel = 'gpt-4o';
+//export const defaultModel = 'gpt-4o';
+export const defaultModel = 'chatgpt-4o-latest';
 
 
 export const multiModalModels = {
+    'chatgpt-4o-latest' : ['images'],
     'gpt-4o' : ['images'],
     'gpt-4-turbo' : ['images'],
     'anthropic/claude-3-haiku' : ['images'],

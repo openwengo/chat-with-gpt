@@ -21,12 +21,12 @@ export const parameterOptions: OptionGroup = {
                 label: "Model",
                 options: [
                     {
-                        label: "GPT-4 O",
-                        value: "gpt-4o",
-                    },
-                    {
                         label: "GPT-4 O Latest",
                         value: "chatgpt-4o-latest",
+                    },
+                    {
+                        label: "GPT-4 O",
+                        value: "gpt-4o",
                     },
                     {
                         label: "GPT-4 O-mini",

@@ -13,8 +13,6 @@ import { speechRecognition, supportsSpeechRecognition } from '../core/speech-rec
 import { useWhisper } from '@chengsokdara/use-whisper';
 import QuickSettings from './quick-settings';
 import { useOption } from '../core/options/use-option';
-import { TarotInput } from './tarotinput' ;
-import { GHInput } from './ghinput' ;
 import { countTokensForText } from '../core/tokenizer';
 import { backend } from '../core/backend';
 import FileUpload, { computeSHA1 } from './file-upload';
@@ -29,15 +27,6 @@ interface SlashCommand {
 }
 
 const slashCommands: SlashCommand[] = [
-    {
-        name: "/tarotouinon",
-        parameters: [
-            {
-                name: 'Tarot Oui-Non',
-                description: 'Tirage tarot Oui-Non'
-            }
-        ]
-    },
     {
         name: "/imagine",
         parameters: [
@@ -114,9 +103,7 @@ export default function MessageInput(props: MessageInputProps) {
 
     const [initialMessage, setInitialMessage] = useState('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [showDropdown, setShowDropDown] = useState(false);    
-    const [showTarotInput, setShowTarotInput] = useState(false);    
-    const [showGHInput, setShowGHInput] = useState(false);    
+    const [showDropdown, setShowDropDown] = useState(false);
 
     const [showTokens] = useOption<boolean>('parameters', 'showTokens');
     const [isUploading, setIsUploading] = useState(false);
@@ -544,54 +531,6 @@ export default function MessageInput(props: MessageInputProps) {
                 ))}
             </div>
         );
-    };
-    const renderDropdown = () => {
-        if (!showDropdown || !suggestions.length) return null ;
-        return (
-            <DropdownDiv>
-                {suggestions.map( suggestion => (
-                    <SuggestionItem
-                        key={suggestion}
-                        onClick={ () => {
-                            dispatch(setMessage(suggestion));
-                            //setMessage(suggestion);
-                            setShowDropDown(false);
-                        }}
-                    >
-                        {suggestion}
-                    </SuggestionItem>
-                ))}
-            </DropdownDiv>
-        );
-    };
-
-    const renderModeChoice = () => {
-        if ( showGHInput || showTarotInput ) return null ;
-        return (
-            <Radio.Group 
-                label=""
-                value="Normal"
-                onChange={ (value) => { if ( value == 'Tarot') { setShowTarotInput(true)}; if ( value == 'GH') { setShowGHInput(true)} }}
-                spacing={1}
-                size="xs"
-                color="blue"
-                >
-                    <Radio value="Normal" label="Normal" />
-                    <Radio value="Tarot" label="Tarot" />
-                    <Radio value="GH" label="GH" />
-                </Radio.Group>
-        )
-    }
-    const setInputFromTarot = (message) => {
-        console.log("setInputFromTarot:", message);
-        setShowTarotInput(false);
-        dispatch(setMessage(message))
-    };
-
-    const setInputFromGH = (message) => {
-        console.log("setInputFromGH:", message);
-        setShowGHInput(false);
-        dispatch(setMessage(message))
     };
 
     interface RemovableImageProps {

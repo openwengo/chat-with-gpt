@@ -8,9 +8,7 @@ import https from 'https';
 import { configureAuth0 } from './auth0';
 import { config } from './config';
 import Database from './database/index';
-import TextsDatabase from './tarotdatabase/index';
 import KnexDatabaseAdapter from './database/knex';
-import KnexTextsDatabaseAdapter from './tarotdatabase/knex';
 
 import GetShareRequestHandler from './endpoints/get-share';
 import HealthRequestHandler from './endpoints/health';
@@ -22,8 +20,6 @@ import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/ele
 import MidjourneyRequestHandler from './endpoints/service-proxies/midjourney/';
 import Dalle3RequestHandler from './endpoints/service-proxies/dall-e3/';
 import ImagenProxyRequestHandler from './endpoints/service-proxies/imagen';
-import TarotProxyRequestHandler from './endpoints/service-proxies/tarot/';
-import GHProxyRequestHandler from './endpoints/service-proxies/grandhoroscope/' ;
 import PresignedRequestHandler from './endpoints/presignedurl' ;
 
 import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai/';
@@ -57,7 +53,6 @@ export default class ChatServer {
     app: express.Application;
     objectStore: ObjectStore = process.env.S3_BUCKET ? new S3ObjectStore() : new SQLiteObjectStore();
     database: Database = new KnexDatabaseAdapter();
-    tarotdatabase: TextsDatabase = new KnexTextsDatabaseAdapter();
     fetchedTools: FetchedTools = { tools: [], toolsDefinitions:{}} ;
 
     constructor() {
@@ -88,8 +83,7 @@ export default class ChatServer {
         
         // Initialize database before auth
         await this.database.initialize();
-        await this.tarotdatabase.initialize();
-        
+
         // Initialize tools
         if ( config.tools ) {
             try {
@@ -191,14 +185,7 @@ export default class ChatServer {
             this.app.get('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
             this.app.post('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
         }
-        if (config.services?.tarot?.apiKey) {
-            console.log("Create tarot routes");
-            this.app.post('/chatapi/proxies/tarot/v1/tarot/completions', (req, res) => new TarotProxyRequestHandler(this, req, res));
-
-            console.log("Create GH routes");
-            this.app.post('/chatapi/proxies/gh/v1/gh/completions', (req, res) => new GHProxyRequestHandler(this, req, res));
-        }
-
+        
         if (fs.existsSync('public')) {
             const match = /<script>\s*window.AUTH_PROVIDER\s*=\s*"[^"]+";?\s*<\/script>/g;
             const replace = `<script>window.AUTH_PROVIDER="${this.authProvider}"</script>`;

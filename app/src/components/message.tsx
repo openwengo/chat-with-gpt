@@ -8,8 +8,6 @@ import { Markdown } from './markdown';
 import { MidjourneyDisplay } from './midjourney-display';
 import { Dalle3Display } from './dalle3-display';
 import { ImagenDisplay } from './imagen-display';
-import { TarotDisplay } from './tarot-display';
-import { GHDisplay } from './gh-display';
 import { useAppContext } from '../core/context';
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -399,10 +397,6 @@ export default function MessageComponent(props: { message: Message, last: boolea
                 break;
             case 'assistant':
                 return intl.formatMessage({ id: 'role-chatgpt', defaultMessage: 'ChatGPT', description: "Label that is shown above messages written by the AI (as opposed to the user)" });
-            case 'gh':
-                return intl.formatMessage({ id: 'role-gh', defaultMessage: 'GH', description: "Label that is shown above messages written by the Grand Horoscope" });        
-            case 'tarot':
-                return intl.formatMessage({ id: 'role-tarot', defaultMessage: 'Tarot Adviser', description: "Label that is shown above messages written by the Tarot Advisor" });    
             case 'midjourney':
                 return intl.formatMessage({ id: 'role-midjourney', defaultMessage: 'Midjourney', description: "Label that is shown above messages written by Midjourney" });    
             case 'dalle3':
@@ -483,8 +477,6 @@ export default function MessageComponent(props: { message: Message, last: boolea
                         <ToolCallComponent message={props.message} onSubmit={(message: Message) => context.onNewAssistantMessage({...message, doneWithTools:true})}/>
                         )
                     }
-                    {!editing && props.message.role === 'gh' &&  <GHDisplay content={props.message.content} className={"content content-" + props.message.id} />}
-                    {!editing && props.message.role === 'tarot' &&  <TarotDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'midjourney' &&  <MidjourneyDisplay content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'dalle3' &&  <Dalle3Display content={props.message.content} className={"content content-" + props.message.id} />}
                     {!editing && props.message.role === 'imagen' &&  <ImagenDisplay content={props.message.content} className={"content content-" + props.message.id} />}

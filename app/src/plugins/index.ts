@@ -7,8 +7,6 @@ import { ContextTrimmerPlugin } from "./trimmer";
 import { MidjourneyPlugin } from "./midjourney" ;
 import { Dalle3Plugin } from "./dalle3" ;
 import { ImagenPlugin } from "./imagen" ;
-import { TarotPlugin } from "./tarot" ;
-import { GHPlugin } from "./grandhoroscope" ;
 
 import ElevenLabsPlugin from "../tts-plugins/elevenlabs";
 import WebSpeechPlugin from "../tts-plugins/web-speech";
@@ -17,8 +15,6 @@ export const registeredPlugins: Array<typeof Plugin<any>> = [
     MidjourneyPlugin,
     Dalle3Plugin,
     ImagenPlugin,
-    TarotPlugin,
-    GHPlugin,
     SystemPromptPlugin,
     ExtendedSystemPromptPlugin,    
     TitlePlugin,    

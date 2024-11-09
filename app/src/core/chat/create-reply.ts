@@ -3,15 +3,12 @@ import { createChatCompletion, createStreamingChatCompletion } from "./openai";
 import { createStreamingMidjourneyCompletion } from "./midjourney";
 import { createStreamingDalleCompletion } from "./dalle3";
 import { createStreamingImagenCompletion } from "./imagen";
-import { createStreamingTarotCompletion } from "./tarot";
-import { createStreamingGHCompletion } from "./grandhoroscope";
 import { PluginContext } from "../plugins/plugin-context";
 import { pluginRunner } from "../plugins/plugin-runner";
 import { Chat, Message, OpenAIMessage, Parameters, ToolCall, getOpenAIMessageFromMessage } from "./types";
 import { EventEmitterAsyncIterator } from "../utils/event-emitter-async-iterator";
 import { YChat } from "./y-chat";
 import { OptionsManager } from "../options";
-import { backend } from "../backend";
 
 export class ReplyRequest extends EventEmitter {
     private mutatedMessages: OpenAIMessage[];
@@ -103,16 +100,6 @@ export class ReplyRequest extends EventEmitter {
                     ...this.mutatedParameters,
                     apiKey: this.requestedParameters.apiKey,
                 }));    
-            } else if ( this.mutatedParameters.tarot) {
-                ({ emitter, cancel } = await createStreamingTarotCompletion(this.mutatedMessages, {
-                    ...this.mutatedParameters,
-                    apiKey: this.requestedParameters.apiKey,
-                }));                
-            } else if ( this.mutatedParameters.gh) {
-                ({ emitter, cancel } = await createStreamingGHCompletion(this.mutatedMessages, {
-                    ...this.mutatedParameters,
-                    apiKey: this.requestedParameters.apiKey,
-                }));                
             } else {
                 ({ emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
                     ...this.mutatedParameters,
@@ -164,7 +151,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.imagen ? 'imagen' : this.mutatedParameters.tarot ? 'tarot' : this.mutatedParameters.gh ? 'gh' :  'assistant',
+                role: this.mutatedParameters.midjourney ? 'midjourney' : this.mutatedParameters.dalle3 ? 'dalle3' : this.mutatedParameters.imagen ? 'imagen' :  'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, false);
 
@@ -194,7 +181,7 @@ export class ReplyRequest extends EventEmitter {
 
         await pluginRunner("postprocess-model-output", this.pluginContext, async plugin => {
             const output = await plugin.postprocessModelOutput({
-                role: this.mutatedParameters.midjourney ? 'midjourney' : ( this.mutatedParameters.tarot ? 'tarot' : ( this.mutatedParameters.gh ? 'gh' : 'assistant')),
+                role: this.mutatedParameters.midjourney ? 'midjourney' : 'assistant',
                 content: this.content,
             }, this.mutatedMessages, this.mutatedParameters, true);
             this.content = output.content;

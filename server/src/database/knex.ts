@@ -73,8 +73,6 @@ export default class KnexDatabaseAdapter extends Database {
             table.text('engine').nullable();
             table.text('engineref').nullable();
         });
-
-
     }
 
     private async createTableIfNotExists(tableName: string, tableBuilderCallback: (tableBuilder: Knex.CreateTableBuilder) => any) {
@@ -122,7 +120,6 @@ export default class KnexDatabaseAdapter extends Database {
             .where('user_id', userID).select();
 
         return rows.map((row: any) => {
-            // row.data = JSON.parse(row.data);
             return row;
         });
     }
@@ -163,7 +160,7 @@ export default class KnexDatabaseAdapter extends Database {
             engineref: engineref
         }).whereNotNull('prompt')
         .orderBy('created_at', 'asc')
-        .first(); // Assuming you want to get the first matching record
+        .first(); 
     
         if (! result ) {
             return null;
@@ -217,8 +214,6 @@ export default class KnexDatabaseAdapter extends Database {
         const merged = Y.encodeStateAsUpdate(ydoc);
 
         if (updates.length) {
-            // In a transaction, insert the merged update, then delete all previous updates (lower ID).
-            // This needs to be done together in a transaction to avoid consistency errors or data loss!
             console.log(`cleanup updates for ${userID}`);
 
             await this.knex.transaction(async (trx) => {
@@ -248,5 +243,10 @@ export default class KnexDatabaseAdapter extends Database {
                 user_id: userID,
                 update: Buffer.from(update),
             });
+    }
+
+    // Public method to access the knex instance
+    public getKnexInstance(): Knex {
+        return this.knex;
     }
 }

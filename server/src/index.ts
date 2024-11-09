@@ -24,6 +24,7 @@ import PresignedRequestHandler from './endpoints/presignedurl' ;
 
 import OpenAIProxyRequestHandler, {WengoToolRequestHandler} from './endpoints/service-proxies/openai/';
 import CubeJSProxyRequestHandler from './endpoints/service-proxies/cubejs';
+import GeneratedImagesRequestHandler from './endpoints/generated-images';
 import SessionRequestHandler from './endpoints/session';
 import ShareRequestHandler from './endpoints/share';
 import ObjectStore from './object-store/index';
@@ -186,6 +187,10 @@ export default class ChatServer {
             this.app.post('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
         }
         
+
+        // Inside the ChatServer class, in the initialize method:
+        this.app.get('/chatapi/generated-images', (req, res) => new GeneratedImagesRequestHandler(this).handle(req, res));
+        
         if (fs.existsSync('public')) {
             const match = /<script>\s*window.AUTH_PROVIDER\s*=\s*"[^"]+";?\s*<\/script>/g;
             const replace = `<script>window.AUTH_PROVIDER="${this.authProvider}"</script>`;
@@ -271,3 +276,4 @@ export default class ChatServer {
 }
 
 new ChatServer().initialize();
+

@@ -11,6 +11,7 @@ import store, { persistor } from './store';
 
 import ChatPage from './components/pages/chat';
 import LandingPage from './components/pages/landing';
+import GalleryPage from './components/pages/GalleryPage'; // Import the new GalleryPage
 
 import './index.scss';
 
@@ -37,6 +38,12 @@ const router = createBrowserRouter([
         path: "/s/:id/*",
         element: <AppContextProvider>
             <ChatPage share={true} />
+        </AppContextProvider>,
+    },
+    {
+        path: "/gallery", // Add the new route for the gallery page
+        element: <AppContextProvider>
+            <GalleryPage />
         </AppContextProvider>,
     },
 ]);

@@ -21,7 +21,7 @@ const GalleryPage: React.FC = () => {
   const [engine, setEngine] = useState(searchParams.get('engine') || '');
   const [userId, setUserId] = useState(searchParams.get('user_id') || '');
   const [prompt, setPrompt] = useState(searchParams.get('prompt') || '');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null); // For modal display
+  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null); // For modal display
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -58,7 +58,7 @@ const GalleryPage: React.FC = () => {
   };
 
   return (
-    <div className="gallery-page">
+    <div className={`gallery-page ${selectedImage ? 'modal-open' : ''}`}>
       <h1>Generated Images Gallery</h1>
       <div className="filters">
         <label>
@@ -87,7 +87,7 @@ const GalleryPage: React.FC = () => {
       ) : (
         <div className="image-grid">
           {images.map((image) => (
-            <div key={image.id} className="image-item" onClick={() => setSelectedImage(baseUrl + image.id + ".png")}>
+            <div key={image.id} className="image-item" onClick={() => setSelectedImage(image)}>
               <img src={baseUrl + image.id + ".png"} alt={image.prompt} />
               <div className="image-prompt">{image.prompt.split('\n')[0]}</div> {/* Show only the first line of the prompt on hover */}
             </div>
@@ -104,7 +104,14 @@ const GalleryPage: React.FC = () => {
       {/* Modal for displaying the selected image */}
       {selectedImage && (
         <div className="modal" onClick={() => setSelectedImage(null)}>
-          <img src={selectedImage} alt="Selected" className="modal-image" />
+          <div className="modal-content">
+            <img src={baseUrl + selectedImage.id + ".png"} alt="Selected" className="modal-image" />
+            <div className="modal-details">
+              <p><strong>Prompt:</strong> {selectedImage.prompt.split('\n')[0]}</p> {/* Show only the first line */}
+              <p><strong>Engine:</strong> {selectedImage.engine}</p>
+              <p><strong>User ID:</strong> {selectedImage.user_id}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>

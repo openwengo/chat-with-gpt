@@ -4,6 +4,8 @@ import { LoadingHandler, Midjourney } from 'midjourney';
 import express from 'express';
 import { config } from '../../../config';
 import fetch from 'node-fetch';
+import { createMinifiedImage } from '../../../utils/minifyImage'; // Import the minify function
+import KnexDatabaseAdapter from '../../../database/knex'; // Import KnexDatabaseAdapter
 
 // Function to handle Server-Sent Events
 const sendSSE = (req: Request, res: Response, data: any) => {
@@ -109,8 +111,12 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                         new_image_url,
                          buffer,
                         'image/png'
-                        )
+                    );
                     msg.uri= ( config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "" ) + new_image_url;
+
+                    // Create minified version of the image
+                    const knexInstance = (context.database as KnexDatabaseAdapter).getKnexInstance();
+                    await createMinifiedImage(knexInstance, context.objectStore, id, prompt, loggedUser);
                 }
             }            
             sendSSE(req, res, msg);
@@ -124,7 +130,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             sendSSE(req, res, { uri: "", progress: `error: ${error}` });
             res.write(`data: [DONE]\n\n`);
             res.flush();            
-            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();    
         };
     }
@@ -143,7 +148,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             const msg = await midjourneyClient.Custom({
                 msgId: params['id'],
                 customId: params['custom'],
-                //content: req.body.messages[0].content, 
                 flags: Number(params['flags']),                                
                 loading: (uri: string, progress: string) => {
                     // Send updates to the client every time the callback is executed
@@ -168,8 +172,14 @@ export async function streamingHandler(req: express.Request, res: express.Respon
                         new_image_url,
                          buffer,
                         'image/png'
-                        )
+                    );
                     msg.uri= ( config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "" ) + new_image_url;
+
+                    // Create minified version of the image
+                    if (initialPrompt) {
+                        const knexInstance = (context.database as KnexDatabaseAdapter).getKnexInstance();
+                        await createMinifiedImage(knexInstance, context.objectStore, id, initialPrompt, loggedUser);
+                    }
                 }
             }               
             sendSSE(req, res, msg);
@@ -183,7 +193,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             sendSSE(req, res, { uri: "", progress: `error: ${error}` });
             res.write(`data: [DONE]\n\n`);
             res.flush();
-            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
         };
     }
@@ -214,7 +223,6 @@ export async function streamingHandler(req: express.Request, res: express.Respon
             sendSSE(req, res, { uri: "", progress: `error: ${error}` });
             res.write(`data: [DONE]\n\n`);
             res.flush();
-            //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
             res.end();
         };
     }

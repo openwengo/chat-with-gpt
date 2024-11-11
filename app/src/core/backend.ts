@@ -22,6 +22,25 @@ export interface User {
     services?: string[];
 }
 
+export interface GalleryImage {
+    id: string;
+    prompt: string;
+    engine: string;
+    user_id: string;
+}
+
+export interface GalleryResponse {
+    data: {
+        images: GalleryImage[];
+        baseUrl: string;
+    };
+}
+
+export interface UserIdsResponse {
+    success: boolean;
+    data: string[];
+}
+
 export class Backend extends EventEmitter {
     public user: User | null = null;
     public services: string[] = [];
@@ -249,7 +268,6 @@ export class Backend extends EventEmitter {
         return this.post(endpoint + '/delete', { id });
     }
 
-
     async getPresignedUploadUrl(file: File, hash: string) {
         if (!this.isAuthenticated) {
             return;
@@ -257,6 +275,14 @@ export class Backend extends EventEmitter {
 
         return this.post(endpoint + '/presignedUrl', { fileType: file.type, hash})
     }    
+
+    async getGalleryImages(params: { page: number, engine?: string, user_id?: string, prompt?: string }): Promise<GalleryResponse> {
+        return this.get(endpoint + '/gallery/generated-images?' + new URLSearchParams(params as any).toString());
+    }
+
+    async getGalleryUserIds(): Promise<UserIdsResponse> {
+        return this.get(endpoint + '/gallery/user-ids');
+    }
 
     async get(url: string) {
         const response = await fetch(url);
@@ -286,7 +312,6 @@ export class Backend extends EventEmitter {
         return response.json();
     }
 
-
     async getTools() {
         const response = await fetch(endpoint + '/tools' );
         if (response.status === 429) {
@@ -299,7 +324,6 @@ export class Backend extends EventEmitter {
     }
 
     async callTool(data: object, processCallBack: (event: string, data:any ) => void) {
-        //this.app.post('/chatapi/proxies/tools/wengo', (req, res) => new WengoToolRequestHandler(this, req, res));
         const response = await fetch(endpoint + '/proxies/tools/wengo', {
           method: 'POST',
           headers: {
@@ -312,7 +336,6 @@ export class Backend extends EventEmitter {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       
-
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
       
@@ -342,9 +365,9 @@ export class Backend extends EventEmitter {
           }
         }
         return final_answer ;
-      }
+    }
 
-      processToolEvent(event: string, data: any) {
+    processToolEvent(event: string, data: any) {
         switch (event) {
           case 'on_chain_start':
             console.log('Chain started:', data);
@@ -364,7 +387,7 @@ export class Backend extends EventEmitter {
           default:
             console.log('Unknown event:', event, data);
         }
-      }
+    }
     
     async put(url: string, contentType: string, body: any) {
         const response = await fetch(url, {
@@ -383,5 +406,4 @@ export class Backend extends EventEmitter {
         console.log("put response:", response) ;
         return response;
     }
-
 }

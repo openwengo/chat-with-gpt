@@ -3,6 +3,8 @@ import RequestHandler from "../../base";
 import { config } from '../../../config';
 import { ClientOptions, OpenAI } from 'openai';
 import fetch from 'node-fetch';
+import { createMinifiedImage } from '../../../utils/minifyImage'; // Import the minify function
+import KnexDatabaseAdapter from '../../../database/knex'; // Import KnexDatabaseAdapter
 
 export const endpoint = 'https://api.openai.com/v1/images/generations';
 
@@ -66,7 +68,8 @@ export default class DalleProxyRequestHandler extends RequestHandler {
         
             sendSSE(req, res, { 'images': images } );
         
-            try {                images = await openai.images.generate(
+            try {                
+                images = await openai.images.generate(
                     {                 
                        "prompt":  req.body.prompt, 
                        model: "dall-e-3",
@@ -91,8 +94,12 @@ export default class DalleProxyRequestHandler extends RequestHandler {
                             new_image_url,
                              buffer,
                             'image/png'
-                            )
+                        );
                         image.url= ( config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "" ) + new_image_url;
+
+                        // Create minified version of the image
+                        const knexInstance = (this.context.database as KnexDatabaseAdapter).getKnexInstance();
+                        await createMinifiedImage(knexInstance, this.context.objectStore, id, req.body.prompt, loggedUser);
                     }
                 }
                 sendSSE(req, res, { 'images': images });
@@ -109,7 +116,6 @@ export default class DalleProxyRequestHandler extends RequestHandler {
                 sendSSE(req, res, { 'images': images , 'error': `${error}` });
                 res.write(`data: [DONE]\n\n`);
                 res.flush();            
-                //res.status(500).json({ error: 'An error occurred' , uri: "", progress:"error"});
                 res.end();
                 return ;
             };

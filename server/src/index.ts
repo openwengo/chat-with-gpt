@@ -38,7 +38,6 @@ import { formatTime } from './utils';
 import morgan from 'morgan';
 import ip from 'ip';
 
-
 process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
@@ -61,9 +60,6 @@ export default class ChatServer {
     }
 
     async initialize() {
-        //const { default: helmet } = await import('helmet');
-        //this.app.use(helmet());
-
         console.log("Configuration:", config);
 
         // logs
@@ -95,7 +91,6 @@ export default class ChatServer {
         }
 
         this.app.use(express.urlencoded({ extended: false }));
-        
         
         if (config.auth0?.clientID && config.auth0?.issuer && config.publicSiteURL) {
             console.log('Configuring Auth0.');
@@ -187,10 +182,10 @@ export default class ChatServer {
             this.app.post('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
         }
         
+        // Updated gallery-related routes with /chatapi/gallery/ prefix and isProtected middleware
+        this.app.get('/chatapi/gallery/generated-images', (req, res) => new GeneratedImagesRequestHandler(this, req, res));
+        this.app.get('/chatapi/gallery/user-ids', (req, res) => new GeneratedImagesRequestHandler(this,req, res));
 
-        // Inside the ChatServer class, in the initialize method:
-        this.app.get('/chatapi/generated-images', (req, res) => new GeneratedImagesRequestHandler(this).handle(req, res));
-        
         if (fs.existsSync('public')) {
             const match = /<script>\s*window.AUTH_PROVIDER\s*=\s*"[^"]+";?\s*<\/script>/g;
             const replace = `<script>window.AUTH_PROVIDER="${this.authProvider}"</script>`;
@@ -276,4 +271,3 @@ export default class ChatServer {
 }
 
 new ChatServer().initialize();
-

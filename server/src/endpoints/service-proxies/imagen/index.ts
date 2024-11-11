@@ -3,7 +3,8 @@ import RequestHandler from "../../base";
 import { config } from '../../../config';
 import fetch from 'node-fetch';
 import { getGCPAccessToken } from '../../../gcptoken';
-
+import { createMinifiedImage } from '../../../utils/minifyImage'; // Import the minify function
+import KnexDatabaseAdapter from '../../../database/knex'; // Import KnexDatabaseAdapter
 
 // Function to handle Server-Sent Events
 const sendSSE = (req: Request, res: Response, data: any) => {
@@ -29,7 +30,6 @@ function getClosestAspectRatio(aspectRatio: string): string {
     ratios.sort((a, b) => a.diff - b.diff);
     return ratios[0].ratio;
 }
-
 
 export interface ImagenRequestParameters {
     sampleCount: number;
@@ -180,6 +180,10 @@ export default class ImagenProxyRequestHandler extends RequestHandler {
         
                             imageResult.imageUrl = (config.services?.openai?.imagesBaseUrl ? config.services.openai.imagesBaseUrl : "") + newImageUrl;
                             delete imageResult.bytesBase64Encoded;
+
+                            // Create minified version of the image
+                            const knexInstance = (this.context.database as KnexDatabaseAdapter).getKnexInstance();
+                            await createMinifiedImage(knexInstance, this.context.objectStore, id, prompt, loggedUser);
                         }
                     }    
                 }                    

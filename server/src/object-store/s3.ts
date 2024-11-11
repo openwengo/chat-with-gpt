@@ -15,13 +15,23 @@ const s3 = new S3({
 });
 
 export default class S3ObjectStore extends ObjectStore {
-    public async get(key: string) {
+    public async get(key: string): Promise<string | null> {
         const params = {
             Bucket: bucket,
             Key: key,
         };
         const data = await s3.send(new GetObjectCommand(params));
-        return await readStream(data.Body as Readable);
+        const result = await readStream(data.Body as Readable);
+        return result || null; // Ensure null is returned if no data is found
+    }
+
+    public async getBinary(key: string): Promise<Buffer> {
+        const params = {
+            Bucket: bucket,
+            Key: key,
+        };
+        const data = await s3.send(new GetObjectCommand(params));
+        return await readStreamAsBuffer(data.Body as Readable);
     }
 
     public async put(key: string, value: string, contentType: string) {
@@ -65,4 +75,12 @@ async function readStream(stream: Readable) {
         chunks.push(chunk);
     }
     return Buffer.concat(chunks).toString('utf8');
+}
+
+async function readStreamAsBuffer(stream: Readable) {
+    const chunks: any[] = [];
+    for await (const chunk of stream) {
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks); // Return the buffer directly
 }

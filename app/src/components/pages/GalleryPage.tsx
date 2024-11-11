@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import './GalleryPage.scss'; // Import the new CSS file for styling
+import { backend } from '../../core/backend';
+import './GalleryPage.scss';
 
 interface ImageData {
   id: string;
@@ -21,22 +21,38 @@ const GalleryPage: React.FC = () => {
   const [engine, setEngine] = useState(searchParams.get('engine') || '');
   const [userId, setUserId] = useState(searchParams.get('user_id') || '');
   const [prompt, setPrompt] = useState(searchParams.get('prompt') || '');
-  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null); // For modal display
+  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
+  const [userIds, setUserIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchUserIds = async () => {
+      try {
+        const response = await backend.current?.getGalleryUserIds();
+        if (response?.success) {
+          setUserIds(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching user IDs:', error);
+      }
+    };
+
+    fetchUserIds();
+  }, []);
 
   useEffect(() => {
     const fetchImages = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/chatapi/generated-images', {
-          params: {
-            page,
-            engine,
-            user_id: userId,
-            prompt,
-          },
+        const response = await backend.current?.getGalleryImages({
+          page,
+          engine,
+          user_id: userId,
+          prompt,
         });
-        setImages(response.data.data.images);
-        setBaseurl(response.data.data.baseUrl);
+        if (response) {
+          setImages(response.data.images);
+          setBaseurl(response.data.baseUrl);
+        }
       } catch (error) {
         console.error('Error fetching images:', error);
       } finally {
@@ -74,7 +90,12 @@ const GalleryPage: React.FC = () => {
         </label>
         <label>
           User ID:
-          <input value={userId} onChange={(e) => handleFilterChange(setUserId, e.target.value)} />
+          <select value={userId} onChange={(e) => handleFilterChange(setUserId, e.target.value)}>
+            <option value="">All</option>
+            {userIds.map(id => (
+              <option key={id} value={id}>{id}</option>
+            ))}
+          </select>
         </label>
         <label>
           Prompt:
@@ -88,7 +109,7 @@ const GalleryPage: React.FC = () => {
         <div className="image-grid">
           {images.map((image) => (
             <div key={image.id} className="image-item" onClick={() => setSelectedImage(image)}>
-              <img src={baseUrl + image.id + ".png"} alt={image.prompt} />
+              <img src={baseUrl + image.id + "_min.png"} alt={image.prompt} />
               <div className="image-prompt">{image.prompt.split('\n')[0]}</div> {/* Show only the first line of the prompt on hover */}
             </div>
           ))}

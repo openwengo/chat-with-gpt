@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, KeyboardEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { backend } from '../../core/backend';
+import { Page } from '../page';
+import { useAppContext } from '../../core/context';
 import './GalleryPage.scss';
 
 interface ImageData {
@@ -8,11 +10,13 @@ interface ImageData {
   prompt: string;
   engine: string;
   user_id: string;
+  hidden?: boolean;
 }
 
 const engines = ["mj", "imagen", "dalle3"]; // List of engines for the select dropdown
 
 const GalleryPage: React.FC = () => {
+  const context = useAppContext();
   const [images, setImages] = useState<ImageData[]>([]);
   const [baseUrl, setBaseurl] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -21,8 +25,10 @@ const GalleryPage: React.FC = () => {
   const [engine, setEngine] = useState(searchParams.get('engine') || '');
   const [userId, setUserId] = useState(searchParams.get('user_id') || '');
   const [prompt, setPrompt] = useState(searchParams.get('prompt') || '');
+  const [promptInput, setPromptInput] = useState(searchParams.get('prompt') || '');
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
   const [userIds, setUserIds] = useState<string[]>([]);
+  const [hideLoading, setHideLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserIds = async () => {
@@ -73,69 +79,116 @@ const GalleryPage: React.FC = () => {
     setPage(1); // Reset page to 1 when a filter changes
   };
 
-  return (
-    <div className={`gallery-page ${selectedImage ? 'modal-open' : ''}`}>
-      <h1>Generated Images Gallery</h1>
-      <div className="filters">
-        <label>
-          Engine:
-          <select value={engine} onChange={(e) => handleFilterChange(setEngine, e.target.value)}>
-            <option value="">All</option>
-            {engines.map((eng) => (
-              <option key={eng} value={eng}>
-                {eng}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          User ID:
-          <select value={userId} onChange={(e) => handleFilterChange(setUserId, e.target.value)}>
-            <option value="">All</option>
-            {userIds.map(id => (
-              <option key={id} value={id}>{id}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Prompt:
-          <input value={prompt} onChange={(e) => handleFilterChange(setPrompt, e.target.value)} />
-        </label>
-        <button onClick={() => handlePageChange(1)}>Search</button>
-      </div>
-      {loading || !images ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="image-grid">
-          {images.map((image) => (
-            <div key={image.id} className="image-item" onClick={() => setSelectedImage(image)}>
-              <img src={baseUrl + image.id + "_min.png"} alt={image.prompt} />
-              <div className="image-prompt">{image.prompt.split('\n')[0]}</div> {/* Show only the first line of the prompt on hover */}
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="pagination">
-        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
-          Previous
-        </button>
-        <button onClick={() => handlePageChange(page + 1)}>Next</button>
-      </div>
+  const handlePromptSubmit = () => {
+    setPrompt(promptInput);
+    setPage(1);
+    setSearchParams({ page: '1', engine, user_id: userId, prompt: promptInput });
+  };
 
-      {/* Modal for displaying the selected image */}
-      {selectedImage && (
-        <div className="modal" onClick={() => setSelectedImage(null)}>
-          <div className="modal-content">
-            <img src={baseUrl + selectedImage.id + ".png"} alt="Selected" className="modal-image" />
-            <div className="modal-details">
-              <p><strong>Prompt:</strong> {selectedImage.prompt.split('\n')[0]}</p> {/* Show only the first line */}
-              <p><strong>Engine:</strong> {selectedImage.engine}</p>
-              <p><strong>User ID:</strong> {selectedImage.user_id}</p>
+  const handlePromptKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handlePromptSubmit();
+    }
+  };
+
+  const handleHideImage = async (hide: boolean) => {
+    if (!selectedImage || hideLoading) return;
+
+    setHideLoading(true);
+    try {
+      await backend.current?.hideGalleryImage(selectedImage.id, hide);
+      // Update the selected image and the image in the grid
+      const updatedImage = { ...selectedImage, hidden: hide };
+      setSelectedImage(updatedImage);
+      setImages(images.map(img => 
+        img.id === selectedImage.id ? updatedImage : img
+      ));
+    } catch (error) {
+      console.error('Error updating image visibility:', error);
+    } finally {
+      setHideLoading(false);
+    }
+  };
+
+  return (
+    <Page id="gallery" isGallery={true}>
+      <div className={`gallery-page ${selectedImage ? 'modal-open' : ''}`}>
+        <div className="filters">
+          <label>
+            Engine:
+            <select value={engine} onChange={(e) => handleFilterChange(setEngine, e.target.value)}>
+              <option value="">All</option>
+              {engines.map((eng) => (
+                <option key={eng} value={eng}>
+                  {eng}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            User ID:
+            <select value={userId} onChange={(e) => handleFilterChange(setUserId, e.target.value)}>
+              <option value="">All</option>
+              {userIds.map(id => (
+                <option key={id} value={id}>{id}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Prompt:
+            <input 
+              value={promptInput} 
+              onChange={(e) => setPromptInput(e.target.value)}
+              onBlur={handlePromptSubmit}
+              onKeyDown={handlePromptKeyDown}
+              placeholder="Type and press Enter to search"
+            />
+          </label>
+        </div>
+        {loading || !images ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="image-grid">
+            {images.map((image) => (
+              <div key={image.id} className="image-item" onClick={() => setSelectedImage(image)}>
+                <img src={baseUrl + image.id + "_min.png"} alt={image.prompt} />
+                <div className="image-prompt">{image.prompt.split('\n')[0]}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="pagination">
+          <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
+            Previous
+          </button>
+          <button onClick={() => handlePageChange(page + 1)}>Next</button>
+        </div>
+
+        {selectedImage && (
+          <div className="modal" onClick={() => setSelectedImage(null)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <img src={baseUrl + selectedImage.id + ".png"} alt="Selected" className="modal-image" />
+              <div className="modal-details">
+                <p><strong>Prompt:</strong> {selectedImage.prompt.split('\n')[0]}</p>
+                <p><strong>Engine:</strong> {selectedImage.engine}</p>
+                <p><strong>User ID:</strong> {selectedImage.user_id}</p>
+                {context.user?.id === selectedImage.user_id && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedImage.hidden}
+                      onChange={(e) => handleHideImage(e.target.checked)}
+                      disabled={hideLoading}
+                    />
+                    Hide from gallery
+                  </label>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Page>
   );
 };
 

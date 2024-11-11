@@ -19,6 +19,10 @@
     "mL4Q28": {
         "defaultMessage": "Voix custom"
     },
+    "q+kH+f": {
+      "defaultMessage": "Nouveau Chat",
+      "description": "Retour en mode Chat"
+    },
     "1j61Mn": {
     "defaultMessage": "Ou créer un compte",
     "description": "Étiquette pour un bouton sur la page de connexion qui permet à l'utilisateur de créer un compte à la place"
@@ -51,6 +55,10 @@
     "8HJxXG": {
     "defaultMessage": "S'inscrire"
     },
+    "9dAYFO": {
+      "defaultMessage": "Chat Mode",
+      "description": "Retour en mode Chat"
+    },
     "Bi0lS9": {
     "defaultMessage": "Partager",
     "description": "Étiquette pour le bouton utilisé pour créer une URL de partage publique pour un journal de chat"
@@ -58,6 +66,10 @@
     "Bm3EKs": {
     "defaultMessage": "Enregistrer les modifications",
     "description": "Étiquette pour un bouton qui apparaît lorsque l'utilisateur modifie le texte de l'un de ses messages, pour enregistrer les modifications"
+    },
+    "E6VHjX": {
+      "defaultMessage": "Gallerie",
+      "description": "Passer en mode Gallerie"
     },
     "E4+fv5": {
     "defaultMessage": "Faire défiler automatiquement vers le bas de la page lors de l'ouverture d'un chat"

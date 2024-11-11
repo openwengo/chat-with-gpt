@@ -34,16 +34,16 @@
     "defaultMessage": "Loading audio...",
     "description": "Message indicating that text-to-speech audio is buffering"
   },
-  "74eGxP": {
-    "defaultMessage": "New Chat",
-    "description": "Label for the button used to start a new chat session"
-  },
   "8CYNFt": {
     "defaultMessage": "No chats yet.",
     "description": "Message shown on the Chat History screen for new users who haven't started their first chat session"
   },
   "8HJxXG": {
     "defaultMessage": "Sign up"
+  },
+  "9dAYFO": {
+    "defaultMessage": "Chat Mode",
+    "description": "Switch to Chat mode"
   },
   "Bi0lS9": {
     "defaultMessage": "Share",
@@ -52,6 +52,10 @@
   "Bm3EKs": {
     "defaultMessage": "Save changes",
     "description": "Label for a button that appears when the user is editing the text of one of their messages, to save the changes"
+  },
+  "E6VHjX": {
+    "defaultMessage": "Gallery",
+    "description": "Switch to Gallery mode"
   },
   "FEzBCd": {
     "defaultMessage": "Untitled",
@@ -170,6 +174,10 @@
   "mL4Q28": {
     "defaultMessage": "Custom Voice ID"
   },
+  "q+kH+f": {
+    "defaultMessage": "New Chat",
+    "description": "Back to Chat mode"
+  },
   "raQMIg": {
     "defaultMessage": "Cancel",
     "description": "Label for a button that appears when the user is editing the text of one of their messages, to cancel without saving changes"
@@ -182,10 +190,6 @@
     "defaultMessage": "Dalle3",
     "description": "Label that is shown above messages written by Dalle3"
   },
-  "role-gh": {
-    "defaultMessage": "GH",
-    "description": "Label that is shown above messages written by the Grand Horoscope"
-  },
   "role-imagen": {
     "defaultMessage": "Imagen",
     "description": "Label that is shown above messages written by Imagen"
@@ -197,10 +201,6 @@
   "role-system": {
     "defaultMessage": "System",
     "description": "Label that is shown above messages inserted into the conversation automatically by the system (as opposed to either the user or AI)"
-  },
-  "role-tarot": {
-    "defaultMessage": "Tarot Adviser",
-    "description": "Label that is shown above messages written by the Tarot Advisor"
   },
   "role-user": {
     "defaultMessage": "You",

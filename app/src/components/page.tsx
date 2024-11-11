@@ -7,6 +7,8 @@ import MessageInput from './input';
 import SettingsDrawer from './settings';
 import Sidebar from './sidebar';
 import AudioControls from './tts-controls';
+import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
     position: absolute;
@@ -67,29 +69,49 @@ const Main = styled.div`
     }
 `;
 
-export function Page(props: {
+export interface PageProps {
     id: string;
     headerProps?: HeaderProps;
     showSubHeader?: boolean;
     children: any;
-}) {
+    isGallery?: boolean;
+}
+
+export function Page(props: PageProps) {
     const spotlightProps = useChatSpotlightProps();
+    const navigate = useNavigate();
+    const [isGallery, setIsGallery] = useState(props.isGallery || false);
+
+    const handleToggleGallery = useCallback(() => {
+        if (isGallery) {
+            navigate('/');
+        } else {
+            navigate('/gallery');
+        }
+    }, [isGallery, navigate]);
+
+    const headerProps: HeaderProps = {
+        ...props.headerProps,
+        isGallery,
+        onToggleGallery: handleToggleGallery,
+    };
 
     return <SpotlightProvider {...spotlightProps}>
         <Container>
             <Sidebar />
             <Main key={props.id}>
-                <Header share={props.headerProps?.share}
-                    canShare={props.headerProps?.canShare}
-                    title={props.headerProps?.title}
-                    onShare={props.headerProps?.onShare} />
+                <Header {...headerProps} />
                 {props.showSubHeader && <SubHeader />}
                 {props.children}
-                <AudioControls />
-                <MessageInput key={localStorage.getItem('openai-api-key')} />
-                <SettingsDrawer />
-                <LoginModal />
-                <CreateAccountModal />
+                {!isGallery && (
+                    <>
+                        <AudioControls />
+                        <MessageInput key={localStorage.getItem('openai-api-key')} />
+                        <SettingsDrawer />
+                        <LoginModal />
+                        <CreateAccountModal />
+                    </>
+                )}
             </Main>
         </Container>
     </SpotlightProvider>;

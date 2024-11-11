@@ -27,6 +27,7 @@ export interface GalleryImage {
     prompt: string;
     engine: string;
     user_id: string;
+    hidden?: boolean;
 }
 
 export interface GalleryResponse {
@@ -284,126 +285,131 @@ export class Backend extends EventEmitter {
         return this.get(endpoint + '/gallery/user-ids');
     }
 
-    async get(url: string) {
-        const response = await fetch(url);
-        if (response.status === 429) {
-            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
-        }
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
-        return response.json();
+    async hideGalleryImage(imageId: string, hide: boolean): Promise<void> {
+        return this.post(endpoint + '/gallery/hide-image', { imageId, hide });    
     }
 
-    async post(url: string, data: any) {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
+        async get(url: string) {
+            const response = await fetch(url);
+            if (response.status === 429) {
+                this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+            }
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        }
+    
+        async post(url: string, data: any) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if (response.status === 429) {
+                this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+            }
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        }
+    
+        async getTools() {
+            const response = await fetch(endpoint + '/tools' );
+            if (response.status === 429) {
+                this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+            }
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        }
+    
+        async callTool(data: object, processCallBack: (event: string, data:any ) => void) {
+            const response = await fetch(endpoint + '/proxies/tools/wengo', {
+              method: 'POST',
+              headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
-        if (response.status === 429) {
-            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
-        }
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
-        return response.json();
-    }
-
-    async getTools() {
-        const response = await fetch(endpoint + '/tools' );
-        if (response.status === 429) {
-            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
-        }
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
-        return response.json();
-    }
-
-    async callTool(data: object, processCallBack: (event: string, data:any ) => void) {
-        const response = await fetch(endpoint + '/proxies/tools/wengo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-      
-        if (!response.ok || response === null || response?.body === null) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-      
-        let buffer = '';
-      
-        let final_answer = 'The request did not process successfully';
-        while (true) {
-          const { done, value } = await reader.read();
-      
-          const decodedValue = decoder.decode(value);
-          console.log("wengo tool:", done, decodedValue);
-          if (done) {
-            break;
-          }
-      
-          buffer += decodedValue;
+              },
+              body: JSON.stringify(data),
+            });
           
-          try {
-              const { event, data } = JSON.parse(decodedValue);              
-              this.processToolEvent(event, data);
-              processCallBack(event, data);
-              if (event === 'on_chain_end') {
-                final_answer = JSON.stringify(data) ;
+            if (!response.ok || response === null || response?.body === null) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+          
+            let buffer = '';
+          
+            let final_answer = 'The request did not process successfully';
+            while (true) {
+              const { done, value } = await reader.read();
+          
+              const decodedValue = decoder.decode(value);
+              console.log("wengo tool:", done, decodedValue);
+              if (done) {
+                break;
               }
-          } catch (e)  {
-                console.log("Error occured:", e);
-          }
+          
+              buffer += decodedValue;
+              
+              try {
+                  const { event, data } = JSON.parse(decodedValue);              
+                  this.processToolEvent(event, data);
+                  processCallBack(event, data);
+                  if (event === 'on_chain_end') {
+                    final_answer = JSON.stringify(data) ;
+                  }
+              } catch (e)  {
+                    console.log("Error occured:", e);
+              }
+            }
+            return final_answer ;
         }
-        return final_answer ;
-    }
-
-    processToolEvent(event: string, data: any) {
-        switch (event) {
-          case 'on_chain_start':
-            console.log('Chain started:', data);
-            break;
-          case 'on_tool_start':
-            console.log('Tool started:', data);
-            break;
-          case 'on_tool_end':
-            console.log('Tool ended:', data);
-            break;
-          case 'on_chat_model_stream':
-            console.log('Chat model stream:', data);
-            break;
-          case 'on_chain_end':
-            console.log('Chain ended:', data);
-            break;
-          default:
-            console.log('Unknown event:', event, data);
+    
+        processToolEvent(event: string, data: any) {
+            switch (event) {
+              case 'on_chain_start':
+                console.log('Chain started:', data);
+                break;
+              case 'on_tool_start':
+                console.log('Tool started:', data);
+                break;
+              case 'on_tool_end':
+                console.log('Tool ended:', data);
+                break;
+              case 'on_chat_model_stream':
+                console.log('Chat model stream:', data);
+                break;
+              case 'on_chain_end':
+                console.log('Chain ended:', data);
+                break;
+              default:
+                console.log('Unknown event:', event, data);
+            }
+        }
+        
+        async put(url: string, contentType: string, body: any) {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': contentType,
+                },
+                body: body,
+            });
+            if (response.status === 429) {
+                this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
+            }
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            console.log("put response:", response) ;
+            return response;
         }
     }
     
-    async put(url: string, contentType: string, body: any) {
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': contentType,
-            },
-            body: body,
-        });
-        if (response.status === 429) {
-            this.rateLimitedUntil = getRateLimitResetTimeFromResponse(response);
-        }
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
-        console.log("put response:", response) ;
-        return response;
-    }
-}

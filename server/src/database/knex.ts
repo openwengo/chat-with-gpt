@@ -72,6 +72,7 @@ export default class KnexDatabaseAdapter extends Database {
             table.text('prompt').nullable();
             table.text('engine').nullable();
             table.text('engineref').nullable();
+            table.boolean('hidden').nullable();
         });
     }
 

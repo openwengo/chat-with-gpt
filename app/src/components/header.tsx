@@ -139,6 +139,8 @@ export interface HeaderProps {
     onShare?: () => void;
     share?: boolean;
     canShare?: boolean;
+    isGallery?: boolean;
+    onToggleGallery?: () => void;
 }
 
 export default function Header(props: HeaderProps) {
@@ -216,12 +218,32 @@ export default function Header(props: HeaderProps) {
                         }} />
                 </HeaderButton>
             )}
-            <HeaderButton icon="plus" onClick={onNewChat} loading={loading} variant="light">
-                <FormattedMessage defaultMessage="New Chat" description="Label for the button used to start a new chat session" />
+            <HeaderButton 
+                icon={props.isGallery ? "comments" : "images"} 
+                onClick={props.onToggleGallery} 
+                variant="subtle"
+            >
+                {props.isGallery ? (
+                    <FormattedMessage 
+                        defaultMessage="Chat Mode" 
+                        description="Switch to Chat mode" 
+                    />
+                ) : (
+                    <FormattedMessage 
+                        defaultMessage="Gallery" 
+                        description="Switch to Gallery mode" 
+                    />
+                )}
             </HeaderButton>
+            {!props.isGallery && (
+                <HeaderButton icon="plus" onClick={onNewChat} loading={loading} variant="light">
+                    <FormattedMessage defaultMessage="New Chat" description="Back to Chat mode" />
+                </HeaderButton>
+            )}
         </HeaderContainer>
-    </>), [sidebarOpen, onBurgerClick, props.title, props.share, props.canShare, props.onShare, openSettings, onNewChat, 
-        loading, context.authenticated, context.sessionExpired, context.isHome, context.isShare, spotlight.openSpotlight, signIn, signUp]);
+    </>), [sidebarOpen, onBurgerClick, props.title, props.share, props.canShare, props.onShare, props.isGallery, props.onToggleGallery,
+        openSettings, onNewChat, loading, context.authenticated, context.sessionExpired, context.isHome, context.isShare, 
+        spotlight.openSpotlight, signIn, signUp]);
 
     return header;
 }

@@ -182,9 +182,10 @@ export default class ChatServer {
             this.app.post('/chatapi/proxies/cubejs/v1/cubejs/*', (req,res) => new CubeJSProxyRequestHandler(this, req, res));
         }
         
-        // Updated gallery-related routes with /chatapi/gallery/ prefix and isProtected middleware
+        // Gallery-related routes with /chatapi/gallery/ prefix
         this.app.get('/chatapi/gallery/generated-images', (req, res) => new GeneratedImagesRequestHandler(this, req, res));
-        this.app.get('/chatapi/gallery/user-ids', (req, res) => new GeneratedImagesRequestHandler(this,req, res));
+        this.app.get('/chatapi/gallery/user-ids', (req, res) => new GeneratedImagesRequestHandler(this, req, res));
+        this.app.post('/chatapi/gallery/hide-image', (req, res) => new GeneratedImagesRequestHandler(this, req, res));
 
         if (fs.existsSync('public')) {
             const match = /<script>\s*window.AUTH_PROVIDER\s*=\s*"[^"]+";?\s*<\/script>/g;

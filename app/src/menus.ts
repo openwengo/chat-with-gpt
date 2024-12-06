@@ -6,6 +6,11 @@ export interface MenuItem {
 
 export const secondaryMenu: MenuItem[] = [
     {
+        label: "Image Generation",
+        link: "/imagen",
+        icon: "image",
+    },
+    {
         label: "Discord",
         link: "https://discord.gg/mS5QvKykvv",
         icon: "discord fab",

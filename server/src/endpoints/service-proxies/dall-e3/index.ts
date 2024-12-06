@@ -3,8 +3,8 @@ import RequestHandler from "../../base";
 import { config } from '../../../config';
 import { ClientOptions, OpenAI } from 'openai';
 import fetch from 'node-fetch';
-import { createMinifiedImage } from '../../../utils/minifyImage'; // Import the minify function
-import KnexDatabaseAdapter from '../../../database/knex'; // Import KnexDatabaseAdapter
+import { createMinifiedImage } from '../../../utils/minifyImage';
+import KnexDatabaseAdapter from '../../../database/knex';
 
 export const endpoint = 'https://api.openai.com/v1/images/generations';
 

@@ -11,7 +11,8 @@ import store, { persistor } from './store';
 
 import ChatPage from './components/pages/chat';
 import LandingPage from './components/pages/landing';
-import GalleryPage from './components/pages/GalleryPage'; // Import the new GalleryPage
+import GalleryPage from './components/pages/GalleryPage';
+import ImageGenPage from './components/pages/ImageGenPage';
 
 import './index.scss';
 
@@ -41,9 +42,15 @@ const router = createBrowserRouter([
         </AppContextProvider>,
     },
     {
-        path: "/gallery", // Add the new route for the gallery page
+        path: "/gallery",
         element: <AppContextProvider>
             <GalleryPage />
+        </AppContextProvider>,
+    },
+    {
+        path: "/imagen",
+        element: <AppContextProvider>
+            <ImageGenPage />
         </AppContextProvider>,
     },
 ]);
